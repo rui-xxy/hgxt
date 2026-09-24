@@ -27,6 +27,13 @@
 2. `PrismaClient` 需要显式传入驱动适配器：`new PrismaClient({ adapter: new PrismaPg({ connectionString }) })`（`@prisma/adapter-pg`）。
 3. 生成的客户端在 `apps/api/src/generated/prisma/client`（该目录被 gitignore，靠 `pnpm db:generate` 重建）。
 
+## packages/shared 必须是 ESM（踩过的坑）
+
+shared 若编译成 CommonJS，Vite dev（原生 ESM 加载）无法从 CJS 产物中静态识别命名导出，
+浏览器直接白屏（`does not provide an export named 'Role'`）——而 `vite build` 会自己做互操作转换，
+所以**构建能过但 dev 白屏**，极具迷惑性。因此 shared 固定为 `"type": "module"` + `module: ES2022` 输出；
+NestJS 侧的 CJS `require` 加载 ESM 由 Node ≥22.12/24 原生支持（本项目 engines 已锁 Node ≥24）。
+
 ## 认证设计
 
 - **Access Token**：JWT，15 分钟，payload `{sub, username, role}`。每个请求守卫都会回查数据库确认用户仍为 ACTIVE——「禁用」即时生效，不等 token 过期。
