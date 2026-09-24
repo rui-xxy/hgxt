@@ -1,0 +1,21 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# 环境变量（.env.example 进库，.env 不进）
+.env
+.env.local
+
+# Prisma 生成的客户端（由 db:generate 重新生成）
+apps/api/src/generated/
+
+# Vite
+apps/admin/.vite/
+
+# 日志与杂项
+*.log
+.DS_Store
+Thumbs.db
+
+# ZCode 本地会话文件
+.zcode/

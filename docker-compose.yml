@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: hgxt-postgres
+    restart: unless-stopped
+    environment:
+      # 与 apps/api/.env 的 DATABASE_URL 保持一致
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hgxt
+    ports:
+      # 宿主机 5432 已被其他项目（hgbord-postgres）占用，本项目用 5433
+      - "5433:5432"
+    volumes:
+      # postgres:18 建议挂父目录（数据在 data 子目录，便于将来 pg_upgrade）
+      - hgxt-pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hgxt"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  hgxt-pgdata:

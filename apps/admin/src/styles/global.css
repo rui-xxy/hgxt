@@ -1,0 +1,36 @@
+/**
+ * DESIGN.md 定义的 UI 字号刻度，以 CSS 变量落地。
+ * 自定义 CSS（非 AntD 组件部分）只允许引用这些变量，禁止任意 px 字号。
+ * AntD cssVar 模式同时提供 --ant-* 变量（背景、文本、边框等语义色）。
+ */
+:root {
+  --ui-font-size: 14px;
+  --ui-font-size-xl: 18px; /* text-ui-xl：一级标题 */
+  --ui-font-size-lg: 16px; /* text-ui-lg：二级标题 */
+  --ui-font-size-base: 14px; /* text-ui-base：正文/默认 UI 文本 */
+  --ui-font-size-caption: 13px; /* text-ui-caption：紧凑辅助文本 */
+  --ui-font-size-sm: 12px; /* text-ui-sm：次级信息/帮助文本 */
+  --ui-font-size-xs: 10px; /* text-ui-xs：徽标级极弱元数据（一般 UI 用 sm 起） */
+
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+    'Liberation Mono', monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-size: var(--ui-font-size-base);
+  background-color: var(--ant-color-bg-layout);
+  color: var(--ant-color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 标识符、技术值用等宽字体（DESIGN.md Typography: UI Mono） */
+.mono {
+  font-family: var(--font-mono);
+}

@@ -1,0 +1,25 @@
+{
+  "name": "hgxt",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "prisma",
+      "esbuild"
+    ]
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @hgxt/api --filter @hgxt/admin dev",
+    "dev:api": "pnpm --filter @hgxt/api dev",
+    "dev:admin": "pnpm --filter @hgxt/admin dev",
+    "build": "pnpm -r build",
+    "db:generate": "pnpm --filter @hgxt/api db:generate",
+    "db:migrate": "pnpm --filter @hgxt/api db:migrate",
+    "db:seed": "pnpm --filter @hgxt/api db:seed"
+  }
+}

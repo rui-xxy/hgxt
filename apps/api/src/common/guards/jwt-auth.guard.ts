@@ -1,0 +1,59 @@
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { JwtService } from '@nestjs/jwt';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import type { AuthUser } from '../decorators/current-user.decorator';
+import { PrismaService } from '../../database/prisma.service';
+
+/**
+ * 全局 JWT 守卫：校验 Bearer Access Token，并核对用户当前状态，
+ * 保证「禁用用户」立即失效，而不是等 15 分钟后 Access Token 过期。
+ */
+@Injectable()
+export class JwtAuthGuard implements CanActivate {
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) return true;
+
+    const request = context.switchToHttp().getRequest();
+    const token = this.extractBearerToken(request.headers?.authorization);
+    if (!token) throw new UnauthorizedException('未登录');
+
+    let payload: { sub: string };
+    try {
+      payload = await this.jwtService.verifyAsync<{ sub: string }>(token);
+    } catch {
+      throw new UnauthorizedException('登录已过期，请重新登录');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, username: true, name: true, role: true, status: true },
+    });
+    if (!user || user.status !== 'ACTIVE') {
+      throw new UnauthorizedException('账号不可用');
+    }
+
+    request.user = {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      role: user.role,
+    } satisfies AuthUser;
+    return true;
+  }
+
+  private extractBearerToken(authorization?: string): string | null {
+    if (!authorization?.startsWith('Bearer ')) return null;
+    return authorization.slice('Bearer '.length).trim() || null;
+  }
+}

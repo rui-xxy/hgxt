@@ -1,0 +1,49 @@
+// HGXT 数据库模型 —— V1 只有用户与会话两张表。
+// 刻意不做 RBAC 五表、软删除、部门等，等真实业务出现再演进（见 docs/architecture.md）。
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPER_ADMIN
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+model User {
+  id            String         @id @default(uuid())
+  username      String         @unique
+  name          String
+  email         String?        @unique
+  phone         String?
+  passwordHash  String
+  role          Role           @default(USER)
+  status        UserStatus     @default(ACTIVE)
+  lastLoginAt   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  refreshTokens RefreshToken[]
+}
+
+/// Refresh Token 只存 sha256 哈希；轮换 = 旧的标记 revokedAt、写入新行。
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
