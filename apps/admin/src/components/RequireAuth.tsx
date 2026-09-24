@@ -18,7 +18,7 @@ function AuthGate() {
 
   if (me.isPending) {
     return (
-      <div style={{ height: '100%', display: 'grid', placeItems: 'center' }}>
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
         <Spin size="large" />
       </div>
     );

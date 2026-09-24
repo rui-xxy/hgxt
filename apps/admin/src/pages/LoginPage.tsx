@@ -40,10 +40,9 @@ export function LoginPage() {
   return (
     <div
       style={{
-        height: '100%',
+        minHeight: '100vh',
         display: 'grid',
         placeItems: 'center',
-        backgroundColor: 'var(--ant-color-bg-layout)',
       }}
     >
       <div

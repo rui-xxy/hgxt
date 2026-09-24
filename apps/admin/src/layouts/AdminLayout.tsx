@@ -38,7 +38,9 @@ export function AdminLayout() {
   ];
 
   return (
-    <Layout style={{ height: '100%' }}>
+    // minHeight 而不是 height:100%：<App> 会包一层无高度的 div.ant-app，
+    // 百分比高度会在那里断链退化成内容高度
+    <Layout style={{ minHeight: '100vh' }}>
       <Sider width={208} style={{ borderRight: '1px solid var(--ant-color-border-secondary)' }}>
         <div
           style={{

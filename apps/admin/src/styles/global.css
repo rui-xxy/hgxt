@@ -25,9 +25,16 @@ body,
 body {
   margin: 0;
   font-size: var(--ui-font-size-base);
-  background-color: var(--ant-color-bg-layout);
-  color: var(--ant-color-text);
+  /* antd 的 --ant-* 变量只挂在组件作用域类（.hgxt）上，body 引用不到；
+     这里只做 overscroll 兜底，页面主背景由 Layout(min-height:100vh) 承担 */
+  background-color: #f5f6f8;
   -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #0a0a0a;
+  }
 }
 
 /* 标识符、技术值用等宽字体（DESIGN.md Typography: UI Mono） */

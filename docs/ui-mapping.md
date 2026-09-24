@@ -66,7 +66,8 @@
 
 - `apps/admin/src/theme/tokens.ts`：light/dark 两套 `ThemeConfig`（唯一允许出现原始色值/尺寸的地方）。
 - `apps/admin/src/theme/ThemeProvider.tsx`：模式切换（light/dark/system，localStorage `hgxt:theme-mode` 持久化），AntD `cssVar: { key: 'hgxt' }` 模式——CSS 变量名稳定，全局 CSS 直接用 `var(--ant-*)`。
-- 自定义 CSS（非 AntD 组件部分）引用 `var(--ui-font-size-*)` 与 `var(--ant-*)`，不写裸值。
+- **`--ant-*` 变量作用域警告**：变量只挂在 antd 组件的作用域类（`.hgxt`）上，`html`/`body` 等组件树之外的元素**引用不到**。因此页面根布局一律用 `minHeight: 100vh` 的 Layout 承担主背景（不要用 `height: 100%`——AntD `<App>` 会包一层无高度的 div 使百分比断链）；body 上只放静态兜底色（浅 #f5f6f8 / 深 #0a0a0a 随系统偏好）。
+- 自定义 CSS（非 AntD 组件部分）引用 `var(--ui-font-size-*)`，不写裸值。
 
 ## 组件约定
 
