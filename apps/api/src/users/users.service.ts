@@ -11,12 +11,22 @@ import type {
   UserPageQuery,
   UserPageResult,
   UserStatus,
+  Role,
 } from '@hgxt/shared';
 import { PrismaService } from '../database/prisma.service';
+import type { Prisma } from '../generated/prisma/client';
 import { hashPassword } from '../common/utils/argon';
 import { isRecordNotFound, isUniqueViolation } from '../common/utils/prisma-errors';
 import { toUserDTO } from './user.mapper';
-import type { Prisma } from '../generated/prisma/client';
+
+/** E2：用户名与邮箱统一小写存储，唯一性与登录都不区分大小写 */
+function normalizeUsername(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function normalizeEmail(value: string): string {
+  return value.trim().toLowerCase();
+}
 
 @Injectable()
 export class UsersService {
@@ -58,14 +68,15 @@ export class UsersService {
   }
 
   async create(dto: CreateUserBody): Promise<UserDTO> {
+    // Argon2 哈希是 CPU 密集操作，在事务外完成（A3：不占事务时长）
     const passwordHash = await hashPassword(dto.password);
     try {
       const user = await this.prisma.user.create({
         data: {
-          username: dto.username,
-          name: dto.name,
-          email: dto.email || null,
-          phone: dto.phone || null,
+          username: normalizeUsername(dto.username),
+          name: dto.name.trim(),
+          email: dto.email ? normalizeEmail(dto.email) : null,
+          phone: dto.phone?.trim() || null,
           passwordHash,
           role: dto.role,
         },
@@ -73,7 +84,7 @@ export class UsersService {
       return toUserDTO(user);
     } catch (error) {
       if (isUniqueViolation(error)) {
-        throw new ConflictException('用户名或邮箱已被占用');
+        throw new ConflictException('用户名或邮箱已被占用（不区分大小写）');
       }
       throw error;
     }
@@ -81,20 +92,27 @@ export class UsersService {
 
   async update(id: string, dto: UpdateUserBody): Promise<UserDTO> {
     try {
-      const user = await this.prisma.user.update({
-        where: { id },
-        data: {
-          ...(dto.name !== undefined && { name: dto.name }),
-          // 空字符串表示清空可选字段
-          ...(dto.email !== undefined && { email: dto.email || null }),
-          ...(dto.phone !== undefined && { phone: dto.phone || null }),
-          ...(dto.role !== undefined && { role: dto.role }),
-        },
+      // A4：降级最后一个管理员的检查必须与写入同事务
+      return await this.prisma.$transaction(async (tx) => {
+        await assertNotLastActiveSuperAdmin(tx, id, { role: dto.role });
+        const user = await tx.user.update({
+          where: { id },
+          data: {
+            ...(dto.name !== undefined && { name: dto.name.trim() }),
+            // E3 语义：undefined = 不修改；null = 清空；string = 设置值
+            ...(dto.email !== undefined && {
+              email: dto.email === null ? null : normalizeEmail(dto.email),
+            }),
+            ...(dto.phone !== undefined && { phone: dto.phone === null ? null : dto.phone.trim() }),
+            ...(dto.role !== undefined && { role: dto.role }),
+          },
+        });
+        return toUserDTO(user);
       });
-      return toUserDTO(user);
     } catch (error) {
+      if (error instanceof BadRequestException) throw error;
       if (isRecordNotFound(error)) throw new NotFoundException('用户不存在');
-      if (isUniqueViolation(error)) throw new ConflictException('邮箱已被占用');
+      if (isUniqueViolation(error)) throw new ConflictException('邮箱已被占用（不区分大小写）');
       throw error;
     }
   }
@@ -105,16 +123,20 @@ export class UsersService {
     }
 
     try {
-      const user = await this.prisma.user.update({ where: { id }, data: { status } });
-      if (status === 'DISABLED') {
-        // 禁用后立即踢下线：吊销该用户全部会话
-        await this.prisma.refreshToken.updateMany({
-          where: { userId: id, revokedAt: null },
-          data: { revokedAt: new Date() },
-        });
-      }
-      return toUserDTO(user);
+      // A3：禁用 + 踢下线必须同事务；A4：不能禁用最后一个管理员
+      return await this.prisma.$transaction(async (tx) => {
+        await assertNotLastActiveSuperAdmin(tx, id, { status });
+        const user = await tx.user.update({ where: { id }, data: { status } });
+        if (status === 'DISABLED') {
+          await tx.refreshToken.updateMany({
+            where: { userId: id, revokedAt: null },
+            data: { revokedAt: new Date() },
+          });
+        }
+        return toUserDTO(user);
+      });
     } catch (error) {
+      if (error instanceof BadRequestException) throw error;
       if (isRecordNotFound(error)) throw new NotFoundException('用户不存在');
       throw error;
     }
@@ -123,16 +145,53 @@ export class UsersService {
   async resetPassword(id: string, newPassword: string): Promise<UserDTO> {
     const passwordHash = await hashPassword(newPassword);
     try {
-      const user = await this.prisma.user.update({ where: { id }, data: { passwordHash } });
-      // 密码重置后旧会话全部失效
-      await this.prisma.refreshToken.updateMany({
-        where: { userId: id, revokedAt: null },
-        data: { revokedAt: new Date() },
+      // A2 + A3：改哈希、authVersion+1、吊销全部会话，一个事务内完成，
+      // 任一步失败全部回滚，不存在「密码改了但会话还在」的半成功状态
+      return await this.prisma.$transaction(async (tx) => {
+        const user = await tx.user.update({
+          where: { id },
+          data: { passwordHash, authVersion: { increment: 1 } },
+        });
+        await tx.refreshToken.updateMany({
+          where: { userId: id, revokedAt: null },
+          data: { revokedAt: new Date() },
+        });
+        return toUserDTO(user);
       });
-      return toUserDTO(user);
     } catch (error) {
       if (isRecordNotFound(error)) throw new NotFoundException('用户不存在');
       throw error;
     }
+  }
+}
+
+/**
+ * A4 系统级不变量：任何时刻 ACTIVE SUPER_ADMIN ≥ 1。
+ *
+ * 注意普通事务（READ COMMITTED）下「先 count 再写入」存在竞态：
+ * 两个管理员并发互改时可能都读到「还剩 1 个」而双双放行。
+ * 因此先 `SELECT ... FOR UPDATE` 锁住全部在岗管理员行再计数——
+ * 并发操作会在锁上串行化，后到者必然看到前者的修改结果。
+ */
+async function assertNotLastActiveSuperAdmin(
+  tx: Prisma.TransactionClient,
+  targetId: string,
+  next: { role?: Role; status?: UserStatus },
+): Promise<void> {
+  const target = await tx.user.findUnique({ where: { id: targetId } });
+  if (!target) throw new NotFoundException('用户不存在');
+
+  const losesAdmin =
+    (next.role !== undefined && target.role === 'SUPER_ADMIN' && next.role !== 'SUPER_ADMIN') ||
+    (next.status === 'DISABLED' && target.role === 'SUPER_ADMIN');
+  if (!losesAdmin) return;
+
+  await tx.$executeRaw`SELECT "id" FROM "User" WHERE "role" = 'SUPER_ADMIN' AND "status" = 'ACTIVE' FOR UPDATE`;
+
+  const remaining = await tx.user.count({
+    where: { role: 'SUPER_ADMIN', status: 'ACTIVE', id: { not: targetId } },
+  });
+  if (remaining === 0) {
+    throw new BadRequestException('系统至少需要保留一个启用状态的管理员');
   }
 }

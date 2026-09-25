@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/c
 import { JwtService } from '@nestjs/jwt';
 import type { LoginResponse, RefreshResponse, UserDTO } from '@hgxt/shared';
 import { PrismaService } from '../database/prisma.service';
+import type { Prisma } from '../generated/prisma/client';
 import { verifyPassword } from '../common/utils/argon';
 import { generateRefreshToken, sha256Hex } from '../common/utils/tokens';
 import { toUserDTO } from '../users/user.mapper';
@@ -9,6 +10,13 @@ import type { User } from '../generated/prisma/client';
 
 const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * A1 复用检测宽限期：同一 Refresh Token 在撤销后短时间内再次出现，
+ * 更可能是并发竞争的「输家」（多标签页）而非泄露。宽限期内只拒绝、
+ * 不连坐吊销；超过宽限期的复用视为疑似泄露，吊销该用户全部会话。
+ */
+export const REUSE_GRACE_MS = 30_000;
 
 @Injectable()
 export class AuthService {
@@ -23,7 +31,8 @@ export class AuthService {
       where: { expiresAt: { lt: new Date() } },
     });
 
-    const user = await this.prisma.user.findUnique({ where: { username } });
+    // E2：用户名统一小写，登录不区分大小写
+    const user = await this.prisma.user.findUnique({ where: { username: username.toLowerCase() } });
     // 用户不存在与密码错误返回同一句话，避免账号枚举
     if (!user) throw new UnauthorizedException('用户名或密码错误');
     if (user.status !== 'ACTIVE') {
@@ -42,37 +51,57 @@ export class AuthService {
     return { ...tokens, user: toUserDTO(user) };
   }
 
+  /**
+   * A1：轮换的原子性由「条件更新抢占」保证——
+   * `WHERE tokenHash = ? AND revokedAt IS NULL` 的 UPDATE 只有一个并发请求能改到 1 行，
+   * 抢到刷新权的请求在同一事务内写入新 Token；没抢到的请求直接拒绝。
+   * 不依赖前端单飞，多标签页并发也只有一个成功。
+   */
   async refresh(refreshToken: string): Promise<RefreshResponse> {
     const tokenHash = sha256Hex(refreshToken);
-    const row = await this.prisma.refreshToken.findUnique({
-      where: { tokenHash },
-      include: { user: true },
-    });
-    if (!row) throw new UnauthorizedException('登录状态已失效，请重新登录');
+    const now = new Date();
 
-    if (row.revokedAt) {
-      // 已作废的 token 再次出现：可能被窃取复用，吊销该用户全部会话
-      await this.prisma.refreshToken.updateMany({
-        where: { userId: row.userId, revokedAt: null },
-        data: { revokedAt: new Date() },
+    const claimed = await this.prisma.$transaction(async (tx) => {
+      const result = await tx.refreshToken.updateMany({
+        where: { tokenHash, revokedAt: null, expiresAt: { gt: now } },
+        data: { revokedAt: now },
       });
-      throw new UnauthorizedException('登录状态异常，请重新登录');
+      if (result.count !== 1) return null;
+      return tx.refreshToken.findUnique({ where: { tokenHash }, include: { user: true } });
+    });
+
+    if (!claimed) {
+      return this.rejectStaleToken(tokenHash, now);
     }
 
-    if (row.expiresAt.getTime() <= Date.now()) {
-      throw new UnauthorizedException('登录已过期，请重新登录');
-    }
-    if (row.user.status !== 'ACTIVE') {
+    if (claimed.user.status !== 'ACTIVE') {
       throw new ForbiddenException('账号已被禁用，请联系管理员');
     }
 
-    // 轮换：旧的作废、发新的
-    await this.prisma.refreshToken.update({
-      where: { id: row.id },
-      data: { revokedAt: new Date() },
-    });
-    const tokens = await this.issueTokens(row.user);
-    return { ...tokens, user: toUserDTO(row.user) };
+    const tokens = await this.issueTokens(claimed.user);
+    return { ...tokens, user: toUserDTO(claimed.user) };
+  }
+
+  /** 抢占失败后的分类处理：不存在 / 过期 / 并发输家 / 疑似泄露 */
+  private async rejectStaleToken(tokenHash: string, now: Date): Promise<never> {
+    const existing = await this.prisma.refreshToken.findUnique({ where: { tokenHash } });
+    if (!existing) {
+      throw new UnauthorizedException('登录状态已失效，请重新登录');
+    }
+    if (existing.revokedAt) {
+      const revokedAgo = now.getTime() - existing.revokedAt.getTime();
+      if (revokedAgo > REUSE_GRACE_MS) {
+        // 撤销很久之后仍被复用：疑似 Token 泄露，吊销该用户全部会话
+        await this.prisma.refreshToken.updateMany({
+          where: { userId: existing.userId, revokedAt: null },
+          data: { revokedAt: now },
+        });
+        throw new UnauthorizedException('登录状态异常，请重新登录');
+      }
+      // 宽限期内：并发竞争输家，仅拒绝本次，不连坐
+      throw new UnauthorizedException('登录状态已变更，请重新登录');
+    }
+    throw new UnauthorizedException('登录已过期，请重新登录');
   }
 
   /** 幂等：token 不存在或已作废都视为成功 */
@@ -89,18 +118,20 @@ export class AuthService {
     return toUserDTO(user);
   }
 
-  private async issueTokens(user: User): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    expiresIn: number;
-  }> {
+  private async issueTokens(
+    user: User,
+    tx?: Prisma.TransactionClient,
+  ): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
+    // A2：authVersion 签进 JWT，守卫核对版本实现「重置密码后旧 Access 立即失效」
     const accessToken = await this.jwtService.signAsync({
       sub: user.id,
       username: user.username,
       role: user.role,
+      ver: user.authVersion,
     });
     const refreshToken = generateRefreshToken();
-    await this.prisma.refreshToken.create({
+    const client = tx ?? this.prisma;
+    await client.refreshToken.create({
       data: {
         tokenHash: sha256Hex(refreshToken),
         userId: user.id,

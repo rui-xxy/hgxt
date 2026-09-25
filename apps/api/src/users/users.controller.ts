@@ -1,14 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ParseUUIDPipe } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import type {
-  CreateUserBody,
-  ResetPasswordBody,
-  UpdateUserBody,
-  UserDTO,
-  UserPageQuery,
-  UserPageResult,
-} from '@hgxt/shared';
+import type { UserDTO, UserPageResult } from '@hgxt/shared';
 import { Role } from '@hgxt/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser, type AuthUser } from '../common/decorators/current-user.decorator';

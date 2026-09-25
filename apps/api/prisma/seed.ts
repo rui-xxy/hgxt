@@ -2,6 +2,16 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { hashPassword } from '../src/common/utils/argon';
 
+// B3：seed 不再有默认密码——必须显式配置 SEED_ADMIN_PASSWORD 才执行
+const rawPassword = process.env.SEED_ADMIN_PASSWORD;
+if (!rawPassword || rawPassword.length < 8) {
+  console.error('缺少或过短的环境变量 SEED_ADMIN_PASSWORD（至少 8 位）。');
+  console.error('用法示例：SEED_ADMIN_PASSWORD="<你的密码>" pnpm db:seed');
+  process.exit(1);
+}
+// 窄化后的绑定，供下方 main() 闭包使用
+const password: string = rawPassword;
+
 if (!process.env.DATABASE_URL) {
   console.error('缺少环境变量 DATABASE_URL（请用 tsx --env-file=.env 运行，或先配置 .env）');
   process.exit(1);
@@ -13,7 +23,6 @@ const prisma = new PrismaClient({
 
 async function main(): Promise<void> {
   const username = 'admin';
-  const password = process.env.SEED_ADMIN_PASSWORD ?? 'Admin@123456';
 
   const existing = await prisma.user.findUnique({ where: { username } });
   if (existing) {
@@ -31,12 +40,12 @@ async function main(): Promise<void> {
     },
   });
 
+  // B3：不回显密码，只确认创建结果
   console.log('--------------------------------------------');
   console.log('已创建超级管理员:');
   console.log(`  用户名: ${username}`);
-  console.log(`  密码:   ${password}`);
   console.log(`  id:     ${user.id}`);
-  console.log('请登录后在「用户管理」中重置该默认密码！');
+  console.log('  密码:   使用你所配置的 SEED_ADMIN_PASSWORD');
   console.log('--------------------------------------------');
 }
 
