@@ -12,21 +12,19 @@ V1 范围：**登录 + 用户管理**。技术栈已冻结（见 [docs/architect
 # 1. 安装依赖
 pnpm install
 
-# 2. 启动数据库（postgres:18，宿主机 5433 端口；5432 已被其他项目占用）
+# 2. 启动数据库（postgres:18，仅监听本机 127.0.0.1:5433）
 docker compose up -d
 
 # 3. 初始化数据库 + 创建管理员
-pnpm db:migrate     # 首次迁移
-pnpm db:seed        # 创建超级管理员
+pnpm db:migrate                                                   # 首次迁移
+cd apps/api && SEED_ADMIN_PASSWORD="<你的密码>" pnpm db:seed && cd ../..  # 密码必须显式指定，无默认值
 
 # 4. 启动前后端（API 3001 / 前端 5173）
 pnpm dev
 ```
 
 - 后台页面：http://localhost:5173
-- 接口文档（Swagger）：http://localhost:3001/api/docs
-
-**默认管理员**：`admin` / `Admin@123456` —— 登录后请立即在「用户管理 → 重置密码」修改！
+- 接口文档（Swagger）：http://localhost:3001/api/docs（生产默认关闭）
 
 > 已有 PostgreSQL？不用 Docker 也行：改 `apps/api/.env` 的 `DATABASE_URL` 指向它，再执行第 3 步。
 
@@ -36,10 +34,13 @@ pnpm dev
 | --- | --- |
 | `pnpm dev` | 同时启动 API + 前端 |
 | `pnpm dev:api` / `pnpm dev:admin` | 单独启动某一端 |
-| `pnpm build` | 全部构建（shared → api → admin） |
+| `pnpm check` | **lint + typecheck + test + build 一键验收（改码后必跑）** |
+| `pnpm lint` / `pnpm typecheck` / `pnpm test` / `pnpm build` | 单独执行各项检查 |
 | `pnpm db:migrate:named -- --name xxx` | 新增迁移（在 apps/api 下） |
-| `pnpm db:seed` | 重建/补种管理员（幂等） |
+| `pnpm db:seed` | 重建/补种管理员（幂等，需 SEED_ADMIN_PASSWORD） |
 | `docker compose up -d` / `down` | 启停数据库 |
+
+> 测试使用独立数据库 `hgxt_test`（同容器），自动迁移与重建数据，不影响开发库。
 
 ## 目录结构
 

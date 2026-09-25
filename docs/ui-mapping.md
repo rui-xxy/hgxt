@@ -1,8 +1,9 @@
 # UI 规范：DESIGN.md → Ant Design 6 映射
 
-根目录 `DESIGN.md` 是本项目 UI 的最高规范（来自 zai-org/ZCode 的设计系统，Tailwind 语法）。
+根目录 `DESIGN.md`（HGXT Design System）是本项目 UI 的最高规范。
 本项目用 Ant Design 6，**不引入 Tailwind**，通过「CSS 变量 + AntD Design Token」落地同一套约束。
 本文件是落地映射表，也是后续所有新页面的 UI 验收标准。
+（ZCode 原版设计系统存档于 `docs/reference/zcode-design-system.md`，仅供溯源。）
 
 ## 核心原则（直接继承 DESIGN.md）
 

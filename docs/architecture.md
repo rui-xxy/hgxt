@@ -2,6 +2,9 @@
 
 本文档记录已冻结的技术选型与关键取舍。**技术栈不轻易更换**，后续业务在此地基上生长。
 
+> 2026-09 基础底座整改已完成（六阶段 A-F，详见 docs/foundation-remediation.md 的实施记录）：
+> 认证安全不变量、运行环境收紧、测试链、前端认证状态机、API 契约、工程质量全部落地。
+
 ## 冻结的技术栈（2026-09）
 
 | 层 | 技术 | 版本 | 说明 |
@@ -36,11 +39,39 @@ NestJS 侧的 CJS `require` 加载 ESM 由 Node ≥22.12/24 原生支持（本�
 
 ## 认证设计
 
-- **Access Token**：JWT，15 分钟，payload `{sub, username, role}`。每个请求守卫都会回查数据库确认用户仍为 ACTIVE——「禁用」即时生效，不等 token 过期。
-- **Refresh Token**：随机不透明串，库里只存 sha256。**轮换式**：每次 refresh 作废旧串、发新串；检测到已作废串被复用 → 判定泄露，吊销该用户全部会话。
-- **登出**：作废 refresh token（幂等）。Access token 在 ≤15 分钟内自然过期。
-- **禁用用户 / 重置密码**：立即吊销该用户全部 refresh token。
+- **Access Token**：JWT，15 分钟，payload `{sub, username, role, ver}`。每个请求守卫都会回查数据库确认用户仍为 ACTIVE 且 `ver === authVersion`——「禁用」「重置密码」均**即时生效**，不等 token 过期。
+- **Refresh Token**：随机不透明串，库里只存 sha256。**原子轮换**：`UPDATE ... WHERE revokedAt IS NULL` 条件更新抢占，同一旧 token 并发只有一个请求成功；轮换是「一换一」，竞争输家直接 401。
+- **复用检测与宽限期**：已作废 token 被再次使用——撤销 30 秒内视为并发竞争输家（只拒绝不连坐）；超过 30 秒视为疑似泄露，吊销该用户全部会话。前端配合保证同一旧 token 只尝试刷新一次。
+- **authVersion**：重置密码 / 未来任何强制下线场景 +1，使全部旧 Access Token 立即失效。上线该机制瞬间存量会话会强制重登一次（缺 ver 的旧 token 被拒），属预期行为。
+- **事务**：重置密码（改哈希 + authVersion+1 + 吊销会话）、禁用（改状态 + 吊销会话）、角色变更（FOR UPDATE 锁后在岗管理员检查 + 写入）均为单事务，无半成功状态。Argon2 哈希在事务外计算。
+- **系统不变量**：任何时刻 ACTIVE SUPER_ADMIN ≥ 1（`assertNotLastActiveSuperAdmin`，悲观锁防并发互改竞态）。
+- **限流**：仅认证端点——登录 10 次/分/IP、刷新与登出 30 次/分/IP（`@nestjs/throttler`，内存存储）。**不设全局限流**：内网全公司常共享出口 IP，全局限流会误伤正常使用。多实例部署需换 Redis 存储（未做）。
+- **登出**：作废 refresh token（幂等）。
 - **V1 取舍**：token 存 localStorage（升级路径：httpOnly cookie + CSRF 防护，改动集中在 `apps/admin/src/api/client.ts`）。
+
+## 运行环境（B 整改后）
+
+| 项 | 开发默认 | 生产 |
+| --- | --- | --- |
+| API 监听 | `HOST=127.0.0.1`（仅本机） | 显式 `HOST=0.0.0.0` |
+| PostgreSQL | Docker `127.0.0.1:5433`（仅本机回环） | Docker 内网/内网地址，不暴露宿主机端口 |
+| Swagger `/api/docs` | 开启 | 默认关闭，`ENABLE_SWAGGER=true` 显式开启 |
+| JWT Secret | 弱配置警告 | 长度 <32 或示例值 → **拒绝启动** |
+| 安全头 | helmet（开发关 CSP 以兼容 Swagger UI） | helmet 全量 |
+| seed | 必须显式 `SEED_ADMIN_PASSWORD`（≥8 位），不再有默认密码、不回显 | 同左 |
+
+## 测试与质量门（C 整改后）
+
+- **API 集成测试**：Vitest + supertest（`apps/api/test/`），指向独立测试库 `hgxt_test`（127.0.0.1:5433），globalSetup 自动 `migrate deploy`，每文件重建数据。覆盖：原子轮换/并发/宽限期、authVersion 即时失效、最后管理员保护、限流 429、契约（正则/小写/null 语义）。
+- **前端认证层测试**：Vitest + jsdom + Testing Library（`apps/admin/src/**/*.test.tsx`），覆盖错误三分类、单飞刷新、单次尝试、跨标签同步、守卫分支。
+- **统一检查命令**：`pnpm check` = lint（ESLint flat config）+ typecheck + test + build。**任何改动（人或 AI）必须 `pnpm check` 全绿**（见 AGENTS.md）。
+
+## 依赖漏洞治理政策（F2）
+
+`pnpm audit` 当前余量：3 项（2 High + 1 Moderate），路径全部为 `prisma → mysql2`（Prisma CLI 的 MySQL 间接依赖，本项目用 PostgreSQL，实际风险很低）。政策：
+1. 不因 audit 红字恐慌性换依赖；
+2. 每迭代跟进 Prisma 7.x 小版本升级（当前 7.10.0 已是最新 7.x）并重跑 audit + 全量回归；
+3. 若长期不消化，评估 `pnpm.overrides` 强制 `mysql2 >= 3.23.1`（需回归验证与 Prisma CLI 兼容）。
 
 ## 用户模型与权限
 
