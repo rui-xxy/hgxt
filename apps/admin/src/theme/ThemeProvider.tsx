@@ -1,63 +1,44 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
 import { App as AntdApp, ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import 'dayjs/locale/zh-cn';
 import { darkTheme, lightTheme } from './tokens';
 
-export type ThemeMode = 'light' | 'dark' | 'system';
+export type ThemeMode = 'light' | 'dark';
 
 const STORAGE_KEY = 'hgxt:theme-mode';
 
 interface ThemeModeContextValue {
   mode: ThemeMode;
-  /** mode 经系统偏好解析后的实际主题 */
-  resolved: 'light' | 'dark';
-  setMode: (mode: ThemeMode) => void;
+  /** 单击切换浅色 / 深色，并持久化选择 */
+  toggleMode: () => void;
 }
 
 const ThemeModeContext = createContext<ThemeModeContextValue | null>(null);
 
 function getInitialMode(): ThemeMode {
   const stored = localStorage.getItem(STORAGE_KEY);
-  return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+  if (stored === 'light' || stored === 'dark') return stored;
+  // 兼容旧的 system 值与首次访问：只在初始化时读取系统偏好，之后由用户一键切换。
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-/** 主题：浅色 / 深色 / 跟随系统（DESIGN.md Theme Modes），选择持久化到 localStorage */
+/** 主题：只保留浅色 / 深色，一键切换并持久化到 localStorage */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>(getInitialMode);
-  const [systemPrefersDark, setSystemPrefersDark] = useState(
-    () => window.matchMedia('(prefers-color-scheme: dark)').matches,
-  );
+  const [mode, setMode] = useState<ThemeMode>(getInitialMode);
 
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = (event: MediaQueryListEvent) => setSystemPrefersDark(event.matches);
-    media.addEventListener('change', onChange);
-    return () => media.removeEventListener('change', onChange);
+  const toggleMode = useCallback(() => {
+    setMode((current) => {
+      const next: ThemeMode = current === 'dark' ? 'light' : 'dark';
+      localStorage.setItem(STORAGE_KEY, next);
+      return next;
+    });
   }, []);
 
-  const setMode = useCallback((next: ThemeMode) => {
-    setModeState(next);
-    localStorage.setItem(STORAGE_KEY, next);
-  }, []);
-
-  const value = useMemo<ThemeModeContextValue>(() => {
-    const resolved = mode === 'system' ? (systemPrefersDark ? 'dark' : 'light') : mode;
-    return { mode, resolved, setMode };
-  }, [mode, systemPrefersDark, setMode]);
-
-  const themeConfig = value.resolved === 'dark' ? darkTheme : lightTheme;
+  const themeConfig = mode === 'dark' ? darkTheme : lightTheme;
 
   return (
-    <ThemeModeContext.Provider value={value}>
+    <ThemeModeContext.Provider value={{ mode, toggleMode }}>
       <ConfigProvider locale={zhCN} theme={themeConfig}>
         <AntdApp>{children}</AntdApp>
       </ConfigProvider>

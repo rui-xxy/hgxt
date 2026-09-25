@@ -1,5 +1,6 @@
 /**
- * DESIGN.md → AntD Design Token 映射（详见 docs/ui-mapping.md）
+ * DESIGN.md（ZCode 原版设计系统）→ AntD Design Token 映射
+ * （构图规范——壳层/页面模板——见 docs/ui-mapping.md，本文件只管 token 值）
  *
  * DESIGN.md 是 Tailwind 语法的设计系统，本项目不引入 Tailwind，
  * 而是把它的 token 值映射到 AntD 主题上：
@@ -14,6 +15,8 @@
  *   - 业务代码禁止出现任意 px 字号/圆角/颜色，统一走主题 token 或 CSS 变量
  *   - 语义色（success/warning/error）只用于真实语义状态，不做装饰
  *   - 品牌色克制使用：主按钮、链接、选中态；绝不做整面填充
+ *
+ * 原始色值只允许出现在本文件（docs/ui-mapping.md 约定）。
  */
 import { theme, type ThemeConfig } from 'antd';
 
@@ -51,22 +54,6 @@ const baseToken = {
 const overlayShadow = '0 4px 16px rgba(0, 0, 0, 0.08)';
 
 const sharedComponents = {
-  Layout: {
-    headerHeight: 48,
-    headerPadding: '0 16px',
-  },
-  Menu: {
-    // 密集菜单行（DESIGN.md: 12px 密集列表项）
-    itemHeight: 36,
-    itemMarginInline: 8,
-    itemMarginBlock: 4,
-    itemBorderRadius: 6,
-  },
-  Table: {
-    headerSplitColor: 'transparent',
-    cellPaddingBlock: 12,
-    cellPaddingInline: 12,
-  },
   Card: {
     paddingLG: 20,
   },
@@ -74,7 +61,24 @@ const sharedComponents = {
     // 对话框 rounded-2xl(16)
     borderRadiusLG: 16,
   },
+  Table: {
+    headerSplitColor: 'transparent',
+    cellPaddingBlock: 12,
+    cellPaddingInline: 12,
+  },
 };
+
+/** 菜单选中态：弱背景 + 文字品牌强调（不用大面积蓝色胶囊），左缘品牌条见 layout.css */
+const menuTokens = (selectedBg: string, selectedColor: string) => ({
+  itemHeight: 38,
+  itemMarginInline: 10,
+  itemMarginBlock: 3,
+  itemBorderRadius: 6,
+  itemSelectedBg: selectedBg,
+  itemSelectedColor: selectedColor,
+  activeBarBorderWidth: 0,
+  subMenuItemBg: 'transparent',
+});
 
 export const lightTheme: ThemeConfig = {
   cssVar: { key: 'hgxt' },
@@ -86,12 +90,14 @@ export const lightTheme: ThemeConfig = {
   components: {
     ...sharedComponents,
     Layout: {
-      ...sharedComponents.Layout,
+      headerHeight: 52,
+      headerPadding: '0 24px',
       // 结构表面用中性色 + 边框分隔，而不是深色整面（DESIGN.md: 结构表面仅用于布局）
       headerBg: '#ffffff',
       siderBg: '#ffffff',
       bodyBg: '#f5f6f8',
     },
+    Menu: menuTokens('rgba(47, 84, 235, 0.08)', brandPrimary),
     Table: {
       ...sharedComponents.Table,
       headerBg: '#fafafa',
@@ -109,11 +115,13 @@ export const darkTheme: ThemeConfig = {
   components: {
     ...sharedComponents,
     Layout: {
-      ...sharedComponents.Layout,
+      headerHeight: 52,
+      headerPadding: '0 24px',
       headerBg: '#141414',
       siderBg: '#141414',
       bodyBg: '#0a0a0a',
     },
+    Menu: menuTokens('rgba(255, 255, 255, 0.09)', '#ffffff'),
     Table: {
       ...sharedComponents.Table,
       headerBg: '#1d1d1d',

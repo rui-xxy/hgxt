@@ -1,5 +1,13 @@
-import { Avatar, Button, Dropdown, Layout, Menu, Segmented } from 'antd';
-import { DownOutlined, HomeOutlined, SettingOutlined, TeamOutlined } from '@ant-design/icons';
+import { Avatar, Button, Dropdown, Layout, Menu } from 'antd';
+import {
+  HomeOutlined,
+  LogoutOutlined,
+  MoreOutlined,
+  MoonOutlined,
+  SettingOutlined,
+  SunOutlined,
+  TeamOutlined,
+} from '@ant-design/icons';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { logoutApi } from '../api/auth';
@@ -10,12 +18,24 @@ import { useThemeMode } from '../theme/ThemeProvider';
 
 const { Sider, Header, Content } = Layout;
 
-/** 后台框架：左侧菜单 + 顶栏（主题切换、用户下拉） */
+/** 顶栏左侧的页面上下文（模块 / 页面），按路由映射 */
+const PAGE_CONTEXT: Record<string, { module?: string; page: string }> = {
+  '/': { page: '首页' },
+  '/users': { module: '系统管理', page: '用户管理' },
+};
+
+/**
+ * 后台壳层（构图规范见 docs/ui-mapping.md「布局骨架」）：
+ * 侧栏 240 = 品牌区 + 可伸缩导航 + 底部固定账户区；退出登录只在账户菜单中出现。
+ * 顶栏 52 = 左页面上下文 + 右侧一键浅色/深色切换。
+ */
 export function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const me = useMe();
-  const { mode, setMode } = useThemeMode();
+  const { mode, toggleMode } = useThemeMode();
+
+  const context = PAGE_CONTEXT[location.pathname] ?? { page: 'HGXT' };
 
   const logoutMutation = useMutation({
     mutationFn: () => logoutApi(tokenStore.getRefreshToken() ?? ''),
@@ -37,69 +57,72 @@ export function AdminLayout() {
     },
   ];
 
+  const accountMenu = {
+    items: [{ key: 'logout', label: '退出登录', icon: <LogoutOutlined />, danger: true }],
+    onClick: ({ key }: { key: string }) => {
+      if (key === 'logout') logoutMutation.mutate();
+    },
+  };
+
   return (
-    // minHeight 而不是 height:100%：<App> 会包一层无高度的 div.ant-app，
-    // 百分比高度会在那里断链退化成内容高度
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider width={208} style={{ borderRight: '1px solid var(--ant-color-border-secondary)' }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            height: 48,
-            padding: '0 16px',
-            fontWeight: 600,
-          }}
-        >
-          HGXT 管理后台
+      <Sider
+        width={240}
+        className="hgxt-sider"
+        style={{ borderRight: '1px solid var(--ant-color-border-secondary)' }}
+      >
+        <div className="hgxt-brand">
+          <div className="hgxt-brand-mark">H</div>
+          <div>
+            <div className="hgxt-brand-name">HGXT</div>
+            <div className="hgxt-brand-sub">管理后台</div>
+          </div>
         </div>
         <Menu
+          className="hgxt-menu"
           mode="inline"
           selectedKeys={[location.pathname]}
           defaultOpenKeys={['system']}
           items={menuItems}
-          style={{ borderInlineEnd: 'none' }}
         />
+        <div className="hgxt-sider-account">
+          <Dropdown menu={accountMenu} placement="topRight" trigger={['click']}>
+            <Button type="text" className="hgxt-sider-user">
+              <Avatar size={28} style={{ backgroundColor: 'var(--ant-color-primary)', flexShrink: 0 }}>
+                {me.data?.name?.charAt(0) ?? '?'}
+              </Avatar>
+              <span className="hgxt-sider-user-copy">
+                <span className="hgxt-sider-user-name">{me.data?.name ?? '...'}</span>
+                <span className="hgxt-sider-user-meta">{me.data?.username ?? ''}</span>
+              </span>
+              <MoreOutlined className="hgxt-sider-user-more" />
+            </Button>
+          </Dropdown>
+        </div>
       </Sider>
       <Layout>
         <Header
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'flex-end',
-            gap: 12,
+            justifyContent: 'space-between',
             borderBottom: '1px solid var(--ant-color-border-secondary)',
           }}
         >
-          <Segmented
-            size="small"
-            value={mode}
-            onChange={(value) => setMode(value as typeof mode)}
-            options={[
-              { label: '浅色', value: 'light' },
-              { label: '深色', value: 'dark' },
-              { label: '跟随系统', value: 'system' },
-            ]}
+          <div className="hgxt-header-left">
+            {context.module ? <span className="hgxt-header-crumb">{context.module} /</span> : null}
+            <span className="hgxt-header-page">{context.page}</span>
+          </div>
+          <Button
+            type="text"
+            className="hgxt-theme-toggle"
+            aria-label={mode === 'dark' ? '切换为浅色主题' : '切换为深色主题'}
+            title={mode === 'dark' ? '切换为浅色主题' : '切换为深色主题'}
+            icon={mode === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+            onClick={toggleMode}
           />
-          <Dropdown
-            menu={{
-              items: [{ key: 'logout', label: '退出登录' }],
-              onClick: ({ key }) => {
-                if (key === 'logout') logoutMutation.mutate();
-              },
-            }}
-          >
-            <Button type="text" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Avatar size={24} style={{ backgroundColor: 'var(--ant-color-primary)' }}>
-                {me.data?.name?.charAt(0) ?? '?'}
-              </Avatar>
-              {me.data?.name ?? '...'}
-              <DownOutlined style={{ fontSize: 10 }} />
-            </Button>
-          </Dropdown>
         </Header>
-        <Content style={{ padding: 16, overflow: 'auto' }}>
+        <Content className="hgxt-content">
           <Outlet />
         </Content>
       </Layout>

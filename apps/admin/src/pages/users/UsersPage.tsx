@@ -1,24 +1,27 @@
 import { useState } from 'react';
-import { App, Badge, Button, Card, Flex, Input, Popconfirm, Space, Table, Tag, Typography } from 'antd';
+import { App, Badge, Button, Card, Input, Popconfirm, Space, Table, Tag } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Role, UserStatus, type UserDTO } from '@hgxt/shared';
 import { useMe, useUsers } from '../../api/hooks';
 import { createUserApi, resetPasswordApi, updateUserApi, updateUserStatusApi } from '../../api/users';
+import { PageHeader } from '../../components/PageHeader';
 import { UserFormModal, type UserFormValues } from './UserFormModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
-
-const { Title } = Typography;
 
 const roleText: Record<string, string> = {
   [Role.SUPER_ADMIN]: '管理员',
   [Role.USER]: '普通用户',
 };
 
-/** 用户管理：搜索 + 列表 + 新增/编辑/禁用/重置密码 */
+/**
+ * 用户管理：HGXT 数据工作区模板（规范见 docs/ui-mapping.md「页面模板」）——
+ * PageHeader（标题 + 说明 + 主操作）→ 同一表面内的 Toolbar（搜索 + 计数）与 Table。
+ */
 export function UsersPage() {
   const { message } = App.useApp();
+  const me = useMe();
   const queryClient = useQueryClient();
 
   const [keywordInput, setKeywordInput] = useState('');
@@ -31,7 +34,6 @@ export function UsersPage() {
   const [resettingUser, setResettingUser] = useState<UserDTO | null>(null);
 
   const usersQuery = useUsers({ page, pageSize, keyword });
-  const me = useMe();
 
   const invalidateUsers = () => queryClient.invalidateQueries({ queryKey: ['users'] });
   /** 变更目标是当前登录用户时，同步刷新 me（角色/姓名变化立即反映到顶栏与权限判断） */
@@ -110,14 +112,14 @@ export function UsersPage() {
     {
       title: '用户名',
       dataIndex: 'username',
-      width: 160,
+      width: 150,
       render: (username: string) => <span className="mono">{username}</span>,
     },
-    { title: '姓名', dataIndex: 'name', width: 140 },
+    { title: '姓名', dataIndex: 'name', width: 120 },
     {
       title: '角色',
       dataIndex: 'role',
-      width: 110,
+      width: 100,
       render: (role: UserDTO['role']) =>
         role === Role.SUPER_ADMIN ? (
           <Tag color="gold">{roleText[role]}</Tag>
@@ -128,7 +130,7 @@ export function UsersPage() {
     {
       title: '状态',
       dataIndex: 'status',
-      width: 100,
+      width: 90,
       render: (status: UserDTO['status']) =>
         status === UserStatus.ACTIVE ? (
           <Badge status="success" text="正常" />
@@ -137,14 +139,29 @@ export function UsersPage() {
         ),
     },
     {
+      // 关键业务列伸缩填充宽度，超长省略（避免右侧大片空白）
+      title: '邮箱',
+      dataIndex: 'email',
+      ellipsis: true,
+      render: (email: string | null) => email ?? <span style={{ color: 'var(--ant-color-text-tertiary)' }}>—</span>,
+    },
+    {
+      title: '手机号',
+      dataIndex: 'phone',
+      width: 130,
+      render: (phone: string | null) => phone ?? <span style={{ color: 'var(--ant-color-text-tertiary)' }}>—</span>,
+    },
+    {
       title: '创建时间',
       dataIndex: 'createdAt',
-      width: 170,
+      width: 150,
       render: (createdAt: string) => dayjs(createdAt).format('YYYY-MM-DD HH:mm'),
     },
     {
       title: '操作',
       key: 'actions',
+      fixed: 'right' as const,
+      width: 210,
       render: (_: unknown, record: UserDTO) => {
         const active = record.status === UserStatus.ACTIVE;
         return (
@@ -199,11 +216,23 @@ export function UsersPage() {
 
   return (
     <div>
-      <Title level={3} style={{ marginTop: 0, marginBottom: 16 }}>
-        用户管理
-      </Title>
-      <Card>
-        <Flex justify="space-between" style={{ marginBottom: 16 }}>
+      <PageHeader
+        title="用户管理"
+        extra={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setEditingUser(null);
+              setFormOpen(true);
+            }}
+          >
+            新增用户
+          </Button>
+        }
+      />
+      <Card styles={{ body: { padding: 0 } }}>
+        <div className="hgxt-toolbar">
           <Input.Search
             allowClear
             placeholder="搜索：用户名 / 姓名 / 手机 / 邮箱"
@@ -215,28 +244,19 @@ export function UsersPage() {
               setPage(1);
             }}
           />
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setEditingUser(null);
-              setFormOpen(true);
-            }}
-          >
-            新增用户
-          </Button>
-        </Flex>
+          <span className="hgxt-toolbar-meta">共 {usersQuery.data?.total ?? 0} 条</span>
+        </div>
         <Table<UserDTO>
           rowKey="id"
           columns={columns}
           dataSource={usersQuery.data?.items}
           loading={usersQuery.isPending}
+          scroll={{ x: 1100 }}
           pagination={{
             current: page,
             pageSize,
             total: usersQuery.data?.total ?? 0,
             showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 条`,
             onChange: (nextPage, nextPageSize) => {
               setPage(nextPage);
               setPageSize(nextPageSize);

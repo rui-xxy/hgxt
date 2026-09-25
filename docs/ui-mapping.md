@@ -4,13 +4,53 @@
 本项目用 Ant Design 6，**不引入 Tailwind**，通过「CSS 变量 + AntD Design Token」落地同一套约束：ZCode 规范中与桌面工作台（Chat/Diff/Terminal/Workflow 等）强绑定的章节按本文件的原则取其精神，后台通用部分（字号刻度、颜色分层、圆角层级、密度、主题、组件）严格映射。
 本文件是落地映射表，也是后续所有新页面的 UI 验收标准。
 
+## 布局骨架（壳层，AdminLayout）
+
+后续所有页面都渲染在这个壳层内，**禁止绕过或另起结构**：
+
+```text
+侧栏 240px（固定宽度）
+├ 品牌区 56px：标识（品牌色 28px 圆角方块）+ 名称/副标题，底边框分隔
+├ 一级/二级导航：itemHeight 38，选中态 = 弱背景 + 左缘 2px 品牌条
+│   + 文字品牌色（禁止大面积蓝色胶囊选中态；样式在 styles/layout.css 的 .hgxt-menu）
+│   占满品牌区与账户区之间的剩余高度；内容多时只滚动导航区域
+└ 账户区：固定在侧栏底部，与导航用顶边框分隔
+    （头像 + 姓名 + 用户名；点击账户区弹出菜单，退出登录只放在这里）
+
+主区域
+├ 顶栏 52px：左侧页面上下文（模块路径 12px 三级灰 + 页面名 500 字重），
+│   右侧外观切换（单个太阳/月亮图标按钮；点击立即在浅色/深色之间切换）
+└ 内容区 padding 24px（20-24 区间取上沿，配合超宽屏不显松散）
+```
+
+## 页面模板（每个业务页面按此三层组装）
+
+```text
+① PageHeader（components/PageHeader.tsx）
+   左：标题（16px semibold）
+   右：页面级主操作（如「新增用户」，一页至多一个 primary 按钮）
+   —— **不加辅助说明小字**（用户明确要求：页面用途靠标题与内容表达，禁止
+      "管理系统账号：新增、编辑…"这类解释性副文本）
+
+② 数据工作区（同一张 Card，body padding 0）
+   ├ Toolbar：padding 12/16，左侧搜索/筛选（宽 300 内），右侧计数（12px 三级灰），底边框
+   └ Table：与 Toolbar 同一表面；关键业务列不设宽度（伸缩 + ellipsis）填充空间，
+      技术值列（时间/号码）定宽，操作列 fixed right；分页贴合表格底部
+
+③ 空态
+   少量数据不填充假内容；无数据显示 AntD Empty，不摆假卡片
+```
+
+- 列布局原则：**不要让定宽列排完后右侧留大片空白**——至少一个业务列负责伸缩。
+- 页面级反馈用 message（成功/失败）；危险操作（禁用）必须 Popconfirm + danger。
+
 ## 核心原则（直接继承 DESIGN.md）
 
 - 界面冷静、密集、操作型（calm, dense, operational），不做营销风。
 - 无渐变、无大面积品牌色填充、无夸张圆角与阴影。
 - 靠「背景层次 + 边框 + 文本层级」表达结构，阴影只给浮层。
 - 语义色（success/warning/error）只表达真实语义状态，不做装饰。
-- 亮色 / 深色两套主题都必须正常（顶栏可切换：浅色/深色/跟随系统）。
+- 亮色 / 深色两套主题都必须正常；顶栏使用单按钮一键切换，不提供三态选择器。
 - 国际化留白：不要用"截断"作为翻译变长的唯一兜底。
 
 ## Token 映射表
@@ -65,7 +105,7 @@
 ## 主题机制
 
 - `apps/admin/src/theme/tokens.ts`：light/dark 两套 `ThemeConfig`（唯一允许出现原始色值/尺寸的地方）。
-- `apps/admin/src/theme/ThemeProvider.tsx`：模式切换（light/dark/system，localStorage `hgxt:theme-mode` 持久化），AntD `cssVar: { key: 'hgxt' }` 模式——CSS 变量名稳定，全局 CSS 直接用 `var(--ant-*)`。
+- `apps/admin/src/theme/ThemeProvider.tsx`：只保留 light/dark，一键切换并用 localStorage `hgxt:theme-mode` 持久化；旧的 system 值仅在初始化时迁移为当时的系统偏好。AntD 使用 `cssVar: { key: 'hgxt' }` 模式。
 - **`--ant-*` 变量作用域警告**：变量只挂在 antd 组件的作用域类（`.hgxt`）上，`html`/`body` 等组件树之外的元素**引用不到**。因此页面根布局一律用 `minHeight: 100vh` 的 Layout 承担主背景（不要用 `height: 100%`——AntD `<App>` 会包一层无高度的 div 使百分比断链）；body 上只放静态兜底色（浅 #f5f6f8 / 深 #0a0a0a 随系统偏好）。
 - 自定义 CSS（非 AntD 组件部分）引用 `var(--ui-font-size-*)`，不写裸值。
 
@@ -74,4 +114,4 @@
 - 表格操作列用 `type="link" size="small"`，危险操作（禁用）带 Popconfirm + danger。
 - 角色用 Tag（管理员 gold / 普通用户默认），状态用 Badge（正常 success / 已禁用 default）——状态语义用色 + 文字双重表达，不靠颜色单独传义。
 - 表单 `layout="vertical"` + `requiredMark={false}`，弹窗 `destroyOnHidden`。
-- 每个页面顶部标题用 Title level=3（18px），与 DESIGN.md 的层级一致。
+- 页面标题统一走 `PageHeader` 组件（16px semibold，见「页面模板」），不用 Typography.Title 直接铺在页面里。

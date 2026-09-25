@@ -1,0 +1,207 @@
+/**
+ * 壳层（AdminLayout）与页面模板（PageHeader / Toolbar）样式。
+ * 约束：只引用语义 token（--ant-* / --ui-font-size-*），不写裸色值与任意 px 字号
+ * （原始色值唯一允许出现在 theme/tokens.ts）。
+ */
+
+/* ---------- 侧栏 ---------- */
+
+/* Sider 内部纵向布局：品牌区 + 可伸缩导航 + 固定底部账户区 */
+.hgxt-sider .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* 导航占满品牌区与账户区之间的剩余空间；内容多时仅导航区域滚动 */
+.hgxt-menu {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  border-inline-end: none;
+  padding-block: 8px;
+}
+
+/* ---------- 侧栏品牌区 ---------- */
+
+.hgxt-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.hgxt-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--ant-border-radius);
+  background-color: var(--ant-color-primary);
+  color: var(--ant-color-text-light-solid);
+  font-size: var(--ui-font-size-base);
+  font-weight: 600;
+}
+
+.hgxt-brand-name {
+  font-size: var(--ui-font-size-base);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.hgxt-brand-sub {
+  margin-top: 2px;
+  font-size: var(--ui-font-size-sm);
+  color: var(--ant-color-text-tertiary);
+  line-height: 1.2;
+}
+
+/* ---------- 导航：克制的选中态（弱背景 + 左缘品牌条 + 文字品牌色） ---------- */
+
+.hgxt-menu {
+  border-inline-end: none;
+  padding-block: 8px;
+}
+
+.hgxt-menu .ant-menu-item-selected::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 60%;
+  background-color: var(--ant-color-primary);
+}
+
+/* ---------- 侧栏账户区：固定在底部，不与导航混在一起 ---------- */
+
+.hgxt-sider-account {
+  flex-shrink: 0;
+  padding: 8px 10px 10px;
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.hgxt-sider-user {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  height: 44px;
+  padding-inline: 10px;
+  text-align: start;
+}
+
+.hgxt-sider-user:hover,
+.hgxt-sider-user:focus-visible {
+  background-color: var(--ant-color-bg-text-hover) !important;
+}
+
+.hgxt-sider-user-copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.25;
+}
+
+.hgxt-sider-user-name,
+.hgxt-sider-user-meta {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hgxt-sider-user-name {
+  font-weight: 500;
+}
+
+.hgxt-sider-user-meta {
+  margin-top: 2px;
+  color: var(--ant-color-text-tertiary);
+  font-size: var(--ui-font-size-sm);
+}
+
+.hgxt-sider-user-more {
+  flex-shrink: 0;
+  color: var(--ant-color-text-tertiary);
+}
+
+.hgxt-theme-toggle {
+  flex-shrink: 0;
+}
+
+/* ---------- 顶栏 ---------- */
+
+.hgxt-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.hgxt-header-crumb {
+  color: var(--ant-color-text-tertiary);
+  font-size: var(--ui-font-size-sm);
+  white-space: nowrap;
+}
+
+.hgxt-header-page {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ---------- 内容区 ---------- */
+
+.hgxt-content {
+  padding: 24px;
+}
+
+/* ---------- 页面模板：PageHeader ---------- */
+
+.hgxt-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.hgxt-page-title {
+  margin: 0;
+  font-size: var(--ui-font-size-lg);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.hgxt-page-desc {
+  margin-top: 4px;
+  font-size: var(--ui-font-size-sm);
+  color: var(--ant-color-text-secondary);
+}
+
+.hgxt-page-extra {
+  flex-shrink: 0;
+}
+
+/* ---------- 页面模板：数据工作区（Toolbar + Table 同一表面） ---------- */
+
+.hgxt-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.hgxt-toolbar-meta {
+  font-size: var(--ui-font-size-sm);
+  color: var(--ant-color-text-tertiary);
+  white-space: nowrap;
+}
