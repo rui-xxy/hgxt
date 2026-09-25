@@ -20,6 +20,15 @@ enum UserStatus {
   DISABLED
 }
 
+/// Refresh Token 被作废的原因（审计用）
+enum RevokedReason {
+  ROTATED        // 正常轮换
+  LOGOUT         // 主动登出
+  PASSWORD_RESET // 密码重置
+  USER_DISABLED  // 用户被禁用
+  REUSE_DETECTED // 疑似泄露（超宽限期复用，连坐吊销）
+}
+
 model User {
   id            String         @id @default(uuid())
   username      String         @unique
@@ -37,15 +46,16 @@ model User {
   refreshTokens RefreshToken[]
 }
 
-/// Refresh Token 只存 sha256 哈希；轮换 = 旧的标记 revokedAt、写入新行。
+/// Refresh Token 只存 sha256 哈希；轮换 = 旧的标记 revokedAt + revokedReason、写入新行。
 model RefreshToken {
-  id        String    @id @default(uuid())
-  tokenHash String    @unique
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  revokedAt DateTime?
-  createdAt DateTime  @default(now())
+  id            String        @id @default(uuid())
+  tokenHash     String        @unique
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  revokedReason RevokedReason?
+  createdAt     DateTime      @default(now())
 
   @@index([userId])
 }

@@ -130,7 +130,7 @@ export class UsersService {
         if (status === 'DISABLED') {
           await tx.refreshToken.updateMany({
             where: { userId: id, revokedAt: null },
-            data: { revokedAt: new Date() },
+            data: { revokedAt: new Date(), revokedReason: 'USER_DISABLED' },
           });
         }
         return toUserDTO(user);
@@ -154,7 +154,7 @@ export class UsersService {
         });
         await tx.refreshToken.updateMany({
           where: { userId: id, revokedAt: null },
-          data: { revokedAt: new Date() },
+          data: { revokedAt: new Date(), revokedReason: 'PASSWORD_RESET' },
         });
         return toUserDTO(user);
       });

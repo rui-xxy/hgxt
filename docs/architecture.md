@@ -40,7 +40,8 @@ NestJS 侧的 CJS `require` 加载 ESM 由 Node ≥22.12/24 原生支持（本�
 ## 认证设计
 
 - **Access Token**：JWT，15 分钟，payload `{sub, username, role, ver}`。每个请求守卫都会回查数据库确认用户仍为 ACTIVE 且 `ver === authVersion`——「禁用」「重置密码」均**即时生效**，不等 token 过期。
-- **Refresh Token**：随机不透明串，库里只存 sha256。**原子轮换**：`UPDATE ... WHERE revokedAt IS NULL` 条件更新抢占，同一旧 token 并发只有一个请求成功；轮换是「一换一」，竞争输家直接 401。
+- **Refresh Token**：随机不透明串，库里只存 sha256。**原子轮换**：`UPDATE ... WHERE revokedAt IS NULL` 条件更新抢占，同一旧 token 并发只有一个请求成功；「旧 token 作废 + 新 token 创建」在同一事务内（create 失败则抢占回滚，旧 token 仍有效）；轮换是「一换一」，竞争输家直接 401。
+- **revokedReason**：每次吊销都记录原因（ROTATED / LOGOUT / PASSWORD_RESET / USER_DISABLED / REUSE_DETECTED），便于审计与排查"我为什么被登出"。
 - **复用检测与宽限期**：已作废 token 被再次使用——撤销 30 秒内视为并发竞争输家（只拒绝不连坐）；超过 30 秒视为疑似泄露，吊销该用户全部会话。前端配合保证同一旧 token 只尝试刷新一次。
 - **authVersion**：重置密码 / 未来任何强制下线场景 +1，使全部旧 Access Token 立即失效。上线该机制瞬间存量会话会强制重登一次（缺 ver 的旧 token 被拒），属预期行为。
 - **事务**：重置密码（改哈希 + authVersion+1 + 吊销会话）、禁用（改状态 + 吊销会话）、角色变更（FOR UPDATE 锁后在岗管理员检查 + 写入）均为单事务，无半成功状态。Argon2 哈希在事务外计算。

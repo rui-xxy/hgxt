@@ -3,7 +3,7 @@
 ## 必须遵守的工作规则
 
 1. **改完代码必须 `pnpm check` 全绿**（lint + typecheck + test + build）。这条比任何"请认真修改"的提示词都可靠。
-2. **UI 必须先读根目录 `DESIGN.md`（HGXT Design System）+ `docs/ui-mapping.md`**，再动手写界面。禁止任意 px 字号/圆角/颜色，禁止语义色做装饰。
+2. **UI 必须先读根目录 `DESIGN.md`（ZCode 原版设计系统，用户指定）+ `docs/ui-mapping.md`**，再动手写界面。禁止任意 px 字号/圆角/颜色，禁止语义色做装饰。
 3. **技术栈已冻结**（见 docs/architecture.md），不要提议换框架/ORM/数据库。
 4. **测试库是 hgxt_test**（127.0.0.1:5433，Docker 容器 hgxt-postgres）。API 集成测试会清库重建数据，绝不连开发库 hgxt。
 5. 改 schema 后：`npx prisma migrate dev --name <名称>`（在 apps/api 下）+ 重新 generate + 跑全部测试。

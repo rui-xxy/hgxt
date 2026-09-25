@@ -1,7 +1,17 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/database/prisma.service';
+import { sha256Hex } from '../src/common/utils/tokens';
 import { createTestApp, http, loginOk, resetDbWithAdmin, backdateRevocation, ADMIN_PASSWORD } from './utils';
+
+/** 直查库中某 token 的吊销原因（未吊销返回 null） */
+async function revokedReasonOf(prisma: PrismaService, refreshToken: string) {
+  const row = await prisma.refreshToken.findUnique({
+    where: { tokenHash: sha256Hex(refreshToken) },
+    select: { revokedAt: true, revokedReason: true },
+  });
+  return row?.revokedAt ? row.revokedReason : null;
+}
 
 describe('auth 认证（A1/A2 轮换原子性与会话失效）', () => {
   let app: INestApplication;
@@ -38,11 +48,12 @@ describe('auth 认证（A1/A2 轮换原子性与会话失效）', () => {
   });
 
   describe('A1：Refresh Token 原子轮换', () => {
-    it('正常轮换：旧 token 作废、新 token 可用', async () => {
+    it('正常轮换：旧 token 作废（reason=ROTATED）、新 token 可用', async () => {
       const session = await loginOk(http(app));
       const res = await http(app).post('/api/auth/refresh').send({ refreshToken: session.refreshToken });
       expect(res.status).toBe(200);
       expect(res.body.refreshToken).not.toBe(session.refreshToken);
+      expect(await revokedReasonOf(prisma, session.refreshToken)).toBe('ROTATED');
 
       // 旧 token 顺序复用：宽限期内被拒，但不连坐（新 token 仍可用）
       const reuse = await http(app).post('/api/auth/refresh').send({ refreshToken: session.refreshToken });
@@ -92,11 +103,12 @@ describe('auth 认证（A1/A2 轮换原子性与会话失效）', () => {
       const reuse = await http(app).post('/api/auth/refresh').send({ refreshToken: session.refreshToken });
       expect(reuse.status).toBe(401);
 
-      // 连坐：轮换出的新 token 也被吊销
+      // 连坐：轮换出的新 token 也被吊销，且原因标记为疑似泄露
       const afterReuse = await http(app)
         .post('/api/auth/refresh')
         .send({ refreshToken: rotated.body.refreshToken });
       expect(afterReuse.status).toBe(401);
+      expect(await revokedReasonOf(prisma, rotated.body.refreshToken)).toBe('REUSE_DETECTED');
     });
 
     it('过期的 refresh token 不能刷新', async () => {

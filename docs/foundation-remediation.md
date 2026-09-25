@@ -383,7 +383,7 @@ kind: 'auth'      // 401/403，且刷新已失败
 **怎么改**：页面级 `React.lazy` + `Suspense`（fallback 用紧凑 Spin）；路由不变。
 **完成标准**：[ ] `vite build` 产物中 Users/Login 为独立 chunk；[ ] 主包不再包含用户管理页代码；[ ] 路由切换无可见闪烁（fallback 轻量）。
 
-## F4. 把 DESIGN.md 变成 HGXT 自己的设计系统
+## F4. 把 DESIGN.md 变成 HGXT 自己的设计系统（已按用户要求回退，见文末实施记录）
 
 **现状**：根 DESIGN.md 是 ZCode（AI Chat 产品）的设计系统，大量 Chat/Diff/Terminal/Workflow 规则与 HGXT 企业后台无关；目前靠 ui-mapping.md 做转换层，长期会让每个 AI 会话读到无关规则产生干扰。
 **怎么改**：
@@ -428,4 +428,6 @@ kind: 'auth'      // 401/403，且刷新已失败
 | D2 | 刷新失败后**先重读 localStorage** 再判定登出；跨标签同步只用 storage 事件单通道（不加 BroadcastChannel） | 获胜标签页写入新 token 的 storage 事件可能晚于输家的失败处理；双通道本身属过度设计 |
 | 阶段〇 | 用 Vitest 测试骨架直接承载（未另做一次性手工回归脚本） | A/A2/A4 的验收标准天然就是测试用例，测试是长期资产，手工脚本是一次性劳动 |
 
-各项完成状态：A1–A5 ✅（含并发/宽限期/authVersion/FOR UPDATE/429 集成测试）；B1–B6 ✅；C1–C3 ✅（`pnpm check` + AGENTS.md）；D1–D3 ✅（错误三分类/错误页/storage 同步/confirmLoading，含 15 项前端测试）；E1–E4 ✅（正则/小写/null 语义/文档措辞）；F1–F4 ✅（build 链、audit 政策、路由拆包、DESIGN.md 重写为 HGXT Design System，原版存档 docs/reference/）。
+各项完成状态：A1–A5 ✅（含并发/宽限期/authVersion/FOR UPDATE/429 集成测试）；B1–B6 ✅；C1–C3 ✅（`pnpm check` + AGENTS.md）；D1–D3 ✅（错误三分类/错误页/storage 同步/confirmLoading，含 15 项前端测试）；E1–E4 ✅（正则/小写/null 语义/文档措辞）；F1–F3 ✅（build 链、audit 政策、路由拆包）；F4 已按用户要求**回退**——根目录 DESIGN.md 恢复为 ZCode 原版设计系统（用户指定以其为最高 UI 规范），不再使用改写版，ui-mapping.md 负责向 AntD 映射。
+
+收尾补充（同日第二轮）：轮换改为「旧作废+新创建」同事务（create 失败抢占回滚）；新增 `revokedReason`（ROTATED/LOGOUT/PASSWORD_RESET/USER_DISABLED/REUSE_DETECTED，含迁移与测试断言）；client.ts 清空会话前对比重放 token 防误清并发标签新 token；me 刷新（变更目标是本人时 invalidate + refetchOnWindowFocus）；UpdateUserDto.name 补非空校验；CI（GitHub Actions + TEST_DATABASE_URL 覆盖）。

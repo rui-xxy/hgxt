@@ -4,7 +4,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Role, UserStatus, type UserDTO } from '@hgxt/shared';
-import { useUsers } from '../../api/hooks';
+import { useMe, useUsers } from '../../api/hooks';
 import { createUserApi, resetPasswordApi, updateUserApi, updateUserStatusApi } from '../../api/users';
 import { UserFormModal, type UserFormValues } from './UserFormModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
@@ -31,8 +31,15 @@ export function UsersPage() {
   const [resettingUser, setResettingUser] = useState<UserDTO | null>(null);
 
   const usersQuery = useUsers({ page, pageSize, keyword });
+  const me = useMe();
 
   const invalidateUsers = () => queryClient.invalidateQueries({ queryKey: ['users'] });
+  /** 变更目标是当前登录用户时，同步刷新 me（角色/姓名变化立即反映到顶栏与权限判断） */
+  const invalidateMeIfNeeded = (targetUserId?: string) => {
+    if (targetUserId && targetUserId === me.data?.id) {
+      queryClient.invalidateQueries({ queryKey: ['me'] });
+    }
+  };
 
   const createMutation = useMutation({
     mutationFn: createUserApi,
@@ -52,9 +59,10 @@ export function UsersPage() {
         phone: values.phone || null,
         role: values.role,
       }),
-    onSuccess: async () => {
+    onSuccess: async (user) => {
       message.success('用户信息已更新');
       await invalidateUsers();
+      invalidateMeIfNeeded(user.id);
       setFormOpen(false);
     },
     onError: (error) => message.error(error.message),
@@ -66,6 +74,7 @@ export function UsersPage() {
     onSuccess: async (user) => {
       message.success(user.status === UserStatus.ACTIVE ? `已启用 ${user.username}` : `已禁用 ${user.username}`);
       await invalidateUsers();
+      invalidateMeIfNeeded(user.id);
     },
     onError: (error) => message.error(error.message),
   });
@@ -73,9 +82,10 @@ export function UsersPage() {
   const resetMutation = useMutation({
     mutationFn: ({ id, newPassword }: { id: string; newPassword: string }) =>
       resetPasswordApi(id, { newPassword }),
-    onSuccess: async () => {
+    onSuccess: async (user) => {
       message.success('密码已重置，该用户的登录状态已全部失效');
       await invalidateUsers();
+      invalidateMeIfNeeded(user.id);
       setResettingUser(null);
     },
     onError: (error) => message.error(error.message),

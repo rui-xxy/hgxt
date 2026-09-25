@@ -53,8 +53,9 @@ export class AuthService {
 
   /**
    * A1：轮换的原子性由「条件更新抢占」保证——
-   * `WHERE tokenHash = ? AND revokedAt IS NULL` 的 UPDATE 只有一个并发请求能改到 1 行，
-   * 抢到刷新权的请求在同一事务内写入新 Token；没抢到的请求直接拒绝。
+   * `WHERE tokenHash = ? AND revokedAt IS NULL` 的 UPDATE 只有一个并发请求能改到 1 行。
+   * 抢占成功后在**同一事务**内写入新 Token：若 create 失败，抢占一并回滚，
+   * 旧 token 仍有效，客户端可无感重试，不会出现「旧作废了但没有新 token」的中间态。
    * 不依赖前端单飞，多标签页并发也只有一个成功。
    */
   async refresh(refreshToken: string): Promise<RefreshResponse> {
@@ -64,22 +65,24 @@ export class AuthService {
     const claimed = await this.prisma.$transaction(async (tx) => {
       const result = await tx.refreshToken.updateMany({
         where: { tokenHash, revokedAt: null, expiresAt: { gt: now } },
-        data: { revokedAt: now },
+        data: { revokedAt: now, revokedReason: 'ROTATED' },
       });
       if (result.count !== 1) return null;
-      return tx.refreshToken.findUnique({ where: { tokenHash }, include: { user: true } });
+      const row = await tx.refreshToken.findUnique({ where: { tokenHash }, include: { user: true } });
+      if (!row) return null;
+      if (row.user.status !== 'ACTIVE') {
+        // 禁用竞态兜底：直接抛出并回滚抢占（该用户 token 已随禁用被吊销）
+        throw new ForbiddenException('账号已被禁用，请联系管理员');
+      }
+      const tokens = await this.issueTokens(row.user, tx);
+      return { row, tokens };
     });
 
     if (!claimed) {
       return this.rejectStaleToken(tokenHash, now);
     }
 
-    if (claimed.user.status !== 'ACTIVE') {
-      throw new ForbiddenException('账号已被禁用，请联系管理员');
-    }
-
-    const tokens = await this.issueTokens(claimed.user);
-    return { ...tokens, user: toUserDTO(claimed.user) };
+    return { ...claimed.tokens, user: toUserDTO(claimed.row.user) };
   }
 
   /** 抢占失败后的分类处理：不存在 / 过期 / 并发输家 / 疑似泄露 */
@@ -94,7 +97,7 @@ export class AuthService {
         // 撤销很久之后仍被复用：疑似 Token 泄露，吊销该用户全部会话
         await this.prisma.refreshToken.updateMany({
           where: { userId: existing.userId, revokedAt: null },
-          data: { revokedAt: now },
+          data: { revokedAt: now, revokedReason: 'REUSE_DETECTED' },
         });
         throw new UnauthorizedException('登录状态异常，请重新登录');
       }
@@ -108,7 +111,7 @@ export class AuthService {
   async logout(refreshToken: string): Promise<void> {
     await this.prisma.refreshToken.updateMany({
       where: { tokenHash: sha256Hex(refreshToken), revokedAt: null },
-      data: { revokedAt: new Date() },
+      data: { revokedAt: new Date(), revokedReason: 'LOGOUT' },
     });
   }
 

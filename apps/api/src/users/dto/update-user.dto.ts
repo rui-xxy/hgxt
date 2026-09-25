@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from '@hgxt/shared';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsEmail, IsIn, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 /** class-transformer @Transform 的入参是 { value, ... }，只接收并返回值本身 */
 function trimString({ value }: { value: unknown }): unknown {
@@ -15,10 +15,11 @@ function trimString({ value }: { value: unknown }): unknown {
  *   字符串               = 设置值
  */
 export class UpdateUserDto {
-  @ApiPropertyOptional({ description: '姓名' })
+  @ApiPropertyOptional({ description: '姓名（不可传空字符串）' })
   @Transform(trimString)
   @IsOptional()
   @IsString()
+  @IsNotEmpty({ message: '姓名不能为空' })
   @MaxLength(64)
   name?: string;
 

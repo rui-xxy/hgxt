@@ -169,7 +169,11 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     if (outcome === 'network') throw networkError();
 
     // ok / auth：只要本地还有 token（自己刷新成功，或获胜标签页写入的新 token），重放一次
+    let replayedWith: string | null = null;
     if (tokenStore.getAccessToken()) {
+      // 记录本次重放所用的 token：失败清场前对比，避免误清并发标签页
+      // 刚刚写入的更新 token（重放失败 ≠ 新 token 无效，可能只是时序差一步）
+      replayedWith = tokenStore.getAccessToken();
       try {
         res = await doFetch();
       } catch {
@@ -178,8 +182,13 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     }
 
     if (res.status === 401) {
-      tokenStore.clear();
-      onAuthFailure?.();
+      const current = tokenStore.getAccessToken();
+      // 仅当 localStorage 里仍是「重放时用的那个 token」才清空会话；
+      // 若已被并发标签页换成新 token，保留它（本次请求失败，下一次会成功）
+      if (current === null || current === replayedWith) {
+        tokenStore.clear();
+        onAuthFailure?.();
+      }
       throw new ApiError(401, '登录已过期，请重新登录', 'auth');
     }
   }

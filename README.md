@@ -41,6 +41,8 @@ pnpm dev
 | `docker compose up -d` / `down` | 启停数据库 |
 
 > 测试使用独立数据库 `hgxt_test`（同容器），自动迁移与重建数据，不影响开发库。
+> CI（GitHub Actions，`.github/workflows/ci.yml`）在 push / PR 时跑完整 `pnpm check`，
+> 测试库地址通过 `TEST_DATABASE_URL` 指向 workflow 内的 postgres:18 service。
 
 ## 目录结构
 
