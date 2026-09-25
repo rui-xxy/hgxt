@@ -9,8 +9,9 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: hgxt
     ports:
-      # 宿主机 5432 已被其他项目（hgbord-postgres）占用，本项目用 5433
-      - "5433:5432"
+      # 只绑定本机回环（B1）：局域网不可直连；5432 已被其他项目占用故用 5433。
+      # 部署到服务器时通过 Docker 内网/内网地址连接，不经宿主机暴露端口。
+      - "127.0.0.1:5433:5432"
     volumes:
       # postgres:18 建议挂父目录（数据在 data 子目录，便于将来 pg_upgrade）
       - hgxt-pgdata:/var/lib/postgresql
