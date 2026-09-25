@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { App, Button, Form, Input } from 'antd';
-import { Navigate, useLocation, useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { loginApi } from '../api/auth';
 import { tokenStore } from '../api/client';
@@ -17,7 +16,6 @@ export function LoginPage() {
   const { message } = App.useApp();
   const navigate = useNavigate();
   const location = useLocation();
-  const [hasToken] = useState(() => Boolean(tokenStore.getAccessToken()));
 
   const from = (location.state as { from?: string } | null)?.from ?? '/';
 
@@ -34,9 +32,8 @@ export function LoginPage() {
     },
   });
 
-  // 已有 token 的直接进后台（token 失效时守卫会再弹回本页）
-  if (hasToken) return <Navigate to={from} replace />;
-
+  // D1：不再凭「localStorage 有 token」自动跳后台——是否有有效会话由
+  // RequireAuth 的 /me 结果决定，避免网络错误时的登录页↔后台循环跳转
   return (
     <div
       style={{

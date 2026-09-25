@@ -1,11 +1,13 @@
 /**
- * 统一请求层：
- *  - 自动携带 Bearer Access Token
- *  - 401 时「单飞」刷新 Refresh Token 并重放一次原请求
- *  - 刷新失败 → 清空本地会话并回调 onAuthFailure（由路由层注册跳转 /login）
+ * 统一请求层（D1/D2 整改版）：
+ *  - 错误三分类：'auth'（认证失效）/ 'server'（服务端错误）/ 'network'（网络不通）/ 'client'（业务 4xx）
+ *  - 401 时「单飞」刷新 Refresh Token 并重放原请求
+ *  - 同一个旧 Refresh Token 只尝试刷新一次（A1 服务端原子轮换的客户端配合）：
+ *    竞争输家不重试旧 token（避免触发服务端复用检测连坐吊销），而是检查
+ *    localStorage 是否已被获胜标签页写入新 token（D2 时序：storage 事件可能晚于失败）
+ *  - 其他标签页登出时通过 storage 事件同步登出
  *
- * V1 取舍：token 存 localStorage，简单直接；升级路径是后端下发
- * httpOnly cookie（需要 CSRF 防护），届时只改这一个文件。
+ * V1 取舍：token 存 localStorage；升级路径是后端下发 httpOnly cookie（需 CSRF 防护），届时只改本文件。
  */
 import type { RefreshResponse } from '@hgxt/shared';
 
@@ -29,20 +31,42 @@ export const tokenStore = {
   },
 };
 
+/** 错误类别：守卫只把 'auth' 当作「需要重新登录」，其余绝不登出 */
+export type ApiErrorKind = 'auth' | 'server' | 'network' | 'client';
+
 export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    public kind: ApiErrorKind,
   ) {
     super(message);
     this.name = 'ApiError';
   }
 }
 
-/** 会话彻底失效（刷新也失败）时由路由层注册，负责跳转登录页 */
+/** 认证彻底失效（刷新也失败）时由路由层注册，负责跳转登录页 */
 let onAuthFailure: (() => void) | null = null;
-export function setAuthFailureHandler(handler: () => void): void {
+export function setAuthFailureHandler(handler: (() => void) | null): void {
   onAuthFailure = handler;
+}
+
+/** D2：其他标签页登出时由路由层注册（清缓存 + 跳登录），storage 事件触发 */
+let onExternalLogout: (() => void) | null = null;
+export function setExternalLogoutHandler(handler: (() => void) | null): void {
+  onExternalLogout = handler;
+}
+
+if (typeof window !== 'undefined') {
+  // D2：跨标签页同步。storage 事件只在「其他」标签页修改 localStorage 时触发。
+  // 登出 → access token 被移除 → 本页同步登出；刷新 → token 更新 → 每次请求
+  // 实时读取 localStorage，无需额外处理。
+  window.addEventListener('storage', (event) => {
+    if (event.key !== ACCESS_TOKEN_KEY && event.key !== REFRESH_TOKEN_KEY) return;
+    if (!tokenStore.getAccessToken()) {
+      onExternalLogout?.();
+    }
+  });
 }
 
 interface RequestOptions {
@@ -52,48 +76,70 @@ interface RequestOptions {
   auth?: boolean;
 }
 
-/** 单飞：并发多个 401 时只发起一次 refresh */
-let refreshing: Promise<boolean> | null = null;
+type RefreshOutcome = 'ok' | 'auth' | 'network';
 
-async function doRefresh(): Promise<boolean> {
-  const refreshToken = tokenStore.getRefreshToken();
-  if (!refreshToken) return false;
+/** 单飞：并发多个 401 时只发起一次 refresh；且每个旧 token 至多尝试一次 */
+let refreshing: Promise<RefreshOutcome> | null = null;
+let lastAttemptedToken: string | null = null;
+
+async function attemptRefresh(): Promise<RefreshOutcome> {
+  const attempted = tokenStore.getRefreshToken();
+  if (!attempted) return 'auth';
+
+  if (attempted === lastAttemptedToken) {
+    // 这个旧 token 刚才已经失败过：不再用它重试（避免命中服务端复用检测）。
+    // 但如果其他标签页已经换出新 token（storage 已更新），直接视为成功。
+    const current = tokenStore.getRefreshToken();
+    return current !== null && current !== attempted && tokenStore.getAccessToken()
+      ? 'ok'
+      : 'auth';
+  }
+  lastAttemptedToken = attempted;
+
   try {
     const res = await fetch('/api/auth/refresh', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
+      body: JSON.stringify({ refreshToken: attempted }),
     });
-    if (!res.ok) return false;
-    const data = (await res.json()) as RefreshResponse;
-    tokenStore.setTokens(data.accessToken, data.refreshToken);
-    return true;
+    if (res.ok) {
+      const data = (await res.json()) as RefreshResponse;
+      tokenStore.setTokens(data.accessToken, data.refreshToken);
+      return 'ok';
+    }
+    // 判定为认证失败之前再读一次：并发竞争中获胜的标签页可能刚把新 token
+    // 写进 localStorage（storage 事件与本次失败存在时序竞争，见整改文档 D2）
+    const latest = tokenStore.getRefreshToken();
+    if (latest && latest !== attempted && tokenStore.getAccessToken()) return 'ok';
+    return 'auth';
   } catch {
-    return false;
+    return 'network';
   }
 }
 
-async function refreshOnce(): Promise<boolean> {
-  refreshing ??= doRefresh().finally(() => {
+function refreshOnce(): Promise<RefreshOutcome> {
+  refreshing ??= attemptRefresh().finally(() => {
     refreshing = null;
   });
   return refreshing;
 }
 
 async function parseError(res: Response): Promise<ApiError> {
+  const kind: ApiErrorKind =
+    res.status === 401 || res.status === 403 ? 'auth' : res.status >= 500 ? 'server' : 'client';
   try {
     const data = (await res.json()) as { message?: string | string[] };
     const message = Array.isArray(data.message) ? data.message[0] : data.message;
-    return new ApiError(res.status, message || `请求失败（${res.status}）`);
+    return new ApiError(res.status, message || `请求失败（${res.status}）`, kind);
   } catch {
-    return new ApiError(res.status, `请求失败（${res.status}）`);
+    return new ApiError(res.status, `请求失败（${res.status}）`, kind);
   }
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const needAuth = options.auth !== false;
 
-  const doFetch = (): Promise<Response> => {
+  const doFetch = async (): Promise<Response> => {
     const headers: Record<string, string> = {};
     if (options.body !== undefined) headers['Content-Type'] = 'application/json';
     if (needAuth) {
@@ -107,15 +153,34 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     });
   };
 
-  let res = await doFetch();
+  const networkError = () =>
+    new ApiError(0, '无法连接服务器，请检查网络或服务状态', 'network');
+
+  let res: Response;
+  try {
+    res = await doFetch();
+  } catch {
+    throw networkError();
+  }
 
   if (res.status === 401 && needAuth) {
-    const refreshed = await refreshOnce();
-    if (refreshed) {
-      res = await doFetch();
-    } else {
+    const outcome = await refreshOnce();
+
+    if (outcome === 'network') throw networkError();
+
+    // ok / auth：只要本地还有 token（自己刷新成功，或获胜标签页写入的新 token），重放一次
+    if (tokenStore.getAccessToken()) {
+      try {
+        res = await doFetch();
+      } catch {
+        throw networkError();
+      }
+    }
+
+    if (res.status === 401) {
       tokenStore.clear();
       onAuthFailure?.();
+      throw new ApiError(401, '登录已过期，请重新登录', 'auth');
     }
   }
 

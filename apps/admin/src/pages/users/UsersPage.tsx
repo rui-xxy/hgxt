@@ -164,6 +164,7 @@ export function UsersPage() {
               okText={active ? '禁用' : '启用'}
               okButtonProps={active ? { danger: true } : undefined}
               cancelText="取消"
+              disabled={statusMutation.isPending}
               onConfirm={() =>
                 statusMutation.mutate({
                   id: record.id,
@@ -171,7 +172,12 @@ export function UsersPage() {
                 })
               }
             >
-              <Button type="link" size="small" danger={active}>
+              <Button
+                type="link"
+                size="small"
+                danger={active}
+                loading={statusMutation.isPending && statusMutation.variables?.id === record.id}
+              >
                 {active ? '禁用' : '启用'}
               </Button>
             </Popconfirm>
@@ -232,11 +238,13 @@ export function UsersPage() {
       <UserFormModal
         open={formOpen}
         initial={editingUser}
+        submitting={createMutation.isPending || updateMutation.isPending}
         onCancel={() => setFormOpen(false)}
         onSubmit={handleSubmit}
       />
       <ResetPasswordModal
         user={resettingUser}
+        submitting={resetMutation.isPending}
         onCancel={() => setResettingUser(null)}
         onSubmit={async (id, newPassword) => {
           await resetMutation.mutateAsync({ id, newPassword });

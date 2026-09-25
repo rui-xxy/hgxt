@@ -9,12 +9,14 @@ interface ResetPasswordValues {
 
 interface ResetPasswordModalProps {
   user: UserDTO | null;
+  /** D3：提交进行中（禁用确认按钮，防重复提交） */
+  submitting?: boolean;
   onCancel: () => void;
   onSubmit: (userId: string, newPassword: string) => Promise<void>;
 }
 
 /** 重置密码：重置成功后该用户全部会话失效 */
-export function ResetPasswordModal({ user, onCancel, onSubmit }: ResetPasswordModalProps) {
+export function ResetPasswordModal({ user, submitting, onCancel, onSubmit }: ResetPasswordModalProps) {
   const [form] = Form.useForm<ResetPasswordValues>();
   const open = Boolean(user);
 
@@ -23,9 +25,14 @@ export function ResetPasswordModal({ user, onCancel, onSubmit }: ResetPasswordMo
   }, [open, form]);
 
   const handleOk = async () => {
-    const values = await form.validateFields();
-    if (!user) return;
-    await onSubmit(user.id, values.newPassword);
+    if (submitting) return;
+    try {
+      const values = await form.validateFields();
+      if (!user) return;
+      await onSubmit(user.id, values.newPassword);
+    } catch {
+      // 校验失败或提交失败：保持弹窗打开
+    }
   };
 
   return (
@@ -36,6 +43,7 @@ export function ResetPasswordModal({ user, onCancel, onSubmit }: ResetPasswordMo
       onOk={handleOk}
       okText="重置"
       cancelText="取消"
+      confirmLoading={submitting}
       destroyOnHidden
     >
       <Form form={form} layout="vertical" requiredMark={false}>

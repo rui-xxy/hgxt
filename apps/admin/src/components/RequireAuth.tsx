@@ -1,9 +1,15 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
-import { Spin } from 'antd';
 import { useMe } from '../api/hooks';
-import { tokenStore } from '../api/client';
+import { tokenStore, ApiError } from '../api/client';
+import { PageLoading } from './PageLoading';
+import { ConnectionErrorPage } from './ConnectionErrorPage';
 
-/** 登录态守卫：无 token 直接去登录页；有 token 但 /me 失效同样回登录页 */
+/**
+ * D1 登录态守卫：
+ *  - 无 token / /me 认证失败（kind='auth'）→ 登录页
+ *  - /me 网络或服务器错误（kind='network'/'server'）→ 错误页 + 重试，绝不登出
+ *  - 加载中 → 全屏 Spin
+ */
 export function RequireAuth() {
   const location = useLocation();
   if (!tokenStore.getAccessToken()) {
@@ -16,16 +22,18 @@ function AuthGate() {
   const me = useMe();
   const location = useLocation();
 
-  if (me.isPending) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
-        <Spin size="large" />
-      </div>
-    );
-  }
+  if (me.isPending) return <PageLoading />;
 
-  if (me.isError || !me.data) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  if (me.isError) {
+    const error = me.error instanceof ApiError ? me.error : null;
+    if (!error || error.kind === 'auth') {
+      return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    }
+    return (
+      <ConnectionErrorPage
+        message={me.error instanceof Error ? me.error.message : '未知错误'}
+      />
+    );
   }
 
   return <Outlet />;

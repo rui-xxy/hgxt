@@ -15,12 +15,14 @@ interface UserFormModalProps {
   open: boolean;
   /** 有值 = 编辑模式 */
   initial?: UserDTO | null;
+  /** D3：提交进行中（禁用确认按钮，防重复提交） */
+  submitting?: boolean;
   onCancel: () => void;
   onSubmit: (values: UserFormValues, editing: boolean) => Promise<void>;
 }
 
 /** 新增 / 编辑用户（编辑时 username 不可改、不涉及密码） */
-export function UserFormModal({ open, initial, onCancel, onSubmit }: UserFormModalProps) {
+export function UserFormModal({ open, initial, submitting, onCancel, onSubmit }: UserFormModalProps) {
   const [form] = Form.useForm<UserFormValues>();
   const editing = Boolean(initial);
 
@@ -40,8 +42,13 @@ export function UserFormModal({ open, initial, onCancel, onSubmit }: UserFormMod
   }, [open, initial, form]);
 
   const handleOk = async () => {
-    const values = await form.validateFields();
-    await onSubmit(values, editing);
+    if (submitting) return;
+    try {
+      const values = await form.validateFields();
+      await onSubmit(values, editing);
+    } catch {
+      // 校验失败或提交失败：保持弹窗打开，错误信息由校验器 / message 呈现
+    }
   };
 
   return (
@@ -52,6 +59,7 @@ export function UserFormModal({ open, initial, onCancel, onSubmit }: UserFormMod
       onOk={handleOk}
       okText="保存"
       cancelText="取消"
+      confirmLoading={submitting}
       destroyOnHidden
     >
       <Form form={form} layout="vertical" requiredMark={false} initialValues={{ role: Role.USER }}>
