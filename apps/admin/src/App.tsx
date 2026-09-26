@@ -48,7 +48,14 @@ export default function App() {
           <Route element={<AdminLayout />}>
             <Route index element={<HomePage />} />
             <Route path="forms" element={<FormsPage />} />
-            <Route path="forms/:id" element={<FormDataPage />} />
+            <Route
+              path="forms/:id"
+              element={
+                <RequireSuperAdmin>
+                  <FormDataPage />
+                </RequireSuperAdmin>
+              }
+            />
             <Route
               path="users"
               element={

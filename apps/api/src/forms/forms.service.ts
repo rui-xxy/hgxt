@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import type {
-  FormDTO, FormData, FormField, FormPageResult, FormSubmissionDTO,
-  FormSubmissionPageResult, SaveFormSubmissionsBody,
+  FormDTO, FormData, FormField, FormLastValuesResult, FormPageResult,
+  FormSubmissionDTO, FormSubmissionPageResult, SaveFormSubmissionsBody,
 } from '@hgxt/shared';
 import { Prisma, type Form, type FormSubmission } from '../generated/prisma/client';
 import { PrismaService } from '../database/prisma.service';
@@ -9,6 +9,29 @@ import { FormListQuery, SubmissionListQuery } from './query.dto';
 
 function schemaOf(form: Form): FormField[] {
   return form.schema as unknown as FormField[];
+}
+
+/**
+ * 主日期字段 = schema 中第一个 date 类型字段（数据归属日期，通常是隐藏的 field_date）。
+ * 「最新填写时间」「排序」「新增行默认日期」都以它为准；没有 date 字段的表单
+ * （如纯登记表）相关逻辑整体跳过——不写死任何字段名。
+ */
+function primaryDateField(schema: FormField[]): FormField | undefined {
+  return schema.find((field) => field.type === 'date');
+}
+
+/** 字段 id 可安全拼进 SQL（schema 数据入库前受控，这里再防御一次） */
+function safeFieldId(id: string): string {
+  if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) throw new BadRequestException('字段定义不合法');
+  return id;
+}
+
+/** 每张表单在其 schema 的 date 字段上取最大日期值（跨多个 date 字段取最大） */
+function latestDateExpr(dateFieldIds: string[]): Prisma.Sql {
+  const cases = dateFieldIds.map((id) =>
+    Prisma.sql`MAX(CASE WHEN data->>${safeFieldId(id)} ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' THEN data->>${safeFieldId(id)} END)`,
+  );
+  return cases.length === 1 ? cases[0] : Prisma.sql`GREATEST(${Prisma.join(cases)})`;
 }
 
 function asSubmission(row: FormSubmission): FormSubmissionDTO {
@@ -22,9 +45,13 @@ function asSubmission(row: FormSubmission): FormSubmissionDTO {
 }
 
 function isDate(value: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  if (!/^\d{4}-\d{2}-[0-9]{2}$/.test(value)) return false;
   const date = new Date(`${value}T00:00:00.000Z`);
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function cleanData(form: Form, input: unknown): FormData {
@@ -34,13 +61,17 @@ function cleanData(form: Form, input: unknown): FormData {
   const source = input as Record<string, unknown>;
   const schema = schemaOf(form);
   const known = new Set(schema.map((field) => field.id));
-  if (form.title.includes('硫酸车间')) known.add('parkingRecords');
+  if (form.parkingEnabled) known.add('parkingRecords');
   if (Object.keys(source).some((key) => !known.has(key))) {
     throw new BadRequestException('提交内容包含未知字段');
   }
   const data: FormData = {};
   for (const field of schema) {
-    const raw = source[field.id];
+    let raw = source[field.id];
+    // 隐藏的日期字段缺省 → 自动填当天（数据归属日期由系统填，不依赖前端）
+    if (raw === undefined && field.hidden && field.type === 'date') {
+      raw = todayStr();
+    }
     if (raw === undefined || raw === null || raw === '') {
       if (field.required) throw new BadRequestException(`${field.title}为必填项`);
       data[field.id] = null;
@@ -62,8 +93,13 @@ function cleanData(form: Form, input: unknown): FormData {
       throw new BadRequestException(`${field.title}格式不正确`);
     }
   }
-  if (typeof data.field_date !== 'string' || !isDate(data.field_date)) {
-    throw new BadRequestException('填写日期无效');
+  // 主日期字段必须有效（没有 date 字段的表单跳过该校验）
+  const primary = primaryDateField(schema);
+  if (primary) {
+    const value = data[primary.id];
+    if (typeof value !== 'string' || !isDate(value)) {
+      throw new BadRequestException(`${primary.title}无效`);
+    }
   }
   if (source.parkingRecords !== undefined && source.parkingRecords !== null) {
     if (typeof source.parkingRecords !== 'string' || source.parkingRecords.length > 10000) {
@@ -95,19 +131,26 @@ export class FormsService {
       }),
       this.prisma.form.count({ where }),
     ]);
-    const ids = forms.map((form) => form.id);
-    const dates = ids.length ? await this.prisma.$queryRaw<{ formId: string; latest: string | null }[]>(Prisma.sql`
-      SELECT "formId", MAX(CASE WHEN data->>'field_date' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
-        THEN data->>'field_date' END) AS latest
-      FROM "FormSubmission" WHERE "formId" IN (${Prisma.join(ids)}) GROUP BY "formId"
-    `) : [];
-    const latest = new Map(dates.map((item) => [item.formId, item.latest]));
+    // 各表按自己的 date 字段取最新归属日期
+    const latest = new Map<string, string | null>();
+    for (const form of forms) {
+      const dateIds = schemaOf(form).filter((f) => f.type === 'date').map((f) => f.id);
+      if (!dateIds.length) {
+        latest.set(form.id, null);
+        continue;
+      }
+      const [row] = await this.prisma.$queryRaw<{ latest: string | null }[]>(Prisma.sql`
+        SELECT ${latestDateExpr(dateIds)} AS latest FROM "FormSubmission" WHERE "formId" = ${form.id}
+      `);
+      latest.set(form.id, row?.latest ?? null);
+    }
     return {
       items: forms.map((form): FormDTO => ({
         id: form.id,
         title: form.title,
         description: form.description,
         schema: schemaOf(form),
+        parkingEnabled: form.parkingEnabled,
         latestEntryDate: latest.get(form.id) ?? null,
         submissionCount: form._count.submissions,
       })),
@@ -117,34 +160,79 @@ export class FormsService {
 
   async get(id: string): Promise<FormDTO> {
     const form = await this.findForm(id);
-    const [latest] = await this.prisma.$queryRaw<{ latest: string | null }[]>(Prisma.sql`
-      SELECT MAX(CASE WHEN data->>'field_date' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
-        THEN data->>'field_date' END) AS latest
-      FROM "FormSubmission" WHERE "formId" = ${id}
-    `);
+    const schema = schemaOf(form);
+    const dateIds = schema.filter((f) => f.type === 'date').map((f) => f.id);
+    let latest: string | null = null;
+    if (dateIds.length) {
+      const [row] = await this.prisma.$queryRaw<{ latest: string | null }[]>(Prisma.sql`
+        SELECT ${latestDateExpr(dateIds)} AS latest FROM "FormSubmission" WHERE "formId" = ${id}
+      `);
+      latest = row?.latest ?? null;
+    }
     return {
       id: form.id,
       title: form.title,
       description: form.description,
-      schema: schemaOf(form),
-      latestEntryDate: latest?.latest ?? null,
+      schema,
+      parkingEnabled: form.parkingEnabled,
+      latestEntryDate: latest,
       submissionCount: await this.prisma.formSubmission.count({ where: { formId: id } }),
     };
   }
 
   async listSubmissions(id: string, query: SubmissionListQuery): Promise<FormSubmissionPageResult> {
-    await this.findForm(id);
+    const form = await this.findForm(id);
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 100;
+    const primary = primaryDateField(schemaOf(form));
+    const orderExpr = primary
+      ? Prisma.sql`data->>${safeFieldId(primary.id)} DESC NULLS LAST, "createdAt" DESC`
+      : Prisma.sql`"createdAt" DESC`;
     const [rows, total] = await Promise.all([
       this.prisma.$queryRaw<FormSubmission[]>(Prisma.sql`
         SELECT * FROM "FormSubmission" WHERE "formId" = ${id}
-        ORDER BY data->>'field_date' DESC NULLS LAST, "createdAt" DESC
+        ORDER BY ${orderExpr}
         LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
       `),
       this.prisma.formSubmission.count({ where: { formId: id } }),
     ]);
     return { items: rows.map(asSubmission), total, page, pageSize };
+  }
+
+  /**
+   * 上次值（USER 可用）：每个字段最近一次非空值及其归属日期。
+   * 只返回「最近值」不返回历史明细——员工填报参考用，不属于需要限权的历史数据。
+   */
+  async lastValues(id: string): Promise<FormLastValuesResult> {
+    const form = await this.findForm(id);
+    const schema = schemaOf(form);
+    const primary = primaryDateField(schema);
+    const rows = await this.prisma.formSubmission.findMany({
+      where: { formId: id },
+      orderBy: [{ createdAt: 'desc' }],
+      select: { data: true },
+    });
+    // 按主日期（无则按提交时间）从新到旧找每个字段最近的非空值
+    const sorted = [...rows].sort((a, b) => {
+      const key = (row: { data: Prisma.JsonValue }) => {
+        const v = primary ? (row.data as FormData)[primary.id] : null;
+        return typeof v === 'string' && isDate(v) ? v : '';
+      };
+      return key(b).localeCompare(key(a));
+    });
+    const result: FormLastValuesResult = {};
+    for (const row of sorted) {
+      for (const [fieldId, value] of Object.entries(row.data as FormData)) {
+        if (result[fieldId]) continue;
+        if (value === null || value === '') continue;
+        const businessDate = primary ? (row.data as FormData)[primary.id] : null;
+        result[fieldId] = {
+          value,
+          date: typeof businessDate === 'string' && businessDate ? businessDate : todayStr(),
+        };
+      }
+    }
+    return result;
   }
 
   async createSubmission(id: string, input: unknown, submitterId: string): Promise<FormSubmissionDTO> {

@@ -2,6 +2,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { hashPassword } from '../src/common/utils/argon';
 import acidSchema from './acid-form.schema.json';
+import inspectionSchema from './inspection-form.schema.json';
 
 // B3：seed 不再有默认密码——必须显式配置 SEED_ADMIN_PASSWORD 才执行
 const rawPassword = process.env.SEED_ADMIN_PASSWORD;
@@ -49,8 +50,17 @@ async function main(): Promise<void> {
   // 已有表单和真实记录保持原样；新库只创建字段定义，不生成虚构的提交数据。
   const formTitle = '硫酸车间报表';
   if (!(await prisma.form.findFirst({ where: { title: formTitle } }))) {
-    await prisma.form.create({ data: { title: formTitle, description: '每日生产数据填报', schema: acidSchema } });
+    await prisma.form.create({ data: { title: formTitle, description: '每日生产数据填报', schema: acidSchema, parkingEnabled: true } });
     console.log(`已创建表单：${formTitle}`);
+  }
+  // 硫酸表单启用停车记录（迁移前的旧记录默认 false，补齐）
+  await prisma.form.updateMany({ where: { title: formTitle, parkingEnabled: false }, data: { parkingEnabled: true } });
+
+  // 设备巡检表：无日期字段的 text/select/可选数字混合表单（验证表单系统通用性）
+  const inspectionTitle = '设备巡检表';
+  if (!(await prisma.form.findFirst({ where: { title: inspectionTitle } }))) {
+    await prisma.form.create({ data: { title: inspectionTitle, description: '设备日常巡检登记', schema: inspectionSchema } });
+    console.log(`已创建表单：${inspectionTitle}`);
   }
 }
 

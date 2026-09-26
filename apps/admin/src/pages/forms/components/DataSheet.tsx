@@ -10,14 +10,38 @@ import { cellValuesEqual, displaySheetCell, parseSheetCell, sheetDataEqual } fro
 
 interface SheetRow { key: string; id?: string; data: FormData; original: FormData; }
 interface Cell { key: string; col: number; }
-interface Props { formId: string; formTitle: string; schema: FormField[]; submissions: FormSubmissionDTO[]; total: number; scrollPositionRef: { current: { left: number; top: number } }; }
+interface Props { formId: string; formTitle: string; parkingEnabled: boolean; schema: FormField[]; submissions: FormSubmissionDTO[]; total: number; scrollPositionRef: { current: { left: number; top: number } }; }
 
 const rowNoWidth = 48;
 const parkingWidth = 118;
 const actionWidth = 64;
 const dateWidth = 128;
-const parkingEnabled = (title: string) => title.includes('硫酸车间');
-export function DataSheet({ formId, formTitle, schema, submissions, total, scrollPositionRef }: Props) {
+
+/** 主日期字段 = schema 中第一个 date 字段（数据归属日期）；无 date 字段的表单返回 undefined */
+function primaryDateField(schema: FormField[]): FormField | undefined {
+  return schema.find((field) => field.type === 'date');
+}
+
+/** 现有数据里主日期的最大值 + 1 天（日报场景逐日递增；无数据/无日期字段则为今天） */
+function nextDate(schema: FormField[], submissions: FormSubmissionDTO[]): string {
+  const primary = primaryDateField(schema);
+  const today = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  };
+  if (!primary) return today();
+  let max = '';
+  for (const item of submissions) {
+    const value = item.data[primary.id];
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && value > max) max = value;
+  }
+  if (!max) return today();
+  const next = new Date(`${max}T00:00:00.000Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  return next.toISOString().slice(0, 10);
+}
+
+export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissions, total, scrollPositionRef }: Props) {
   const { message } = App.useApp();
   const queryClient = useQueryClient();
   const initial = useMemo(() => submissions.map((item): SheetRow => ({ key: item.id, id: item.id, data: { ...item.data }, original: { ...item.data } })), [submissions]);
@@ -31,7 +55,7 @@ export function DataSheet({ formId, formTitle, schema, submissions, total, scrol
   const scrollRef = useRef<HTMLDivElement>(null);
   const suppressBlur = useRef(false);
   const rowsRef = useRef(rows);
-  const includeParking = parkingEnabled(formTitle);
+  const includeParking = parkingEnabled;
   const leadingWidth = rowNoWidth + actionWidth + (includeParking ? parkingWidth : 0);
   const fieldWidths = useMemo(() => schema.map((field) => field.type === 'date' ? dateWidth : field.width ?? 100), [schema]);
   const groups = schema.reduce<{ title: string; count: number }[]>((current, field) => {
@@ -152,10 +176,11 @@ export function DataSheet({ formId, formTitle, schema, submissions, total, scrol
   const addRow = () => {
     if (mutation.isPending) return;
     const key = `new-${crypto.randomUUID()}`;
-    const now = new Date();
-    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const data = Object.fromEntries(schema.map((field) => [field.id, field.id === 'field_date' ? today : field.type === 'number' ? null : ''])) as FormData;
-    const firstEntry = schema.findIndex((field) => field.id !== 'field_date');
+    // 主日期字段自动填「最大日期 + 1 天」，其余字段按类型置空；无日期字段则不填
+    const primary = primaryDateField(schema);
+    const dateValue = nextDate(schema, submissions);
+    const data = Object.fromEntries(schema.map((field) => [field.id, field.type === 'date' ? dateValue : field.type === 'number' ? null : ''])) as FormData;
+    const firstEntry = schema.findIndex((field) => field.id !== primary?.id);
     const col = firstEntry < 0 ? 0 : firstEntry;
     replaceRows([{ key, data, original: { ...data } }, ...rowsRef.current]);
     setDraft(String(data[schema[col].id] ?? ''));
@@ -176,8 +201,10 @@ export function DataSheet({ formId, formTitle, schema, submissions, total, scrol
     if (editing && !commit(editing, draft)) return;
     setEditing(null);
     const nextRows = rowsRef.current;
-    if (nextRows.some((row) => typeof row.data.field_date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(row.data.field_date))) {
-      message.warning('请先填写每行的有效日期'); return;
+    // 主日期字段存在才要求每行日期有效（无日期字段的表单直接放行）
+    const primary = primaryDateField(schema);
+    if (primary && nextRows.some((row) => typeof row.data[primary.id] !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(row.data[primary.id] as string))) {
+      message.warning(`请先填写每行有效的${primary.title}`); return;
     }
     mutation.mutate({
       created: nextRows.filter((row) => !row.id).map((row) => row.data),
@@ -222,7 +249,7 @@ export function DataSheet({ formId, formTitle, schema, submissions, total, scrol
           {!rows.length && <tr><td className="forms-sheet-empty" colSpan={schema.length + (includeParking ? 3 : 2)}>暂无数据，点击「新增行」开始录入</td></tr>}
           {rows.map((row, index) => <tr key={row.key}>
             <td className="forms-sheet-sticky forms-sheet-sticky-0 forms-sheet-rowno">{index + 1}</td>
-            {includeParking && <td className="forms-sheet-sticky forms-sheet-parking" style={{ left: rowNoWidth }}><Button size="small" disabled={mutation.isPending} onClick={() => setParkingKey(row.key)}>{parseParking(row.data.parkingRecords, String(row.data.field_date ?? '')).length ? `${parseParking(row.data.parkingRecords, String(row.data.field_date ?? '')).length} 条记录` : '无记录'}</Button></td>}
+            {includeParking && <td className="forms-sheet-sticky forms-sheet-parking" style={{ left: rowNoWidth }}><Button size="small" disabled={mutation.isPending} onClick={() => setParkingKey(row.key)}>{parseParking(row.data.parkingRecords, String(row.data[primaryDateField(schema)?.id ?? ''] ?? '')).length ? `${parseParking(row.data.parkingRecords, String(row.data[primaryDateField(schema)?.id ?? ''] ?? '')).length} 条记录` : '无记录'}</Button></td>}
             <td className="forms-sheet-sticky forms-sheet-action" style={{ left: rowNoWidth + (includeParking ? parkingWidth : 0) }}><Popconfirm title="删除这行数据？" okText="删除" cancelText="取消" okButtonProps={{ danger: true }} onConfirm={() => removeRow(row)}><Button type="text" size="small" danger disabled={mutation.isPending} aria-label={`删除第 ${index + 1} 行`} icon={<DeleteOutlined />} /></Popconfirm></td>
             {schema.map((field, col) => {
               const active = editing?.key === row.key && editing.col === col;
@@ -238,6 +265,6 @@ export function DataSheet({ formId, formTitle, schema, submissions, total, scrol
         </tbody>
       </table>
     </div>
-    {parkingRow && <ParkingEditor key={parkingRow.key} initial={parseParking(parkingRow.data.parkingRecords, String(parkingRow.data.field_date ?? ''))} date={String(parkingRow.data.field_date ?? '')} onClose={() => setParkingKey(null)} onSave={(records) => { const value = serializeParking(records); if (value !== parkingRow.data.parkingRecords) { replaceRows(rowsRef.current.map((row) => row.key === parkingRow.key ? { ...row, data: { ...row.data, parkingRecords: value } } : row)); setSaved(false); } setParkingKey(null); }} />}
+    {parkingRow && <ParkingEditor key={parkingRow.key} initial={parseParking(parkingRow.data.parkingRecords, String(parkingRow.data[primaryDateField(schema)?.id ?? ''] ?? ''))} date={String(parkingRow.data[primaryDateField(schema)?.id ?? ''] ?? '')} onClose={() => setParkingKey(null)} onSave={(records) => { const value = serializeParking(records); if (value !== parkingRow.data.parkingRecords) { replaceRows(rowsRef.current.map((row) => row.key === parkingRow.key ? { ...row, data: { ...row.data, parkingRecords: value } } : row)); setSaved(false); } setParkingKey(null); }} />}
   </div>;
 }

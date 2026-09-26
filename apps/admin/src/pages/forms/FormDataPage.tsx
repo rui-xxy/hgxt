@@ -30,6 +30,7 @@ export function FormDataPage() {
         key={submissions.data.items.map((item) => `${item.id}:${item.updatedAt}`).join('|')}
         formId={id}
         formTitle={form.data.title}
+        parkingEnabled={form.data.parkingEnabled}
         schema={form.data.schema}
         submissions={submissions.data.items}
         total={submissions.data.total}

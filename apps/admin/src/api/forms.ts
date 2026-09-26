@@ -1,6 +1,6 @@
 import type {
   FormDTO, FormData, FormPageResult, FormSubmissionDTO,
-  FormSubmissionPageResult, SaveFormSubmissionsBody,
+  FormSubmissionPageResult, SaveFormSubmissionsBody, FormLastValuesResult,
 } from '@hgxt/shared';
 import { request } from './client';
 
@@ -15,6 +15,9 @@ export function listSubmissions(id: string): Promise<FormSubmissionPageResult> {
 }
 export function createSubmission(id: string, data: FormData): Promise<FormSubmissionDTO> {
   return request(`/forms/${id}/submissions`, { method: 'POST', body: { data } });
+}
+export function latestValues(id: string): Promise<FormLastValuesResult> {
+  return request(`/forms/${id}/submissions/latest`);
 }
 export function saveSubmissions(id: string, body: SaveFormSubmissionsBody): Promise<{ created: number; updated: number; deleted: number }> {
   return request(`/forms/${id}/submissions/batch`, { method: 'POST', body });

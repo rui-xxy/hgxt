@@ -67,6 +67,8 @@ model Form {
   description String?
   schema      Json
   status      String           @default("published")
+  /// 是否启用「停车记录」附加录入（由表单定义决定，不按标题硬编码）
+  parkingEnabled Boolean       @default(false)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   submissions FormSubmission[]

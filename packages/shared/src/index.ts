@@ -116,6 +116,8 @@ export interface FormDTO {
   title: string;
   description: string | null;
   schema: FormField[];
+  /** 是否启用「停车记录」附加录入 */
+  parkingEnabled: boolean;
   latestEntryDate: string | null;
   submissionCount: number;
 }
@@ -142,4 +144,9 @@ export interface SaveFormSubmissionsBody {
   created: FormData[];
   updated: { id: string; data: FormData }[];
   deleted: string[];
+}
+
+/** 上次值接口（USER 可用）：每个字段最近一次非空值及其归属日期 */
+export interface FormLastValuesResult {
+  [fieldId: string]: { value: string | number; date: string };
 }
