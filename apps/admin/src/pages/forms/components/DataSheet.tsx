@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { App, Button, Popconfirm, Space } from 'antd';
+import { App, Button, Empty, Popconfirm, Space } from 'antd';
 import { DeleteOutlined, DownloadOutlined, PlusOutlined, SaveOutlined, UndoOutlined } from '@ant-design/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { FormData, FormField, FormSubmissionDTO, SaveFormSubmissionsBody } from '@hgxt/shared';
@@ -246,7 +246,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
           {schema.map((field, index) => <th key={field.id} title={field.title} className={`forms-sheet-field forms-sheet-tone-${groupIndexes[index] % 2} ${index === 0 ? 'forms-sheet-sticky forms-sheet-date' : ''}`} style={{ ...(index === 0 ? { left: leadingWidth } : {}), width: fieldWidths[index], minWidth: fieldWidths[index] }}>{field.title}{field.unit && <small>{field.unit}</small>}</th>)}
         </tr></thead>
         <tbody>
-          {!rows.length && <tr><td className="forms-sheet-empty" colSpan={schema.length + (includeParking ? 3 : 2)}>暂无数据，点击「新增行」开始录入</td></tr>}
+          {!rows.length && <tr><td className="forms-sheet-empty" colSpan={schema.length + (includeParking ? 3 : 2)}><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无数据，点击「新增行」开始录入" /></td></tr>}
           {rows.map((row, index) => <tr key={row.key}>
             <td className="forms-sheet-sticky forms-sheet-sticky-0 forms-sheet-rowno">{index + 1}</td>
             {includeParking && <td className="forms-sheet-sticky forms-sheet-parking" style={{ left: rowNoWidth }}><Button size="small" disabled={mutation.isPending} onClick={() => setParkingKey(row.key)}>{parseParking(row.data.parkingRecords, String(row.data[primaryDateField(schema)?.id ?? ''] ?? '')).length ? `${parseParking(row.data.parkingRecords, String(row.data[primaryDateField(schema)?.id ?? ''] ?? '')).length} 条记录` : '无记录'}</Button></td>}
@@ -268,3 +268,4 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
     {parkingRow && <ParkingEditor key={parkingRow.key} initial={parseParking(parkingRow.data.parkingRecords, String(parkingRow.data[primaryDateField(schema)?.id ?? ''] ?? ''))} date={String(parkingRow.data[primaryDateField(schema)?.id ?? ''] ?? '')} onClose={() => setParkingKey(null)} onSave={(records) => { const value = serializeParking(records); if (value !== parkingRow.data.parkingRecords) { replaceRows(rowsRef.current.map((row) => row.key === parkingRow.key ? { ...row, data: { ...row.data, parkingRecords: value } } : row)); setSaved(false); } setParkingKey(null); }} />}
   </div>;
 }
+

@@ -8,11 +8,8 @@
   border-bottom: 1px solid var(--ant-color-border-secondary);
 }
 .forms-muted { color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); }
-.forms-list-link,
-.forms-list-link:hover,
-.forms-list-link:visited,
-.forms-list-link:focus { color: var(--ant-color-text); }
-.forms-list-link:hover { text-decoration: underline; }
+.forms-list-title { color: var(--ant-color-text); font-weight: 500; }
+.forms-date-value { color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); }
 .forms-back { display: inline-flex; margin-right: 12px; color: var(--ant-color-text-secondary); }
 .forms-back:hover { color: var(--ant-color-text); }
 .forms-unsaved { color: var(--ant-color-warning); font-size: var(--ui-font-size-sm); }
@@ -22,7 +19,7 @@
 .forms-sheet-table { border-spacing: 0; table-layout: fixed; width: 100%; color: var(--ant-color-text); }
 .forms-sheet-table th,
 .forms-sheet-table td { box-sizing: border-box; border-right: 1px solid var(--ant-color-border-secondary); border-bottom: 1px solid var(--ant-color-border-secondary); text-align: center; white-space: nowrap; overflow: hidden; }
-.forms-sheet-table thead th { position: sticky; top: 0; z-index: 20; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); font-weight: 600; }
+.forms-sheet-table thead th { position: sticky; top: 0; z-index: 20; background: var(--ant-color-bg-container); color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); font-weight: 600; }
 .forms-sheet-table thead tr:first-child th { height: 24px; }
 .forms-sheet-table thead tr:nth-child(2) th { top: 24px; height: 44px; }
 .forms-sheet-table thead th[rowspan] { height: 68px; }
@@ -32,22 +29,23 @@
 .forms-sheet-table .forms-sheet-date.forms-sheet-sticky { z-index: 12; background: var(--ant-color-bg-container); }
 .forms-sheet-table thead .forms-sheet-date.forms-sheet-sticky { z-index: 31; background: var(--ant-color-bg-container); }
 .forms-sheet-table .forms-sheet-tone-0 { background: var(--ant-color-bg-container); }
-.forms-sheet-table .forms-sheet-tone-1 { background: var(--ant-color-fill-quaternary); }
+.forms-sheet-table .forms-sheet-tone-1 { background: var(--ant-color-bg-container); }
 .forms-sheet-table thead .forms-sheet-tone-0 { background: var(--ant-color-bg-container); }
 .forms-sheet-table thead .forms-sheet-tone-1 { background: var(--ant-color-bg-layout); }
-.forms-sheet-group { font-size: var(--ui-font-size-xs) !important; font-weight: 500 !important; }
+.forms-sheet-group { font-size: var(--ui-font-size-sm) !important; font-weight: 500 !important; }
 .forms-sheet-field small { margin-left: 3px; color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-xs); font-weight: 400; }
-.forms-sheet-table tbody td { height: 44px; font-size: var(--ui-font-size-sm); }
+.forms-sheet-table tbody td { height: 44px; font-size: var(--ui-font-size-base); }
 .forms-sheet-table tbody tr:hover td:not(.forms-sheet-sticky) { background: var(--ant-color-fill-quaternary); }
 .forms-sheet-rowno { color: var(--ant-color-text-tertiary); font-variant-numeric: tabular-nums; }
 .forms-sheet-cell { cursor: text; padding: 0 8px; font-variant-numeric: tabular-nums; }
 .forms-sheet-cell.forms-sheet-changed { color: var(--ant-color-warning); background: var(--ant-color-warning-bg); }
 .forms-sheet-table tbody tr:hover td.forms-sheet-changed { background: var(--ant-color-warning-bg); }
-.forms-sheet-cell.forms-sheet-active { outline: 1px solid var(--ant-color-text-secondary); outline-offset: -1px; }
+.forms-sheet-cell.forms-sheet-active { outline: 1px solid var(--ant-color-primary); outline-offset: -1px; }
 .forms-sheet-cell input,
 .forms-sheet-cell select { box-sizing: border-box; display: block; width: 100%; height: 100%; min-height: 42px; padding: 0; border: 0; outline: 0; box-shadow: none; background: transparent; color: var(--ant-color-text); text-align: center; font: inherit; font-variant-numeric: tabular-nums; }
 .forms-sheet-cell input::selection { background: var(--ant-color-fill-secondary); color: var(--ant-color-text); }
-.forms-sheet-empty { padding: 48px 16px; color: var(--ant-color-text-tertiary); }
+.forms-sheet-empty { padding: 24px 16px; color: var(--ant-color-text-tertiary); }
+.forms-sheet-empty .ant-empty { margin-block: 12px; }
 
 .forms-parking-editor { display: grid; gap: 12px; max-height: 65vh; overflow: auto; padding: 12px 0; }
 .forms-parking-card { padding: 12px; border: 1px solid var(--ant-color-border-secondary); border-radius: var(--ant-border-radius-sm); background: var(--ant-color-fill-quaternary); }
@@ -64,24 +62,31 @@
 .forms-fill-tabs { flex: none; padding: 10px 16px; overflow-x: auto; border-bottom: 1px solid var(--ant-color-border-secondary); scrollbar-width: none; }
 .forms-fill-tabs::-webkit-scrollbar { display: none; }
 .forms-fill-tabs-inner { display: flex; gap: 4px; width: max-content; min-width: 100%; padding: 4px; border-radius: var(--ant-border-radius-sm); background: var(--ant-color-fill-quaternary); }
-.forms-fill-tabs button { flex: none; height: 32px; padding: 0 12px; border: 0; border-radius: var(--ant-border-radius-sm); background: transparent; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-caption); font-weight: 600; cursor: pointer; white-space: nowrap; }
-.forms-fill-tabs button.active { background: var(--ant-color-bg-container); color: var(--ant-color-text); box-shadow: var(--ant-box-shadow-tertiary); }
+.forms-fill-tabs button { flex: none; height: 32px; padding: 0 12px; border: 1px solid transparent; border-radius: var(--ant-border-radius-sm); background: transparent; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-caption); font-weight: 500; cursor: pointer; white-space: nowrap; }
+.forms-fill-tabs button.active { border-color: var(--ant-color-border-secondary); background: var(--ant-color-bg-container); color: var(--ant-color-text); }
 .forms-fill-tabs button b { display: inline-block; min-width: 15px; margin-left: 6px; padding: 1px 4px; border-radius: var(--ant-border-radius-sm); background: var(--ant-color-fill-secondary); color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-xs); }
 .forms-fill-tabs button.active b { background: var(--ant-color-text); color: var(--ant-color-bg-container); }
 .forms-fill-content { flex: 1; min-height: 0; overflow-y: auto; }
 .forms-fill-row { box-sizing: border-box; min-height: 64px; display: flex; align-items: center; gap: 12px; padding: 8px 20px; border-bottom: 1px solid var(--ant-color-border-secondary); }
-.forms-fill-row.filled { background: var(--ant-color-fill-quaternary); }
 .forms-fill-label { flex: 1; min-width: 0; display: grid; gap: 2px; }
-.forms-fill-label strong { font-size: var(--ui-font-size-base); }
+.forms-fill-label strong { font-size: var(--ui-font-size-base); font-weight: 500; }
+.forms-fill-label em { margin-left: 4px; color: var(--ant-color-error); font-style: normal; }
 .forms-fill-label small { color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); overflow: hidden; text-overflow: ellipsis; }
-.forms-fill-last { flex: none; width: 58px; display: grid; justify-items: end; gap: 2px; font-variant-numeric: tabular-nums; }
+.forms-fill-last { flex: none; width: 76px; display: grid; justify-items: end; gap: 2px; font-variant-numeric: tabular-nums; min-width: 0; }
 .forms-fill-last small { color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-xs); }
-.forms-fill-last strong { color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-caption); }
+.forms-fill-last strong { max-width: 100%; overflow: hidden; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-caption); text-overflow: ellipsis; white-space: nowrap; }
 .forms-fill-entry { flex: none; display: flex; align-items: center; gap: 4px; }
 .forms-fill-entry input,
-.forms-fill-entry select { box-sizing: border-box; width: 88px; height: 36px; padding: 0 8px; border: 1px solid var(--ant-color-border); border-radius: var(--ant-border-radius); background: var(--ant-color-bg-container); color: var(--ant-color-text); text-align: right; font-size: var(--ui-font-size-lg); font-weight: 600; outline: none; font-variant-numeric: tabular-nums; }
+.forms-fill-entry select { box-sizing: border-box; height: 32px; padding: 0 8px; border: 1px solid var(--ant-color-border); border-radius: var(--ant-border-radius); background: var(--ant-color-bg-container); color: var(--ant-color-text); font-size: var(--ui-font-size-base); font-weight: 400; outline: none; font-variant-numeric: tabular-nums; }
+.forms-fill-entry-number input { width: 96px; text-align: right; font-weight: 500; }
+.forms-fill-entry-text input { width: 160px; text-align: left; }
+.forms-fill-entry-date input { width: 140px; text-align: left; }
+.forms-fill-entry-select select { width: 140px; text-align: left; }
+.forms-fill-entry input::placeholder { color: var(--ant-color-text-tertiary); }
+.forms-fill-entry input:hover,
+.forms-fill-entry select:hover { border-color: var(--ant-color-border); }
 .forms-fill-entry input:focus,
-.forms-fill-entry select:focus { border-color: var(--ant-color-text-secondary); }
+.forms-fill-entry select:focus { border-color: var(--ant-color-primary); }
 .forms-fill-entry span { min-width: 20px; color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); font-weight: 600; }
 .forms-fill-parking { padding: 16px 20px; display: grid; gap: 10px; }
 .forms-fill-parking > strong { font-size: var(--ui-font-size-sm); }
@@ -93,7 +98,12 @@
 .forms-fill-success-card h1 { margin: 0 0 4px; font-size: var(--ui-font-size-xl); }
 .forms-fill-success-card p { margin: 0 0 24px; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); }
 @media (max-width: 480px) {
-  .forms-fill-entry input,
-  .forms-fill-entry select { font-size: var(--ui-font-size-lg); }
-  .forms-fill-row { padding-left: 16px; padding-right: 16px; gap: 8px; }
+  .forms-fill-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; padding-left: 16px; padding-right: 16px; gap: 6px 12px; }
+  .forms-fill-last { width: auto; max-width: 92px; }
+  .forms-fill-entry { grid-column: 1 / -1; width: 100%; }
+  .forms-fill-entry-text input,
+  .forms-fill-entry-date input,
+  .forms-fill-entry-select select { width: 100%; }
+  .forms-fill-entry-number input { width: 120px; }
 }
+

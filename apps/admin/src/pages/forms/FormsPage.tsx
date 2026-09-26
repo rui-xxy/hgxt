@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { App, Card, Input, Table } from 'antd';
+import { App, Button, Card, Input, Space, Table } from 'antd';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router';
+import { useNavigate } from 'react-router';
 import { Role, type FormDTO } from '@hgxt/shared';
 import { listForms } from '../../api/forms';
 import { useMe } from '../../api/hooks';
@@ -10,6 +10,7 @@ import './forms.css';
 
 export function FormsPage() {
   const { message } = App.useApp();
+  const navigate = useNavigate();
   const me = useMe();
   const isAdmin = me.data?.role === Role.SUPER_ADMIN;
   const [search, setSearch] = useState('');
@@ -41,11 +42,18 @@ export function FormsPage() {
         loading={query.isLoading}
         dataSource={query.data?.items ?? []}
         columns={[
-          // 标题与「预览」都是数据查看入口（仅管理员）；USER 只保留「填写」
-          { title: '标题', dataIndex: 'title', key: 'title', ellipsis: true, render: (title: string, form) => isAdmin ? <Link className="forms-list-link" to={`/forms/${form.id}`}>{title}</Link> : <span>{title}</span> },
-          { title: '最新填写时间', dataIndex: 'latestEntryDate', key: 'latestEntryDate', width: 180, render: (date: string | null) => date ?? <span className="forms-muted">暂无填写</span> },
-          ...(isAdmin ? [{ title: '预览', key: 'preview', width: 100, render: (_: unknown, form: FormDTO) => <Link className="forms-list-link" to={`/forms/${form.id}`}>预览</Link> }] : []),
-          { title: '表单', key: 'fill', width: 100, render: (_: unknown, form: FormDTO) => <Link className="forms-list-link" to={`/form-fill/${form.id}`}>填写</Link> },
+          { title: '标题', dataIndex: 'title', key: 'title', ellipsis: true, render: (title: string) => <span className="forms-list-title">{title}</span> },
+          { title: '最新填写时间', dataIndex: 'latestEntryDate', key: 'latestEntryDate', width: 168, render: (date: string | null) => date ? <span className="mono forms-date-value">{date}</span> : <span className="forms-muted">暂无填写</span> },
+          {
+            title: '操作',
+            key: 'actions',
+            width: isAdmin ? 136 : 80,
+            fixed: 'right',
+            render: (_: unknown, form: FormDTO) => <Space size={4}>
+              {isAdmin && <Button type="link" size="small" onClick={() => navigate(`/forms/${form.id}`)}>数据</Button>}
+              <Button type="link" size="small" onClick={() => navigate(`/form-fill/${form.id}`)}>填写</Button>
+            </Space>,
+          },
         ]}
         pagination={{
           current: page,
@@ -58,3 +66,4 @@ export function FormsPage() {
     </Card>
   </>;
 }
+

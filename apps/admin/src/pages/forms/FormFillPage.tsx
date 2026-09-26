@@ -97,7 +97,7 @@ export function FormFillPage() {
           return <div className={`forms-fill-row ${value ? 'filled' : ''}`} key={field.id}>
             <div className="forms-fill-label"><strong>{field.title}{field.required && <em>*</em>}</strong>{field.description && <small>{field.description}</small>}</div>
             <div className="forms-fill-last"><small>上次{lastValue ? ` ${lastValue.date.slice(5).replace('-', '/')}` : ''}</small><strong>{lastValue?.value ?? '--'}</strong></div>
-            <div className="forms-fill-entry">
+            <div className={`forms-fill-entry forms-fill-entry-${field.type}`}>
               {field.type === 'select' ? <select value={value} onChange={(e) => setValues((currentValues) => ({ ...currentValues, [field.id]: e.target.value }))}><option value="">--</option>{field.options?.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select> : <input aria-label={field.title} inputMode={field.type === 'number' ? 'decimal' : undefined} type={field.type === 'date' ? 'date' : 'text'} placeholder={field.placeholder ?? '--'} maxLength={200} value={value} onChange={(e) => { const next = e.target.value; if (field.type !== 'number' || next === '' || /^-?\d*\.?\d*$/.test(next)) setValues((currentValues) => ({ ...currentValues, [field.id]: next })); }} />}
               {field.suffix && <span>{field.suffix}</span>}
             </div>
@@ -121,3 +121,4 @@ export function FormFillPage() {
     </main>
   </div>;
 }
+
