@@ -1,6 +1,7 @@
 import { Avatar, Button, Dropdown, Layout, Menu } from 'antd';
 import {
   HomeOutlined,
+  FileTextOutlined,
   LogoutOutlined,
   MoreOutlined,
   MoonOutlined,
@@ -22,6 +23,7 @@ const { Sider, Header, Content } = Layout;
 const PAGE_CONTEXT: Record<string, { module?: string; page: string }> = {
   '/': { page: '首页' },
   '/users': { module: '系统管理', page: '用户管理' },
+  '/forms': { page: '表单系统' },
 };
 
 /**
@@ -35,7 +37,9 @@ export function AdminLayout() {
   const me = useMe();
   const { mode, toggleMode } = useThemeMode();
 
-  const context = PAGE_CONTEXT[location.pathname] ?? { page: 'HGXT' };
+  const context = location.pathname.startsWith('/forms/')
+    ? { module: '表单系统', page: '数据' }
+    : PAGE_CONTEXT[location.pathname] ?? { page: 'HGXT' };
 
   const logoutMutation = useMutation({
     mutationFn: () => logoutApi(tokenStore.getRefreshToken() ?? ''),
@@ -49,6 +53,7 @@ export function AdminLayout() {
 
   const menuItems = [
     { key: '/', icon: <HomeOutlined />, label: <Link to="/">首页</Link> },
+    { key: '/forms', icon: <FileTextOutlined />, label: <Link to="/forms">表单系统</Link> },
     {
       key: 'system',
       icon: <SettingOutlined />,
@@ -81,7 +86,7 @@ export function AdminLayout() {
         <Menu
           className="hgxt-menu"
           mode="inline"
-          selectedKeys={[location.pathname]}
+          selectedKeys={[location.pathname.startsWith('/forms/') ? '/forms' : location.pathname]}
           defaultOpenKeys={['system']}
           items={menuItems}
         />

@@ -90,3 +90,56 @@ export interface UpdateUserStatusBody {
 export interface ResetPasswordBody {
   newPassword: string;
 }
+
+export type FormFieldType = 'text' | 'number' | 'date' | 'select';
+export interface FormField {
+  id: string;
+  title: string;
+  type: FormFieldType;
+  group?: string;
+  options?: { label: string; value: string }[];
+  precision?: number;
+  unit?: string;
+  width?: number;
+  description?: string;
+  suffix?: string;
+  hidden?: boolean;
+  required?: boolean;
+  min?: number;
+  max?: number;
+  step?: number;
+  placeholder?: string;
+}
+export type FormData = Record<string, string | number | null>;
+export interface FormDTO {
+  id: string;
+  title: string;
+  description: string | null;
+  schema: FormField[];
+  latestEntryDate: string | null;
+  submissionCount: number;
+}
+export interface FormSubmissionDTO {
+  id: string;
+  formId: string;
+  data: FormData;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface FormPageResult {
+  items: FormDTO[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+export interface FormSubmissionPageResult {
+  items: FormSubmissionDTO[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+export interface SaveFormSubmissionsBody {
+  created: FormData[];
+  updated: { id: string; data: FormData }[];
+  deleted: string[];
+}

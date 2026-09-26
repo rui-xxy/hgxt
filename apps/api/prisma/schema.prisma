@@ -1,4 +1,4 @@
-// HGXT 数据库模型 —— V1 只有用户与会话两张表。
+// HGXT 数据库模型。表单结构沿用已部署的 forms_module 迁移。
 // 刻意不做 RBAC 五表、软删除、部门等，等真实业务出现再演进（见 docs/architecture.md）。
 
 generator client {
@@ -44,6 +44,7 @@ model User {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]
+  formSubmissions FormSubmission[]
 }
 
 /// Refresh Token 只存 sha256 哈希；轮换 = 旧的标记 revokedAt + revokedReason、写入新行。
@@ -58,4 +59,30 @@ model RefreshToken {
   createdAt     DateTime      @default(now())
 
   @@index([userId])
+}
+
+model Form {
+  id          String           @id @default(uuid())
+  title       String
+  description String?
+  schema      Json
+  status      String           @default("published")
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  submissions FormSubmission[]
+
+  @@index([status])
+}
+
+model FormSubmission {
+  id          String   @id @default(uuid())
+  formId      String
+  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  data        Json
+  submitterId String?
+  submitter   User?    @relation(fields: [submitterId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@index([formId, createdAt])
 }

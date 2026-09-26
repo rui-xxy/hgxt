@@ -1,6 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { hashPassword } from '../src/common/utils/argon';
+import acidSchema from './acid-form.schema.json';
 
 // B3：seed 不再有默认密码——必须显式配置 SEED_ADMIN_PASSWORD 才执行
 const rawPassword = process.env.SEED_ADMIN_PASSWORD;
@@ -27,26 +28,30 @@ async function main(): Promise<void> {
   const existing = await prisma.user.findUnique({ where: { username } });
   if (existing) {
     console.log(`超级管理员 "${username}" 已存在（id=${existing.id}），跳过创建。`);
-    return;
+  } else {
+    const user = await prisma.user.create({
+      data: {
+        username,
+        name: '管理员',
+        role: 'SUPER_ADMIN',
+        status: 'ACTIVE',
+        passwordHash: await hashPassword(password),
+      },
+    });
+    console.log('--------------------------------------------');
+    console.log('已创建超级管理员:');
+    console.log(`  用户名: ${username}`);
+    console.log(`  id:     ${user.id}`);
+    console.log('  密码:   使用你所配置的 SEED_ADMIN_PASSWORD');
+    console.log('--------------------------------------------');
   }
 
-  const user = await prisma.user.create({
-    data: {
-      username,
-      name: '管理员',
-      role: 'SUPER_ADMIN',
-      status: 'ACTIVE',
-      passwordHash: await hashPassword(password),
-    },
-  });
-
-  // B3：不回显密码，只确认创建结果
-  console.log('--------------------------------------------');
-  console.log('已创建超级管理员:');
-  console.log(`  用户名: ${username}`);
-  console.log(`  id:     ${user.id}`);
-  console.log('  密码:   使用你所配置的 SEED_ADMIN_PASSWORD');
-  console.log('--------------------------------------------');
+  // 已有表单和真实记录保持原样；新库只创建字段定义，不生成虚构的提交数据。
+  const formTitle = '硫酸车间报表';
+  if (!(await prisma.form.findFirst({ where: { title: formTitle } }))) {
+    await prisma.form.create({ data: { title: formTitle, description: '每日生产数据填报', schema: acidSchema } });
+    console.log(`已创建表单：${formTitle}`);
+  }
 }
 
 main()

@@ -15,6 +15,9 @@ const HomePage = lazy(() => import('./pages/HomePage').then((m) => ({ default: m
 const UsersPage = lazy(() =>
   import('./pages/users/UsersPage').then((m) => ({ default: m.UsersPage })),
 );
+const FormsPage = lazy(() => import('./pages/forms/FormsPage').then((m) => ({ default: m.FormsPage })));
+const FormDataPage = lazy(() => import('./pages/forms/FormDataPage').then((m) => ({ default: m.FormDataPage })));
+const FormFillPage = lazy(() => import('./pages/forms/FormFillPage').then((m) => ({ default: m.FormFillPage })));
 
 export default function App() {
   const navigate = useNavigate();
@@ -41,8 +44,11 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route element={<RequireAuth />}>
+          <Route path="form-fill/:id" element={<FormFillPage />} />
           <Route element={<AdminLayout />}>
             <Route index element={<HomePage />} />
+            <Route path="forms" element={<FormsPage />} />
+            <Route path="forms/:id" element={<FormDataPage />} />
             <Route
               path="users"
               element={

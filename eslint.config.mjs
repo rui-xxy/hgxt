@@ -9,6 +9,7 @@ export default tseslint.config(
     ignores: [
       '**/dist/**',
       '**/node_modules/**',
+      '参照/**', // 本地参考源码，不属于当前项目
       'apps/api/src/generated/**', // Prisma 生成的客户端
       'apps/admin/.vite/**',
       '**/*.d.ts',

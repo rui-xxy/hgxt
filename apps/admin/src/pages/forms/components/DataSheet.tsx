@@ -1,0 +1,243 @@
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { App, Button, Popconfirm, Space } from 'antd';
+import { DeleteOutlined, DownloadOutlined, PlusOutlined, SaveOutlined, UndoOutlined } from '@ant-design/icons';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { FormData, FormField, FormSubmissionDTO, SaveFormSubmissionsBody } from '@hgxt/shared';
+import { saveSubmissions } from '../../../api/forms';
+import { ParkingEditor } from './ParkingEditor';
+import { parseParking, serializeParking } from './parking';
+import { cellValuesEqual, displaySheetCell, parseSheetCell, sheetDataEqual } from './sheetValues';
+
+interface SheetRow { key: string; id?: string; data: FormData; original: FormData; }
+interface Cell { key: string; col: number; }
+interface Props { formId: string; formTitle: string; schema: FormField[]; submissions: FormSubmissionDTO[]; total: number; scrollPositionRef: { current: { left: number; top: number } }; }
+
+const rowNoWidth = 48;
+const parkingWidth = 118;
+const actionWidth = 64;
+const dateWidth = 128;
+const parkingEnabled = (title: string) => title.includes('硫酸车间');
+export function DataSheet({ formId, formTitle, schema, submissions, total, scrollPositionRef }: Props) {
+  const { message } = App.useApp();
+  const queryClient = useQueryClient();
+  const initial = useMemo(() => submissions.map((item): SheetRow => ({ key: item.id, id: item.id, data: { ...item.data }, original: { ...item.data } })), [submissions]);
+  const [rows, setRows] = useState<SheetRow[]>(initial);
+  const [deleted, setDeleted] = useState<string[]>([]);
+  const [editing, setEditing] = useState<Cell | null>(null);
+  const [draft, setDraft] = useState('');
+  const [parkingKey, setParkingKey] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const suppressBlur = useRef(false);
+  const rowsRef = useRef(rows);
+  const includeParking = parkingEnabled(formTitle);
+  const leadingWidth = rowNoWidth + actionWidth + (includeParking ? parkingWidth : 0);
+  const fieldWidths = useMemo(() => schema.map((field) => field.type === 'date' ? dateWidth : field.width ?? 100), [schema]);
+  const groups = schema.reduce<{ title: string; count: number }[]>((current, field) => {
+    const title = field.group ?? '其他';
+    if (current.at(-1)?.title === title) current[current.length - 1].count += 1;
+    else current.push({ title, count: 1 });
+    return current;
+  }, []);
+  let groupIndex = 0;
+  const groupIndexes = schema.map((field, index) => {
+    if (index > 0 && (field.group ?? '其他') !== (schema[index - 1].group ?? '其他')) groupIndex++;
+    return groupIndex;
+  });
+  const parkingRow = rows.find((row) => row.key === parkingKey);
+  const stats = { created: rows.filter((row) => !row.id).length, updated: rows.filter((row) => row.id && !sheetDataEqual(schema, row.data, row.original)).length, deleted: deleted.length };
+  const editRow = editing && rows.find((row) => row.key === editing.key);
+  const pendingField = editing && schema[editing.col];
+  const pendingValue = pendingField ? parseSheetCell(pendingField, draft) : null;
+  const pendingEdit = !!editing && !!editRow && !!pendingField && !!pendingValue &&
+    ('error' in pendingValue || !cellValuesEqual(pendingField, editRow.data[pendingField.id], pendingValue.value));
+  const dirty = stats.created + stats.updated + stats.deleted > 0 || pendingEdit;
+  const mutation = useMutation({
+    mutationFn: (body: SaveFormSubmissionsBody) => saveSubmissions(formId, body),
+    onSuccess: async () => {
+      setSaved(true);
+      message.success('表格修改已保存');
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['forms', formId, 'submissions'] }),
+        queryClient.invalidateQueries({ queryKey: ['forms', formId] }),
+        queryClient.invalidateQueries({ queryKey: ['forms', 'list'] }),
+      ]);
+    },
+    onError: (error) => message.error(error.message),
+  });
+
+  const replaceRows = (next: SheetRow[]) => { rowsRef.current = next; setRows(next); };
+  const commit = (cell: Cell, value: string) => {
+    const field = schema[cell.col];
+    const parsed = parseSheetCell(field, value);
+    if ('error' in parsed) { message.warning(parsed.error); return false; }
+    const current = rowsRef.current;
+    const row = current.find((item) => item.key === cell.key);
+    if (!row || cellValuesEqual(field, row.data[field.id], parsed.value)) return true;
+    replaceRows(current.map((item) => item.key === cell.key ? { ...item, data: { ...item.data, [field.id]: parsed.value } } : item));
+    setSaved(false);
+    return true;
+  };
+  const enter = (key: string, col: number) => {
+    const row = rowsRef.current.find((item) => item.key === key);
+    if (!row) return;
+    setDraft(row.data[schema[col].id] == null ? '' : String(row.data[schema[col].id]));
+    setEditing({ key, col });
+  };
+  const switchTo = (cell: Cell) => {
+    if (editing?.key === cell.key && editing.col === cell.col) return;
+    if (editing && !commit(editing, draft)) { inputRef.current?.focus({ preventScroll: true }); return; }
+    suppressBlur.current = true;
+    enter(cell.key, cell.col);
+    window.setTimeout(() => { suppressBlur.current = false; }, 0);
+  };
+  const move = (direction: 'up' | 'down' | 'left' | 'right') => {
+    if (!editing) return;
+    const current = rowsRef.current;
+    const index = current.findIndex((row) => row.key === editing.key);
+    if (index < 0) return;
+    const nextIndex = Math.max(0, Math.min(current.length - 1, index + (direction === 'up' ? -1 : direction === 'down' ? 1 : 0)));
+    const nextCol = Math.max(0, Math.min(schema.length - 1, editing.col + (direction === 'left' ? -1 : direction === 'right' ? 1 : 0)));
+    if (nextIndex === index && nextCol === editing.col) { commit(editing, draft); return; }
+    switchTo({ key: current[nextIndex].key, col: nextCol });
+  };
+  const finishEditing = (cell: Cell) => {
+    if (suppressBlur.current) return;
+    if (commit(cell, draft)) setEditing(null);
+    else window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 0);
+  };
+  const handleCellKeyDown = (event: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      suppressBlur.current = true;
+      setEditing(null);
+      window.setTimeout(() => { suppressBlur.current = false; }, 0);
+      return;
+    }
+    if (['Enter', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+      event.preventDefault();
+      move(event.key === 'Enter' || event.key === 'ArrowDown' ? 'down'
+        : event.key === 'ArrowUp' ? 'up'
+          : event.key === 'ArrowLeft' || (event.key === 'Tab' && event.shiftKey) ? 'left' : 'right');
+    }
+  };
+  useLayoutEffect(() => {
+    scrollRef.current?.scrollTo(scrollPositionRef.current);
+  }, [scrollPositionRef]);
+  useLayoutEffect(() => {
+    if (!editing || !inputRef.current) return;
+    const input = inputRef.current;
+    const scroll = scrollRef.current;
+    input.focus({ preventScroll: true });
+    if (!scroll) return;
+    const cell = input.closest('td');
+    if (!cell) return;
+    const scrollBounds = scroll.getBoundingClientRect();
+    let cellBounds = cell.getBoundingClientRect();
+    if (editing.col > 0) {
+      const frozenRight = scroll.querySelector('thead .forms-sheet-date')?.getBoundingClientRect().right ?? scrollBounds.left + leadingWidth;
+      const visibleLeft = frozenRight + 4;
+      const visibleRight = scrollBounds.left + scroll.clientWidth - 4;
+      if (cellBounds.left < visibleLeft) scroll.scrollLeft -= visibleLeft - cellBounds.left;
+      else if (cellBounds.right > visibleRight) scroll.scrollLeft += cellBounds.right - visibleRight;
+      cellBounds = cell.getBoundingClientRect();
+    }
+    const headerBottom = scroll.querySelector('thead th[rowspan]')?.getBoundingClientRect().bottom ?? scrollBounds.top + 68;
+    if (cellBounds.top < headerBottom + 4) scroll.scrollTop -= headerBottom + 4 - cellBounds.top;
+    else if (cellBounds.bottom > scrollBounds.top + scroll.clientHeight - 4) {
+      scroll.scrollTop += cellBounds.bottom - (scrollBounds.top + scroll.clientHeight - 4);
+    }
+  }, [editing, leadingWidth]);
+  const addRow = () => {
+    if (mutation.isPending) return;
+    const key = `new-${crypto.randomUUID()}`;
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const data = Object.fromEntries(schema.map((field) => [field.id, field.id === 'field_date' ? today : field.type === 'number' ? null : ''])) as FormData;
+    const firstEntry = schema.findIndex((field) => field.id !== 'field_date');
+    const col = firstEntry < 0 ? 0 : firstEntry;
+    replaceRows([{ key, data, original: { ...data } }, ...rowsRef.current]);
+    setDraft(String(data[schema[col].id] ?? ''));
+    setEditing({ key, col });
+    scrollRef.current?.scrollTo({ top: 0 });
+    setSaved(false);
+  };
+  const removeRow = (row: SheetRow) => {
+    if (mutation.isPending) return;
+    if (row.id) setDeleted((current) => [...current, row.id!]);
+    replaceRows(rowsRef.current.filter((item) => item.key !== row.key));
+    if (editing?.key === row.key) setEditing(null);
+    setSaved(false);
+  };
+  const reset = () => { if (mutation.isPending) return; replaceRows(initial); setDeleted([]); setEditing(null); setParkingKey(null); setSaved(false); };
+  const save = () => {
+    if (mutation.isPending) return;
+    if (editing && !commit(editing, draft)) return;
+    setEditing(null);
+    const nextRows = rowsRef.current;
+    if (nextRows.some((row) => typeof row.data.field_date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(row.data.field_date))) {
+      message.warning('请先填写每行的有效日期'); return;
+    }
+    mutation.mutate({
+      created: nextRows.filter((row) => !row.id).map((row) => row.data),
+      updated: nextRows.filter((row) => row.id && !sheetDataEqual(schema, row.data, row.original)).map((row) => ({ id: row.id!, data: row.data })),
+      deleted,
+    });
+  };
+  const exportCsv = () => {
+    if (mutation.isPending) return;
+    if (editing && !commit(editing, draft)) return;
+    const headers = [...(includeParking ? ['停车记录'] : []), ...schema.map((field) => field.title)];
+    const lines = rowsRef.current.map((row) => [...(includeParking ? [String(row.data.parkingRecords ?? '')] : []), ...schema.map((field) => displaySheetCell(row.data[field.id]))]);
+    const escape = (value: string) => /[",\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
+    const csv = [headers, ...lines].map((line) => line.map(escape).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a'); link.href = url; link.download = `${formTitle}_${new Date().toISOString().slice(0, 10)}.csv`; link.click(); URL.revokeObjectURL(url);
+  };
+
+  return <div className="forms-sheet">
+    <div className="forms-sheet-toolbar">
+      <Space size="small"><Button icon={<PlusOutlined />} disabled={mutation.isPending} onClick={addRow}>新增行</Button><Button type="text" icon={<DownloadOutlined />} disabled={!rows.length || mutation.isPending} onClick={exportCsv}>导出 CSV</Button></Space>
+      <Space size="middle" wrap>
+        {dirty && <span className="forms-unsaved">有未保存的更改{stats.created ? ` · 新增 ${stats.created}` : ''}{stats.updated ? ` · 修改 ${stats.updated}` : ''}{stats.deleted ? ` · 删除 ${stats.deleted}` : ''}</span>}
+        {saved && !dirty && <span className="forms-saved">已保存</span>}
+        {dirty && <Button type="text" icon={<UndoOutlined />} disabled={mutation.isPending} onClick={reset}>撤销</Button>}
+        <Button type={dirty ? 'primary' : 'default'} icon={<SaveOutlined />} disabled={!dirty} loading={mutation.isPending} onClick={save}>保存修改</Button>
+      </Space>
+    </div>
+    {total > submissions.length && <div className="forms-sheet-notice">当前显示最近 {submissions.length} 条，共 {total} 条记录。</div>}
+    <div className="forms-sheet-scroll" ref={scrollRef} aria-busy={mutation.isPending} onScroll={(event) => { scrollPositionRef.current = { left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop }; }}>
+      <table className="forms-sheet-table" style={{ minWidth: leadingWidth + fieldWidths.reduce((a, b) => a + b, 0) }}>
+        <colgroup><col style={{ width: rowNoWidth }} />{includeParking && <col style={{ width: parkingWidth }} />}<col style={{ width: actionWidth }} />{fieldWidths.map((width, index) => <col key={schema[index].id} style={{ width }} />)}</colgroup>
+        <thead><tr>
+          <th className="forms-sheet-sticky forms-sheet-sticky-0" rowSpan={2}>#</th>
+          {includeParking && <th className="forms-sheet-sticky" style={{ left: rowNoWidth }} rowSpan={2}>停车记录</th>}
+          <th className="forms-sheet-sticky" style={{ left: rowNoWidth + (includeParking ? parkingWidth : 0) }} rowSpan={2}>操作</th>
+          {groups.map((group, index) => <th key={`${group.title}-${index}`} colSpan={group.count} title={group.title} className={`forms-sheet-group forms-sheet-tone-${index % 2}`}>{group.count > 1 ? group.title : ''}</th>)}
+        </tr><tr>
+          {schema.map((field, index) => <th key={field.id} title={field.title} className={`forms-sheet-field forms-sheet-tone-${groupIndexes[index] % 2} ${index === 0 ? 'forms-sheet-sticky forms-sheet-date' : ''}`} style={{ ...(index === 0 ? { left: leadingWidth } : {}), width: fieldWidths[index], minWidth: fieldWidths[index] }}>{field.title}{field.unit && <small>{field.unit}</small>}</th>)}
+        </tr></thead>
+        <tbody>
+          {!rows.length && <tr><td className="forms-sheet-empty" colSpan={schema.length + (includeParking ? 3 : 2)}>暂无数据，点击「新增行」开始录入</td></tr>}
+          {rows.map((row, index) => <tr key={row.key}>
+            <td className="forms-sheet-sticky forms-sheet-sticky-0 forms-sheet-rowno">{index + 1}</td>
+            {includeParking && <td className="forms-sheet-sticky forms-sheet-parking" style={{ left: rowNoWidth }}><Button size="small" disabled={mutation.isPending} onClick={() => setParkingKey(row.key)}>{parseParking(row.data.parkingRecords, String(row.data.field_date ?? '')).length ? `${parseParking(row.data.parkingRecords, String(row.data.field_date ?? '')).length} 条记录` : '无记录'}</Button></td>}
+            <td className="forms-sheet-sticky forms-sheet-action" style={{ left: rowNoWidth + (includeParking ? parkingWidth : 0) }}><Popconfirm title="删除这行数据？" okText="删除" cancelText="取消" okButtonProps={{ danger: true }} onConfirm={() => removeRow(row)}><Button type="text" size="small" danger disabled={mutation.isPending} aria-label={`删除第 ${index + 1} 行`} icon={<DeleteOutlined />} /></Popconfirm></td>
+            {schema.map((field, col) => {
+              const active = editing?.key === row.key && editing.col === col;
+              const changed = !!row.id && !cellValuesEqual(field, row.data[field.id], row.original[field.id]);
+              return <td key={field.id} className={`forms-sheet-cell forms-sheet-tone-${groupIndexes[col] % 2} ${col === 0 ? 'forms-sheet-sticky forms-sheet-date' : ''} ${changed ? 'forms-sheet-changed' : ''} ${active ? 'forms-sheet-active' : ''}`} style={col === 0 ? { left: leadingWidth } : undefined} onPointerDown={(event) => { if (!active && !mutation.isPending) { event.preventDefault(); switchTo({ key: row.key, col }); } }}>
+                {active ? field.type === 'select'
+                  ? <select ref={inputRef as React.RefObject<HTMLSelectElement>} aria-label={`第 ${index + 1} 行 ${field.title}`} disabled={mutation.isPending} value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={() => finishEditing({ key: row.key, col })} onKeyDown={handleCellKeyDown}><option value="">请选择</option>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+                  : <input ref={inputRef as React.RefObject<HTMLInputElement>} aria-label={`第 ${index + 1} 行 ${field.title}`} disabled={mutation.isPending} type={field.type === 'date' ? 'date' : 'text'} inputMode={field.type === 'number' ? 'decimal' : undefined} value={draft} onInput={(e) => setDraft(e.currentTarget.value)} onChange={(e) => setDraft(e.target.value)} onBlur={() => finishEditing({ key: row.key, col })} onKeyDown={handleCellKeyDown} />
+                  : <span>{displaySheetCell(row.data[field.id]) || '\u00a0'}</span>}
+              </td>;
+            })}
+          </tr>)}
+        </tbody>
+      </table>
+    </div>
+    {parkingRow && <ParkingEditor key={parkingRow.key} initial={parseParking(parkingRow.data.parkingRecords, String(parkingRow.data.field_date ?? ''))} date={String(parkingRow.data.field_date ?? '')} onClose={() => setParkingKey(null)} onSave={(records) => { const value = serializeParking(records); if (value !== parkingRow.data.parkingRecords) { replaceRows(rowsRef.current.map((row) => row.key === parkingRow.key ? { ...row, data: { ...row.data, parkingRecords: value } } : row)); setSaved(false); } setParkingKey(null); }} />}
+  </div>;
+}
