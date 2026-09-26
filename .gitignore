@@ -19,3 +19,6 @@ Thumbs.db
 
 # ZCode 本地会话文件
 .zcode/
+
+# 本地参照资料
+参照/
