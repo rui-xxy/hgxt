@@ -185,6 +185,51 @@ describe('users 用户与权限（A2/A4/E1/E2/E3）', () => {
     await prisma.user.delete({ where: { id: second.body.id } });
   });
 
+  it('删除用户：正常删除 / 不能删自己 / 表单提交保留且提交人置空', async () => {
+    // 创建一个临时用户并提交一条表单数据
+    const temp = await createUser({
+      username: 'deleteme',
+      name: '待删除',
+      password: 'Pass@12345',
+      role: Role.USER,
+    }).expect(201);
+    const form = await prisma.form.findFirst({ where: { code: 'sulfuric_daily' } });
+    if (form) {
+      await prisma.formSubmission.create({
+        data: { formId: form.id, submitterId: temp.body.id, data: { field_date: '2026-09-01', some_field: 1 } },
+      });
+    }
+
+    // 不能删自己
+    const me = await http(app).get('/api/auth/me').set('Authorization', `Bearer ${adminToken}`);
+    const selfDelete = await http(app)
+      .delete(`/api/users/${me.body.id}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(selfDelete.status).toBe(400);
+
+    // 正常删除
+    const res = await http(app)
+      .delete(`/api/users/${temp.body.id}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ success: true });
+
+    // 用户已删
+    const check = await prisma.user.findUnique({ where: { id: temp.body.id } });
+    expect(check).toBeNull();
+
+    // RefreshToken 级联删
+    const tokens = await prisma.refreshToken.count({ where: { userId: temp.body.id } });
+    expect(tokens).toBe(0);
+
+    // 表单提交记录保留，submitterId 置空
+    if (form) {
+      const sub = await prisma.formSubmission.findFirst({ where: { formId: form.id } });
+      expect(sub).not.toBeNull();
+      expect(sub?.submitterId).toBeNull();
+    }
+  });
+
   it('A2：重置密码后旧 Access Token 立即失效（不等 15 分钟过期）', async () => {
     const login = await http(app).post('/api/auth/login').send({ username: 'zhangsan', password: 'Zhang@12345' });
     const oldToken = login.body.accessToken;

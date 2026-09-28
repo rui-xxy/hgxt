@@ -30,6 +30,10 @@ export function updateUserStatusApi(id: string, status: UserStatus): Promise<Use
   return request<UserDTO>(`/users/${id}/status`, { method: 'PATCH', body: { status } });
 }
 
+export function deleteUserApi(id: string): Promise<{ success: true }> {
+  return request<{ success: true }>(`/users/${id}`, { method: 'DELETE' });
+}
+
 export function resetPasswordApi(id: string, body: ResetPasswordBody): Promise<UserDTO> {
   return request<UserDTO>(`/users/${id}/reset-password`, { method: 'POST', body });
 }

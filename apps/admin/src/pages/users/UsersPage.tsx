@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Role, UserStatus, type UserDTO } from '@hgxt/shared';
 import { useMe, useUsers } from '../../api/hooks';
-import { createUserApi, resetPasswordApi, updateUserApi, updateUserStatusApi } from '../../api/users';
+import { createUserApi, deleteUserApi, resetPasswordApi, updateUserApi, updateUserStatusApi } from '../../api/users';
 import { PageHeader } from '../../components/PageHeader';
 import { UserFormModal, type UserFormValues } from './UserFormModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
@@ -93,6 +93,15 @@ export function UsersPage() {
     onError: (error) => message.error(error.message),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteUserApi(id),
+    onSuccess: async () => {
+      message.success('用户已删除');
+      await invalidateUsers();
+    },
+    onError: (error) => message.error(error.message),
+  });
+
   const handleSubmit = async (values: UserFormValues, editing: boolean) => {
     if (editing && editingUser) {
       await updateMutation.mutateAsync({ id: editingUser.id, values });
@@ -161,9 +170,10 @@ export function UsersPage() {
       title: '操作',
       key: 'actions',
       fixed: 'right' as const,
-      width: 210,
+      width: 260,
       render: (_: unknown, record: UserDTO) => {
         const active = record.status === UserStatus.ACTIVE;
+        const isSelf = record.id === me.data?.id;
         return (
           <Space size={0}>
             <Button
@@ -208,6 +218,26 @@ export function UsersPage() {
                 {active ? '禁用' : '启用'}
               </Button>
             </Popconfirm>
+            {!isSelf && (
+              <Popconfirm
+                title={`确定删除 ${record.name}（${record.username}）？`}
+                description="删除后不可恢复。该用户的表单提交记录会保留（提交人显示为空），但账号和登录会话将被彻底移除。"
+                okText="删除"
+                okButtonProps={{ danger: true }}
+                cancelText="取消"
+                disabled={deleteMutation.isPending}
+                onConfirm={() => deleteMutation.mutate(record.id)}
+              >
+                <Button
+                  type="link"
+                  size="small"
+                  danger
+                  loading={deleteMutation.isPending && deleteMutation.variables === record.id}
+                >
+                  删除
+                </Button>
+              </Popconfirm>
+            )}
           </Space>
         );
       },

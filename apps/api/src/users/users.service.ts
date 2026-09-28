@@ -163,6 +163,32 @@ export class UsersService {
       throw error;
     }
   }
+
+  /**
+   * 删除用户：RefreshToken 级联删（schema onDelete: Cascade），
+   * FormSubmission 的 submitterId 置空（onDelete: SetNull）——数据保留，提交人变"已删除"。
+   * 保护：不能删自己；不能删最后一个 ACTIVE SUPER_ADMIN（复用 A4 的 FOR UPDATE 检查）。
+   */
+  async remove(id: string, currentUserId: string): Promise<{ success: true }> {
+    if (id === currentUserId) {
+      throw new BadRequestException('不能删除当前登录的账号');
+    }
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        const target = await tx.user.findUnique({ where: { id }, select: { id: true, role: true } });
+        if (!target) throw new NotFoundException('用户不存在');
+        if (target.role === 'SUPER_ADMIN') {
+          await assertNotLastActiveSuperAdmin(tx, id, { status: 'DISABLED' });
+        }
+        await tx.user.delete({ where: { id } });
+      });
+      return { success: true };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
+      if (isRecordNotFound(error)) throw new NotFoundException('用户不存在');
+      throw error;
+    }
+  }
 }
 
 /**

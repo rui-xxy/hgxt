@@ -1,5 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { ParseUUIDPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { UserDTO, UserPageResult } from '@hgxt/shared';
 import { Role } from '@hgxt/shared';
@@ -60,5 +59,14 @@ export class UsersController {
     @Body() dto: ResetPasswordDto,
   ): Promise<UserDTO> {
     return this.usersService.resetPassword(id, dto.newPassword);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '删除用户（RefreshToken 级联删，表单提交记录保留但提交人置空）' })
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() currentUser: AuthUser,
+  ): Promise<{ success: true }> {
+    return this.usersService.remove(id, currentUser.id);
   }
 }
