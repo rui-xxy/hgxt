@@ -150,3 +150,60 @@ export interface SaveFormSubmissionsBody {
 export interface FormLastValuesResult {
   [fieldId: string]: { value: string | number; date: string };
 }
+
+// ═══════════════════════════════════════════════════════════
+// 生产指标（硫酸，差值法）—— 口径参照 b2 production.service
+// 产量(D) = 库存(D) − 库存(D−1) + 流出(D)；流出读销售表按四酸独立计算
+// ═══════════════════════════════════════════════════════════
+
+/** 单日库存（吨）：按物料分组的快照 */
+export interface SulfuricInventory {
+  acid98: number;
+  fuming: number;
+  reagent: number;
+  total: number;
+}
+
+/** 四酸各自的日流出量（吨），来自销售表 */
+export interface SulfuricFlow {
+  acid98: number;
+  acid93: number;
+  reagent: number;
+  fuming: number;
+}
+
+/** 单日产量（吨，差值法）；93 酸罐不在硫酸表，恒为 0（字段占位） */
+export interface SulfuricProduction {
+  acid98: number;
+  acid93: number;
+  reagent: number;
+  fuming: number;
+  /** 折 98 总量 = 98 + 93 + 试剂 + 发烟×105/98 */
+  total98Equivalent: number;
+  /** 四酸各自的销售流出量 */
+  flow: SulfuricFlow;
+  /** 前后两个归属日之间的断天天数：0=连续日报；1=断了1天（产量是多天累计差值+多天累计销售） */
+  gapDays: number;
+}
+
+/** 单个电表读数差换算的当日用电（千瓦时） */
+export interface MeterUsage {
+  fieldId: string;
+  name: string;
+  usage: number;
+}
+
+export interface SulfuricDaySummary {
+  /** 数据归属日（主日期字段值） */
+  date: string;
+  /** 当日库存快照；该日罐液位数据不完整为 null */
+  inventory: SulfuricInventory | null;
+  /** 差值产量；当日或前日液位数据不完整为 null（不把缺罐当 0%） */
+  production: SulfuricProduction | null;
+  /** 分表电耗 + 合计；同上 */
+  electricity: { meters: MeterUsage[]; total: number } | null;
+}
+
+export interface SulfuricSummaryResult {
+  days: SulfuricDaySummary[];
+}

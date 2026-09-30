@@ -5,11 +5,12 @@ import { PrismaModule } from './database/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { FormsModule } from './forms/forms.module';
+import { ProductionModule } from './production/production.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, UsersModule, FormsModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, UsersModule, FormsModule, ProductionModule],
   // 注册顺序即执行顺序：先认证、后角色
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

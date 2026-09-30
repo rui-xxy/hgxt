@@ -25,3 +25,4 @@ export function useUsers(params: UserPageQuery) {
     placeholderData: keepPreviousData,
   });
 }
+

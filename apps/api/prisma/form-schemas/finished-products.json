@@ -1,0 +1,137 @@
+[
+  {
+    "id": "field_date",
+    "title": "日期",
+    "type": "date",
+    "group": "氨基磺酸",
+    "hidden": true,
+    "required": true,
+    "description": "数据归属日期"
+  },
+  {
+    "id": "field_001",
+    "title": "氨基磺酸产量",
+    "type": "number",
+    "group": "氨基磺酸",
+    "precision": 2
+  },
+  {
+    "id": "field_002",
+    "title": "氨基磺酸销量",
+    "type": "number",
+    "group": "氨基磺酸",
+    "precision": 2
+  },
+  {
+    "id": "field_003",
+    "title": "氨基磺酸库存",
+    "type": "number",
+    "group": "氨基磺酸",
+    "precision": 2
+  },
+  {
+    "id": "field_004",
+    "title": "硫酸镁产量",
+    "type": "number",
+    "group": "硫酸镁",
+    "precision": 2
+  },
+  {
+    "id": "field_005",
+    "title": "硫酸镁销量",
+    "type": "number",
+    "group": "硫酸镁",
+    "precision": 2
+  },
+  {
+    "id": "field_006",
+    "title": "硫酸镁库存",
+    "type": "number",
+    "group": "硫酸镁",
+    "precision": 2
+  },
+  {
+    "id": "field_007",
+    "title": "HG-200产量",
+    "type": "number",
+    "group": "水滑石产品",
+    "precision": 2
+  },
+  {
+    "id": "field_008",
+    "title": "HG-200销量",
+    "type": "number",
+    "group": "水滑石产品",
+    "precision": 2
+  },
+  {
+    "id": "field_009",
+    "title": "HG-200库存",
+    "type": "number",
+    "group": "水滑石产品",
+    "precision": 2
+  },
+  {
+    "id": "field_010",
+    "title": "HG-201产量",
+    "type": "number",
+    "group": "水滑石产品",
+    "precision": 2
+  },
+  {
+    "id": "field_011",
+    "title": "HG-201销量",
+    "type": "number",
+    "group": "水滑石产品",
+    "precision": 2
+  },
+  {
+    "id": "field_012",
+    "title": "HG-201库存",
+    "type": "number",
+    "group": "水滑石产品",
+    "precision": 2
+  },
+  {
+    "id": "field_013",
+    "title": "HG-300产量",
+    "type": "number",
+    "group": "水滑石产品",
+    "precision": 2
+  },
+  {
+    "id": "field_014",
+    "title": "HG-300销量",
+    "type": "number",
+    "group": "水滑石产品",
+    "precision": 2
+  },
+  {
+    "id": "field_015",
+    "title": "HG-300库存",
+    "type": "number",
+    "group": "水滑石产品",
+    "precision": 2
+  },
+  {
+    "id": "field_016",
+    "title": "HG-205产量",
+    "type": "number",
+    "group": "水滑石产品",
+    "precision": 2
+  },
+  {
+    "id": "field_017",
+    "title": "HG-205销量",
+    "type": "number",
+    "group": "水滑石产品",
+    "precision": 2
+  },
+  {
+    "id": "field_018",
+    "title": "HG-205库存",
+    "type": "number",
+    "group": "水滑石产品",
+    "precision": 2
+  }
+]

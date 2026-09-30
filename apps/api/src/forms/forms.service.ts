@@ -16,7 +16,7 @@ function schemaOf(form: Form): FormField[] {
  * 「最新填写时间」「排序」「新增行默认日期」都以它为准；没有 date 字段的表单
  * （如纯登记表）相关逻辑整体跳过——不写死任何字段名。
  */
-function primaryDateField(schema: FormField[]): FormField | undefined {
+export function primaryDateField(schema: FormField[]): FormField | undefined {
   return schema.find((field) => field.type === 'date');
 }
 

@@ -1,0 +1,221 @@
+[
+  {
+    "id": "field_date",
+    "title": "日期",
+    "type": "date",
+    "group": "硫酸车间",
+    "hidden": true,
+    "required": true,
+    "description": "数据归属日期"
+  },
+  {
+    "id": "field_001",
+    "title": "双氧水购入",
+    "type": "number",
+    "group": "硫酸车间",
+    "precision": 2
+  },
+  {
+    "id": "field_002",
+    "title": "双氧水耗用",
+    "type": "number",
+    "group": "硫酸车间",
+    "precision": 2
+  },
+  {
+    "id": "field_003",
+    "title": "双氧水库存",
+    "type": "number",
+    "group": "硫酸车间",
+    "precision": 2
+  },
+  {
+    "id": "field_004",
+    "title": "硫铁矿购入",
+    "type": "number",
+    "group": "硫酸车间",
+    "precision": 2
+  },
+  {
+    "id": "field_005",
+    "title": "硫铁矿耗用",
+    "type": "number",
+    "group": "硫酸车间",
+    "precision": 2
+  },
+  {
+    "id": "field_006",
+    "title": "硫铁矿库存",
+    "type": "number",
+    "group": "硫酸车间",
+    "precision": 2
+  },
+  {
+    "id": "field_007",
+    "title": "聚丙烯酰胺（PAM粉）购入",
+    "type": "number",
+    "group": "环保车间",
+    "precision": 2
+  },
+  {
+    "id": "field_008",
+    "title": "聚丙烯酰胺（PAM粉）耗用",
+    "type": "number",
+    "group": "环保车间",
+    "precision": 2
+  },
+  {
+    "id": "field_009",
+    "title": "聚丙烯酰胺（PAM粉）库存",
+    "type": "number",
+    "group": "环保车间",
+    "precision": 2
+  },
+  {
+    "id": "field_010",
+    "title": "聚铁购入",
+    "type": "number",
+    "group": "环保车间",
+    "precision": 2
+  },
+  {
+    "id": "field_011",
+    "title": "聚铁耗用",
+    "type": "number",
+    "group": "环保车间",
+    "precision": 2
+  },
+  {
+    "id": "field_012",
+    "title": "聚铁库存",
+    "type": "number",
+    "group": "环保车间",
+    "precision": 2
+  },
+  {
+    "id": "field_013",
+    "title": "氧化钙购入",
+    "type": "number",
+    "group": "环保车间",
+    "precision": 2
+  },
+  {
+    "id": "field_014",
+    "title": "氧化钙耗用",
+    "type": "number",
+    "group": "环保车间",
+    "precision": 2
+  },
+  {
+    "id": "field_015",
+    "title": "氧化钙库存",
+    "type": "number",
+    "group": "环保车间",
+    "precision": 2
+  },
+  {
+    "id": "field_016",
+    "title": "尿素购入",
+    "type": "number",
+    "group": "氨基磺酸车间",
+    "precision": 2
+  },
+  {
+    "id": "field_017",
+    "title": "尿素耗用",
+    "type": "number",
+    "group": "氨基磺酸车间",
+    "precision": 2
+  },
+  {
+    "id": "field_018",
+    "title": "尿素库存",
+    "type": "number",
+    "group": "氨基磺酸车间",
+    "precision": 2
+  },
+  {
+    "id": "field_019",
+    "title": "氧化镁购入",
+    "type": "number",
+    "group": "硫酸镁车间",
+    "precision": 2
+  },
+  {
+    "id": "field_020",
+    "title": "氧化镁耗用",
+    "type": "number",
+    "group": "硫酸镁车间",
+    "precision": 2
+  },
+  {
+    "id": "field_021",
+    "title": "氧化镁库存",
+    "type": "number",
+    "group": "硫酸镁车间",
+    "precision": 2
+  },
+  {
+    "id": "field_022",
+    "title": "纯碱购入",
+    "type": "number",
+    "group": "水滑石车间",
+    "precision": 2
+  },
+  {
+    "id": "field_023",
+    "title": "纯碱耗用",
+    "type": "number",
+    "group": "水滑石车间",
+    "precision": 2
+  },
+  {
+    "id": "field_024",
+    "title": "纯碱库存",
+    "type": "number",
+    "group": "水滑石车间",
+    "precision": 2
+  },
+  {
+    "id": "field_025",
+    "title": "高活性氧化镁购入",
+    "type": "number",
+    "group": "水滑石车间",
+    "precision": 2
+  },
+  {
+    "id": "field_026",
+    "title": "高活性氧化镁耗用",
+    "type": "number",
+    "group": "水滑石车间",
+    "precision": 2
+  },
+  {
+    "id": "field_027",
+    "title": "高活性氧化镁库存",
+    "type": "number",
+    "group": "水滑石车间",
+    "precision": 2
+  },
+  {
+    "id": "field_028",
+    "title": "氢氧化铝购入",
+    "type": "number",
+    "group": "水滑石车间",
+    "precision": 2
+  },
+  {
+    "id": "field_029",
+    "title": "氢氧化铝耗用",
+    "type": "number",
+    "group": "水滑石车间",
+    "precision": 2
+  },
+  {
+    "id": "field_030",
+    "title": "氢氧化铝库存",
+    "type": "number",
+    "group": "水滑石车间",
+    "precision": 2
+  }
+]

@@ -10,6 +10,7 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
+
 import { useMutation } from '@tanstack/react-query';
 import { logoutApi } from '../api/auth';
 import { useMe } from '../api/hooks';
@@ -50,7 +51,6 @@ export function AdminLayout() {
       navigate('/login', { replace: true });
     },
   });
-
   const menuItems = [
     { key: '/', icon: <HomeOutlined />, label: <Link to="/">首页</Link> },
     { key: '/forms', icon: <FileTextOutlined />, label: <Link to="/forms">表单系统</Link> },
