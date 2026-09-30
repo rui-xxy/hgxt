@@ -1,30 +1,79 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import './dash.css';
 
-/** 设计稿 dash 内容区包装（变量 + 字体 + 布局来自 design/00） */
-export function Dash({ children }: { children: React.ReactNode }) {
+/** 设计稿 11-13 的内容区包装 */
+export function Dash({ children }: { children: ReactNode }) {
+  return <div className="dash">{children}</div>;
+}
+
+/** 酸类 / 分组的固定色板（design/11） */
+export const PALETTE = {
+  brand: 'var(--brand)',
+  acid93: '#EB6834',
+  reagent: '#1BAF7A',
+  fuming: '#EDA100',
+  gray: '#8C8C86',
+};
+
+export const fmt = (v: number | null | undefined, digits = 0): string =>
+  v === null || v === undefined ? '—' : v.toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+
+/** 与上一期的变化百分比 */
+export function pctChange(current: number | null | undefined, prev: number | null | undefined): number | null {
+  if (current === null || current === undefined || prev === null || prev === undefined || prev === 0) return null;
+  return +(((current - prev) / prev) * 100).toFixed(1);
+}
+
+/** KPI 瓦片里的迷你折线；tail>0 时：整条浅色 + 末 tail 段深色 + 末点实心（design/12） */
+export function Spark({ values, w = 64, h = 26, tail = 0 }: { values: Array<number | null>; w?: number; h?: number; tail?: number }) {
+  const pts = values.map((v, i) => ({ v, i })).filter((p): p is { v: number; i: number } => p.v !== null);
+  if (pts.length < 2) return <svg width={w} height={h} style={{ display: 'block', flex: '0 0 auto' }} />;
+  const min = Math.min(...pts.map((p) => p.v));
+  const max = Math.max(...pts.map((p) => p.v));
+  const span = max - min || 1;
+  const x = (i: number) => 2 + (i / Math.max(1, values.length - 1)) * (w - 4);
+  const y = (v: number) => h - 3 - ((v - min) / span) * (h - 6);
+  const line = (list: typeof pts) => list.map((p) => `${x(p.i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+  const stroke = { fill: 'none', strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const };
+  const lastPt = pts[pts.length - 1];
   return (
-    <div className="dash" style={{ padding: '4px 0 40px' }}>
-      {children}
-    </div>
+    <svg width={w} height={h} style={{ display: 'block', flex: '0 0 auto' }} aria-hidden>
+      {tail > 0 ? (
+        <>
+          <polyline {...stroke} stroke="var(--brand-soft)" strokeWidth={1.5} points={line(pts)} />
+          <polyline {...stroke} stroke="var(--brand)" strokeWidth={1.8} points={line(pts.slice(-tail))} />
+          <circle cx={x(lastPt.i)} cy={y(lastPt.v)} r={2.6} fill="var(--brand)" stroke="var(--surface)" strokeWidth={2} />
+        </>
+      ) : (
+        <polyline {...stroke} stroke="var(--brand)" strokeWidth={1.6} points={line(pts)} />
+      )}
+    </svg>
   );
 }
 
-/** KPI 瓦片（kpis 网格内） */
+/** KPI 瓦片：标签 / 数值 + 迷你折线 / 变化 + 注释。good 决定涨跌的红绿（单耗类越低越好） */
 export function Kpi({
   label,
   value,
   unit,
   delta,
+  good = 'up',
   sub,
+  spark,
+  sparkTail = 0,
 }: {
   label: string;
   value: string;
   unit?: string;
-  /** 与前日比：正数▲绿/负数▼红（d 图标由 dn/up 类决定） */
   delta?: number | null;
+  good?: 'up' | 'down';
   sub?: string;
+  spark?: Array<number | null>;
+  sparkTail?: number;
 }) {
+  const hasDelta = delta !== undefined && delta !== null && Number.isFinite(delta);
+  const isGood = hasDelta && (good === 'up' ? delta >= 0 : delta <= 0);
   return (
     <div className="kpi">
       <div className="kl">{label}</div>
@@ -33,33 +82,36 @@ export function Kpi({
           {value}
           {unit ? <small>{unit}</small> : null}
         </div>
+        {spark ? <Spark values={spark} tail={sparkTail} /> : null}
       </div>
       <div className="kd" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        {delta !== undefined && delta !== null && Number.isFinite(delta) ? (
-          <span className={delta >= 0 ? 'up' : 'dn'}>
+        {hasDelta ? (
+          <span className={isGood ? 'up' : 'dn'}>
             {delta >= 0 ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}%
           </span>
         ) : null}
-        {sub ? <span>{sub}</span> : null}
+        {sub ? <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span> : null}
       </div>
     </div>
   );
 }
 
-/** 段控（seg 容器内的一组按钮） */
+/** 段控（.seg / .tbtabs 共用） */
 export function Seg({
   options,
   value,
   onChange,
+  className = 'seg',
 }: {
-  options: Array<{ label: string; value: string }>;
+  options: Array<{ label: string; value: string; disabled?: boolean }>;
   value: string;
   onChange: (value: string) => void;
+  className?: 'seg' | 'tbtabs';
 }) {
   return (
-    <div className="seg">
+    <div className={className}>
       {options.map((o) => (
-        <button key={o.value} className={value === o.value ? 'on' : ''} onClick={() => onChange(o.value)}>
+        <button key={o.value} type="button" disabled={o.disabled} className={value === o.value ? 'on' : ''} onClick={() => onChange(o.value)}>
           {o.label}
         </button>
       ))}
@@ -67,23 +119,60 @@ export function Seg({
   );
 }
 
-/** 与前一日的变化百分比 */
-export function pctChange(current: number | null | undefined, prev: number | null | undefined): number | null {
-  if (current === null || current === undefined || prev === null || prev === undefined || prev === 0) return null;
-  return +(((current - prev) / prev) * 100).toFixed(1);
+/** 月份步进器（‹ 2026 年 9 月 ›） */
+export function Stepper({ label, onPrev, onNext, prevDisabled, nextDisabled }: { label: string; onPrev: () => void; onNext: () => void; prevDisabled?: boolean; nextDisabled?: boolean }) {
+  return (
+    <div className="stepper">
+      <button type="button" aria-label="上一个月" onClick={onPrev} disabled={prevDisabled}>
+        <ChevronLeft size={16} strokeWidth={1.6} />
+      </button>
+      <span>{label}</span>
+      <button type="button" aria-label="下一个月" onClick={onNext} disabled={nextDisabled}>
+        <ChevronRight size={16} strokeWidth={1.6} />
+      </button>
+    </div>
+  );
 }
 
-export const fmt = (v: number | null | undefined, digits = 0): string =>
-  v === null || v === undefined ? '—' : v.toLocaleString(undefined, { maximumFractionDigits: digits });
+/** 把二维数据导出为 CSV（带 BOM，Excel 直接打开不乱码） */
+export function downloadCsv(filename: string, rows: Array<Array<string | number | null>>): void {
+  const body = rows
+    .map((r) => r.map((c) => (c === null ? '' : `"${String(c).replace(/"/g, '""')}"`)).join(','))
+    .join('\n');
+  const url = URL.createObjectURL(new Blob([String.fromCharCode(0xfeff), body], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function ExportButton({ onClick, label = '导出' }: { onClick: () => void; label?: string }) {
+  return (
+    <button type="button" className="btn ghost sm" onClick={onClick}>
+      <Download size={15} strokeWidth={1.6} />
+      {label}
+    </button>
+  );
+}
 
 export interface BarDatum {
   label: string;
   value: number | null;
 }
 
+/** 取略大于 raw 的整齐刻度上限（4 等分后刻度为整数倍） */
+function niceMax(raw: number): number {
+  const mag = Math.pow(10, Math.floor(Math.log10(Math.max(raw, 1))));
+  for (const c of [1, 1.2, 1.6, 2, 2.4, 3, 4, 5, 6, 8, 10]) {
+    if (c * mag >= raw * 1.08) return c * mag;
+  }
+  return 10 * mag;
+}
+
 /**
- * 设计稿的月柱状图：横向网格 + y 轴刻度 + 柱顶数值（稀疏）+ 月均虚线 +
- * 悬停 tooltip（当日构成）+ 点击选中（品牌色）。宽度自适应容器。
+ * 设计稿的月柱状图：横向网格 + y 轴刻度 + 柱顶数值 + 月均虚线 + 悬停构成 tooltip +
+ * 点击选中（品牌色，其余为浅品牌色）。宽度自适应容器。
  */
 export function MonthBars({
   data,
@@ -91,13 +180,14 @@ export function MonthBars({
   tooltipOf,
   selected,
   onSelect,
+  height = 400,
 }: {
   data: BarDatum[];
   unit: string;
-  /** 悬停 tooltip 的构成行；不传则只显示数值 */
   tooltipOf?: (label: string) => Array<{ name: string; value: string; color: string }> | null;
   selected: string | null;
   onSelect: (label: string) => void;
+  height?: number;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(720);
@@ -106,89 +196,86 @@ export function MonthBars({
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
-    const update = () => setWidth(Math.max(320, el.clientWidth - 8));
+    const update = () => setWidth(Math.max(320, el.clientWidth));
     update();
     const observer = new ResizeObserver(update);
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  const H = 300;
-  const padL = 46;
-  const padB = 26;
-  const padT = 18;
-  const plotW = Math.max(60, width - padL - 6);
-  const plotH = H - padT - padB;
+  const padL = 40;
+  const padB = 24;
+  const padT = 22;
+  const plotW = Math.max(60, width - padL);
+  const plotH = height - padT - padB;
   const values = data.map((d) => d.value).filter((v): v is number => v !== null);
-  const rawMax = Math.max(1, ...values);
-  const step = Math.pow(10, Math.floor(Math.log10(rawMax)));
-  const max = Math.ceil(rawMax / (step / 2)) * (step / 2);
+  const max = niceMax(Math.max(1, ...values));
   const yOf = (v: number) => padT + plotH - (v / max) * plotH;
   const n = data.length || 1;
   const slot = plotW / n;
-  const barW = Math.max(4, Math.min(26, slot * 0.58));
+  const barW = Math.max(4, Math.min(28, slot * 0.72));
   const avg = values.length ? values.reduce((s, v) => s + v, 0) / values.length : 0;
-  const gridCount = 4;
-  const gridLines = Array.from({ length: gridCount + 1 }, (_, i) => {
-    const v = (max / gridCount) * i;
-    return { v, y: yOf(v), label: v >= 10000 ? `${(v / 10000).toFixed(1)}万` : String(Math.round(v)) };
+  const gridLines = Array.from({ length: 5 }, (_, i) => {
+    const v = (max / 4) * i;
+    return { v, y: yOf(v), label: Math.round(v).toLocaleString() };
   });
   const active = hover ?? selected;
+  const activeItem = data.find((d) => d.label === active);
   const tipRows = tooltipOf && active ? tooltipOf(active) : null;
   const tipX = active ? padL + data.findIndex((d) => d.label === active) * slot + slot / 2 : 0;
-  const showValueLabel = (i: number) => slot >= 38 || data[i].label === active || data[i].label === selected;
+  const everyX = slot < 18 ? 5 : slot < 34 ? 5 : 1;
 
   return (
     <div ref={wrapRef} style={{ width: '100%' }}>
-      <div className="bars" style={{ width, height: H, position: 'relative', maxWidth: '100%' }} onMouseLeave={() => setHover(null)}>
+      <div className="bars" style={{ width, height, maxWidth: '100%' }} onMouseLeave={() => setHover(null)}>
         {gridLines.map((g) => (
           <div key={g.v}>
-            <div className="gl" style={{ top: g.y, left: padL, width: plotW }} />
-            <div className="yl" style={{ top: g.y - 8 }}>{g.label}</div>
+            <div className="gl" style={{ top: g.y }} />
+            <div className="yl" style={{ top: g.y }}>{g.label}</div>
           </div>
         ))}
-        {avg > 0 ? <div className="avg" style={{ top: yOf(avg), left: padL, width: plotW }} /> : null}
         {data.map((d, i) => {
           const x = padL + i * slot + (slot - barW) / 2;
-          const h = d.value === null ? 0 : Math.max(1, padT + plotH - yOf(d.value));
-          const isActive = d.label === active;
+          const isSel = d.label === selected;
           return (
             <div key={d.label}>
-              <div
-                className="cbar"
-                style={{
-                  left: x,
-                  top: d.value === null ? padT + plotH - 2 : yOf(d.value),
-                  width: barW,
-                  height: h,
-                  background: isActive ? 'var(--brand)' : 'var(--line2)',
-                }}
-              />
-              {d.value !== null && showValueLabel(i) ? (
-                <div className="bv" style={{ left: x + barW / 2, top: yOf(d.value) - 16, transform: 'translateX(-50%)', color: isActive ? 'var(--brand)' : undefined, fontWeight: isActive ? 600 : 400 }}>
-                  {d.value >= 10000 ? (d.value / 10000).toFixed(1) + '万' : Math.round(d.value).toLocaleString()}
-                </div>
+              {d.value !== null ? (
+                <>
+                  <div
+                    className="cbar"
+                    style={{
+                      left: x,
+                      top: yOf(d.value),
+                      width: barW,
+                      height: Math.max(1, padT + plotH - yOf(d.value)),
+                      background: isSel || d.label === hover ? 'var(--brand)' : 'color-mix(in srgb, var(--brand) 32%, var(--bg))',
+                    }}
+                  />
+                  {slot >= 15 || isSel ? (
+                    <div className="bv" style={{ left: x + barW / 2, top: yOf(d.value) - 16, color: isSel ? 'var(--ink)' : 'var(--ink2)', fontWeight: isSel ? 600 : 400 }}>
+                      {Math.round(d.value).toLocaleString()}
+                    </div>
+                  ) : null}
+                </>
               ) : null}
             </div>
           );
         })}
-        {data.map((d, i) => {
-          const everyX = slot < 22 ? 5 : slot < 40 ? 3 : 1;
-          return (
-            <div key={`x${d.label}`}>
-              {i % everyX === 0 ? <div className="xl" style={{ left: padL + i * slot + slot / 2, top: padT + plotH + 6, transform: 'translateX(-50%)' }}>{d.label.slice(5)}</div> : null}
-              <div
-                className="hit"
-                style={{ left: padL + i * slot, top: 0, width: slot, height: H }}
-                onMouseEnter={() => setHover(d.label)}
-                onClick={() => onSelect(d.label)}
-              />
-            </div>
-          );
-        })}
-        {active && (tipRows || data.find((d) => d.label === active)?.value !== null) ? (
-          <div className="tip" style={{ left: Math.min(Math.max(tipX, 120), width - 120), top: 8 }}>
-            <div style={{ fontWeight: 600, marginBottom: 2 }}>{active}</div>
+        {avg > 0 ? <div className="avg" style={{ top: yOf(avg) }} /> : null}
+        {data.map((d, i) => (
+          <div key={`x${d.label}`}>
+            {i % everyX === 0 ? <div className="xl" style={{ left: padL + i * slot + slot / 2, top: padT + plotH + 8 }}>{d.label.slice(5)}</div> : null}
+            <div
+              className="hit"
+              style={{ left: padL + i * slot, top: 0, width: slot, height: padT + plotH }}
+              onMouseEnter={() => setHover(d.label)}
+              onClick={() => onSelect(d.label)}
+            />
+          </div>
+        ))}
+        {hover && activeItem && activeItem.value !== null ? (
+          <div className="tip" style={{ left: Math.min(Math.max(tipX - 85, 4), Math.max(4, width - 190)), top: 0 }}>
+            <div style={{ fontWeight: 600, marginBottom: 2 }}>{hover}</div>
             {tipRows ? (
               tipRows.map((r) => (
                 <div className="tr" key={r.name}>
@@ -200,10 +287,9 @@ export function MonthBars({
             ) : (
               <div className="tr">
                 <span className="muted">{unit}</span>
-                <b>{fmt(data.find((d) => d.label === active)?.value ?? null, 1)}</b>
+                <b>{fmt(activeItem.value, 1)}</b>
               </div>
             )}
-            <div className="faint" style={{ fontSize: 11, marginTop: 4 }}>点击查看当天构成</div>
           </div>
         ) : null}
       </div>

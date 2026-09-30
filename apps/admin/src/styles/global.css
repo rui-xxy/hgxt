@@ -6,6 +6,7 @@
 :root {
   --bg: #ffffff;
   --side: #f6f6f4;
+  --surface: var(--bg);
   --sunken: #f9f9f8;
   --ink: #1a1a19;
   --ink2: #5e5e59;
@@ -17,6 +18,16 @@
   --brand: #2f55a4;
   --brand-soft: #e7edf8;
   --pop: 0 1px 2px rgba(31, 29, 26, 0.05), 0 12px 32px -8px rgba(31, 29, 26, 0.18);
+  --rest: 0 1px 2px rgba(31, 29, 26, 0.04);
+  --brand-strong: #243f7c;
+  --primary: #1a1a19;
+  --primary-ink: #ffffff;
+  --amber: #8a5a12;
+  --amber-soft: #faf0dc;
+  --danger: #b3261e;
+  --danger-soft: #fbeae8;
+  --ok: #2e6a45;
+  --ok-soft: #e5efe7;
 
   --r-tag: 6px;
   --r-control: 9px;
@@ -53,6 +64,16 @@
   --brand: #93afea;
   --brand-soft: rgba(147, 175, 234, 0.15);
   --pop: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 40px -8px rgba(0, 0, 0, 0.6);
+  --rest: none;
+  --brand-strong: #b3c7f1;
+  --primary: #ececea;
+  --primary-ink: #1d1d1c;
+  --amber: #e3b873;
+  --amber-soft: rgba(227, 184, 115, 0.12);
+  --danger: #f28b80;
+  --danger-soft: rgba(242, 139, 128, 0.12);
+  --ok: #8fc6a0;
+  --ok-soft: rgba(143, 198, 160, 0.12);
 }
 
 html,
