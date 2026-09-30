@@ -235,11 +235,11 @@ export function WorkshopBoardPage() {
             </div>
             <div className="right">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontWeight: 600, fontSize: 13.5 }}>{panelMode === 'day' ? (activeDate ? dayLabel(activeDate) : '—') : `${monthKey?.slice(5) ?? ''} 月累计`}</span>
+                <span style={{ fontWeight: 600, fontSize: 14.5 }}>{panelMode === 'day' ? (activeDate ? dayLabel(activeDate) : '—') : `${monthKey?.slice(5) ?? ''} 月累计`}</span>
                 <Seg options={[{ label: '当日', value: 'day' }, { label: '本月', value: 'month' }]} value={panelMode} onChange={(v) => setPanelMode(v as 'day' | 'month')} />
               </div>
               <div style={{ marginTop: 12 }}>
-                <div className="faint" style={{ fontSize: 12 }}>{isSulfuric ? '折 98% 合计' : panelMode === 'day' ? '日产量' : '本月合计'}</div>
+                <div className="faint" style={{ fontSize: 13 }}>{isSulfuric ? '折 98% 合计' : panelMode === 'day' ? '日产量' : '本月合计'}</div>
                 <div className="kv" style={{ fontSize: 28 }}>
                   {fmt(isSulfuric ? panelTotal : panelMode === 'day' ? activeValue : total, 1)}
                   <small>t</small>
@@ -297,7 +297,7 @@ export function WorkshopBoardPage() {
                   <div className="ih">
                     <i style={{ width: 8, height: 8, borderRadius: 2, background: color, display: 'inline-block' }} />
                     <span style={{ fontWeight: 600 }}>{g.material}</span>
-                    {cap > 0 ? <span className="faint" style={{ fontSize: 12 }}>库容率 {Math.round((g.totalTons / cap) * 100)}%</span> : null}
+                    {cap > 0 ? <span className="faint" style={{ fontSize: 13 }}>库容率 {Math.round((g.totalTons / cap) * 100)}%</span> : null}
                     <span className="num" style={{ marginLeft: 'auto', fontWeight: 600 }}>{fmt(g.totalTons, 1)} t</span>
                   </div>
                   {g.tanks.map((t) => (
@@ -321,7 +321,7 @@ export function WorkshopBoardPage() {
 
       <div className="card enter d4" ref={detailRef} style={{ marginTop: 16, padding: '18px 20px 10px', position: 'relative' }}>
         <div className="ct" style={{ alignItems: 'center', marginBottom: 12 }}>
-          <b style={{ fontSize: 15 }}>明细</b>
+          <b style={{ fontSize: 16 }}>明细</b>
           {isSulfuric ? (
             <Seg
               className="tbtabs"

@@ -130,7 +130,7 @@ export function MaterialsPage() {
           {(data?.internalFlows ?? []).map((f) => (
             <div
               key={`${f.from}-${f.to}-${f.material}`}
-              style={{ display: 'grid', gridTemplateColumns: '96px 20px 130px 20px minmax(0, 1fr) 90px', alignItems: 'center', gap: 6, minHeight: 36, borderBottom: '1px solid var(--line)', fontSize: 13 }}
+              style={{ display: 'grid', gridTemplateColumns: '96px 20px 130px 20px minmax(0, 1fr) 90px', alignItems: 'center', gap: 6, minHeight: 36, borderBottom: '1px solid var(--line)', fontSize: 14 }}
             >
               <span style={{ fontWeight: 500 }}>{f.from}</span>
               <span className="faint" style={{ display: 'flex' }}><ArrowRight size={14} strokeWidth={1.6} /></span>
@@ -140,7 +140,7 @@ export function MaterialsPage() {
               <span className="num" style={{ textAlign: 'right' }}>{fmt(f.quantity, 1)} t</span>
             </div>
           ))}
-          <div className="faint" style={{ fontSize: 12, padding: '10px 0 4px' }}>酸的体积量已按密度折吨（发烟 1.92、93 酸 1.84）</div>
+          <div className="faint" style={{ fontSize: 13, padding: '10px 0 4px' }}>酸的体积量已按密度折吨（发烟 1.92、93 酸 1.84）</div>
         </div>
       </div>
     </Dash>

@@ -109,7 +109,7 @@ function buildTheme(p: Palette, isDark: boolean): ThemeConfig {
 
       fontFamily,
       fontFamilyCode: "'Geist Mono', ui-monospace, monospace",
-      fontSize: 14,
+      fontSize: 15,
       fontSizeHeading1: 30,
       fontSizeHeading2: 26,
       fontSizeHeading3: 18,
@@ -122,8 +122,8 @@ function buildTheme(p: Palette, isDark: boolean): ThemeConfig {
       borderRadiusLG: 12,
       borderRadiusXS: 4,
 
-      controlHeight: 34,
-      controlHeightSM: 30,
+      controlHeight: 36,
+      controlHeightSM: 32,
       controlHeightLG: 44,
 
       boxShadow: 'none',

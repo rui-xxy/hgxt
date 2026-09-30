@@ -166,12 +166,12 @@ export function EnergyCenterPage() {
 
       <div className="card enter d2" style={{ marginTop: 16, padding: '18px 20px 8px', position: 'relative' }}>
         <div className="ct" style={{ alignItems: 'center', marginBottom: 14 }}>
-          <b style={{ fontSize: 15 }}>各车间能耗</b>
+          <b style={{ fontSize: 16 }}>各车间能耗</b>
           <Seg className="tbtabs" options={TABS.map((t) => ({ label: t.label, value: t.key }))} value={tab} onChange={(v) => setTab(v as Tab)} />
           <div className="r">
             <div style={{ display: 'flex', gap: 24 }}>
-              <span className="muted" style={{ fontSize: 12.5 }}>今日合计 {tabInfo.unit} <b className="num" style={{ color: 'var(--ink)' }}>{fmt(todayAll, digits)}</b></span>
-              <span className="muted" style={{ fontSize: 12.5 }}>{range === 'month' ? '本月' : '近 30 天'}合计 {tabInfo.unit} <b className="num" style={{ color: 'var(--ink)' }}>{fmt(monthAll, digits)}</b></span>
+              <span className="muted" style={{ fontSize: 13.5 }}>今日合计 {tabInfo.unit} <b className="num" style={{ color: 'var(--ink)' }}>{fmt(todayAll, digits)}</b></span>
+              <span className="muted" style={{ fontSize: 13.5 }}>{range === 'month' ? '本月' : '近 30 天'}合计 {tabInfo.unit} <b className="num" style={{ color: 'var(--ink)' }}>{fmt(monthAll, digits)}</b></span>
             </div>
           </div>
         </div>
@@ -208,7 +208,7 @@ export function EnergyCenterPage() {
           })}
           {!rows.length ? <div className="empty">暂无数据</div> : null}
         </div>
-        <div className="faint" style={{ fontSize: 12, padding: '10px 0 12px' }}>
+        <div className="faint" style={{ fontSize: 13, padding: '10px 0 12px' }}>
           单耗 = 用量 ÷ 当日产量（硫酸为折 98%）；无产量口径的行（外供客户等）不计单耗。
         </div>
       </div>

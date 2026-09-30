@@ -35,14 +35,14 @@
   --r-container: 14px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 
-  --ui-font-size: 14px;
+  --ui-font-size: 15px;
   --ui-font-size-title: 30px; /* 页面标题（衬线） */
   --ui-font-size-xl: 26px; /* 区块大标题 */
-  --ui-font-size-lg: 15px; /* 区块标题 */
-  --ui-font-size-base: 14px; /* 正文 */
-  --ui-font-size-caption: 13.5px;
-  --ui-font-size-sm: 12.5px; /* 辅助 */
-  --ui-font-size-xs: 11.5px; /* 徽标级元数据 */
+  --ui-font-size-lg: 16px; /* 区块标题 */
+  --ui-font-size-base: 15px; /* 正文 */
+  --ui-font-size-caption: 14.5px;
+  --ui-font-size-sm: 13.5px; /* 辅助 */
+  --ui-font-size-xs: 12.5px; /* 徽标级元数据 */
 
   --font-sans: 'Geist', 'Noto Sans SC', system-ui, -apple-system, 'PingFang SC',
     'Microsoft YaHei', sans-serif;
