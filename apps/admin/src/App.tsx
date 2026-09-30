@@ -18,6 +18,15 @@ const UsersPage = lazy(() =>
 const FormsPage = lazy(() => import('./pages/forms/FormsPage').then((m) => ({ default: m.FormsPage })));
 const FormDataPage = lazy(() => import('./pages/forms/FormDataPage').then((m) => ({ default: m.FormDataPage })));
 const FormFillPage = lazy(() => import('./pages/forms/FormFillPage').then((m) => ({ default: m.FormFillPage })));
+const WorkshopBoardPage = lazy(() =>
+  import('./pages/production/WorkshopBoardPage').then((m) => ({ default: m.WorkshopBoardPage })),
+);
+const EnergyCenterPage = lazy(() =>
+  import('./pages/production/EnergyCenterPage').then((m) => ({ default: m.EnergyCenterPage })),
+);
+const MaterialsPage = lazy(() =>
+  import('./pages/production/MaterialsPage').then((m) => ({ default: m.MaterialsPage })),
+);
 
 export default function App() {
   const navigate = useNavigate();
@@ -48,6 +57,30 @@ export default function App() {
           <Route element={<AdminLayout />}>
             <Route index element={<HomePage />} />
             <Route path="forms" element={<FormsPage />} />
+            <Route
+              path="board"
+              element={
+                <RequireSuperAdmin>
+                  <WorkshopBoardPage />
+                </RequireSuperAdmin>
+              }
+            />
+            <Route
+              path="energy"
+              element={
+                <RequireSuperAdmin>
+                  <EnergyCenterPage />
+                </RequireSuperAdmin>
+              }
+            />
+            <Route
+              path="materials"
+              element={
+                <RequireSuperAdmin>
+                  <MaterialsPage />
+                </RequireSuperAdmin>
+              }
+            />
             <Route
               path="forms/:id"
               element={

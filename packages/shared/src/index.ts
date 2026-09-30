@@ -207,3 +207,91 @@ export interface SulfuricDaySummary {
 export interface SulfuricSummaryResult {
   days: SulfuricDaySummary[];
 }
+
+// ═══════════════════════════════════════════════════════════
+// 车间版面 / 能源中心 / 物料与库存 —— 读取时现算，不改写表单数据
+// ═══════════════════════════════════════════════════════════
+
+/** 一个车间的日产量序列（values 与 dates 一一对应，无数据为 null） */
+export interface WorkshopSeries {
+  code: 'sulfuric' | 'aminosulfonic' | 'magnesium' | 'hydrotalcite' | 'anthraquinone';
+  name: string;
+  /** 硫酸为折98吨（差值法现算）；其余车间为表单直接上报产量（吨） */
+  unit: string;
+  values: Array<number | null>;
+}
+
+export interface WorkshopOverviewResult {
+  dates: string[];
+  workshops: WorkshopSeries[];
+}
+
+/** 能源中心的一条日序列（读数差 × 倍率；跨断天为 null 不拆分） */
+export interface EnergySeries {
+  name: string;
+  values: Array<number | null>;
+}
+
+export interface EnergyResult {
+  dates: string[];
+  electricity: {
+    /** 各车间日用电 kWh */
+    workshops: EnergySeries[];
+    /** 1#冷凝机日发电 kWh */
+    generation: Array<number | null>;
+    /** 2#进线日外购电 kWh */
+    purchase: Array<number | null>;
+  };
+  steam: {
+    /** 内供各车间日供汽 t */
+    internal: EnergySeries[];
+    /** 外供客户日供汽 t */
+    external: EnergySeries[];
+  };
+  water: {
+    /** 各车间日用水 t */
+    workshops: EnergySeries[];
+  };
+}
+
+export interface RawMaterialStockItem {
+  name: string;
+  workshop: string;
+  /** 最新库存（吨） */
+  stock: number | null;
+  /** 当日购入 / 耗用（吨） */
+  purchase: number | null;
+  consumption: number | null;
+  /** 可用天数 = 库存 ÷ 近 7 日平均耗用；无法计算为 null */
+  daysOfUse: number | null;
+  /** 预警：低于 3 天 / 低于 7 天 */
+  alert: 'low3' | 'low7' | null;
+}
+
+export interface FinishedProductItem {
+  name: string;
+  /** 当日产量 / 销量 / 库存（吨） */
+  production: number | null;
+  sales: number | null;
+  stock: number | null;
+  /** 产销率 = 销量 ÷ 产量 */
+  salesRatio: number | null;
+  /** 库存天数 = 库存 ÷ 销量 */
+  stockDays: number | null;
+}
+
+/** 车间之间的物料往来（一家的副产品是另一家的原料） */
+export interface InternalFlowItem {
+  from: string;
+  to: string;
+  material: string;
+  /** 当日数量（吨） */
+  quantity: number | null;
+}
+
+export interface MaterialsResult {
+  date: string;
+  rawMaterials: RawMaterialStockItem[];
+  finishedProducts: FinishedProductItem[];
+  internalFlows: InternalFlowItem[];
+}

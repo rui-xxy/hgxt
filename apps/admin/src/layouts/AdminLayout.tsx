@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, Dropdown } from 'antd';
 import {
+  BarChart3,
   FlaskConical,
   Home,
   LogOut,
   Moon,
+  Package,
   Settings,
   Sun,
   Users,
+  Zap,
   type LucideIcon,
 } from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
@@ -56,8 +59,13 @@ const MODULES: ModuleDef[] = [
     icon: FlaskConical,
     title: '生产',
     path: '/forms',
-    match: (p) => p.startsWith('/forms'),
-    items: [{ label: '表单', path: '/forms', icon: FlaskConical }],
+    match: (p) => p.startsWith('/forms') || p.startsWith('/board') || p.startsWith('/energy') || p.startsWith('/materials'),
+    items: [
+      { label: '表单', path: '/forms', icon: FlaskConical },
+      { label: '车间版面', path: '/board', icon: BarChart3 },
+      { label: '能源中心', path: '/energy', icon: Zap },
+      { label: '物料与库存', path: '/materials', icon: Package },
+    ],
   },
   {
     key: 'system',
@@ -76,6 +84,9 @@ function pageName(pathname: string): string {
   if (pathname === '/') return '概览';
   if (pathname === '/forms') return '表单';
   if (pathname.startsWith('/forms/')) return '数据';
+  if (pathname.startsWith('/board')) return '车间版面';
+  if (pathname.startsWith('/energy')) return '能源中心';
+  if (pathname.startsWith('/materials')) return '物料与库存';
   if (pathname.startsWith('/users')) return '成员';
   return 'HGXT';
 }

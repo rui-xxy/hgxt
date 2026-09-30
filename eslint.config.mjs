@@ -10,6 +10,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/node_modules/**',
       '参照/**', // 本地参考源码，不属于当前项目
+      'design/**', // 设计稿原件（含第三方交互运行时 dc-runtime.js），不是项目源码
       'apps/api/src/generated/**', // Prisma 生成的客户端
       'apps/admin/.vite/**',
       '**/*.d.ts',
