@@ -32,8 +32,8 @@
 .forms-sheet-table .forms-sheet-tone-1 { background: var(--ant-color-bg-container); }
 .forms-sheet-table thead .forms-sheet-tone-0 { background: var(--ant-color-bg-container); }
 .forms-sheet-table thead .forms-sheet-tone-1 { background: var(--ant-color-bg-layout); }
-.forms-sheet-group { font-size: var(--ui-font-size-sm) !important; font-weight: 500 !important; }
-.forms-sheet-field small { margin-left: 3px; color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-xs); font-weight: 400; }
+.forms-sheet-table thead th.forms-sheet-group { font-size: var(--ui-font-size-sm); font-weight: 500; }
+.forms-sheet-field small { margin-left: 3px; color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); font-weight: 400; }
 .forms-sheet-table tbody td { height: 44px; font-size: var(--ui-font-size-base); }
 .forms-sheet-table tbody tr:hover td:not(.forms-sheet-sticky) { background: var(--ant-color-fill-quaternary); }
 .forms-sheet-rowno { color: var(--ant-color-text-tertiary); font-variant-numeric: tabular-nums; }
@@ -48,7 +48,7 @@
 .forms-sheet-empty .ant-empty { margin-block: 12px; }
 
 .forms-parking-editor { display: grid; gap: 12px; max-height: 65vh; overflow: auto; padding: 12px 0; }
-.forms-parking-card { padding: 12px; border: 1px solid var(--ant-color-border-secondary); border-radius: var(--ant-border-radius-sm); background: var(--ant-color-fill-quaternary); }
+.forms-parking-card { padding: 12px; border: 1px solid var(--ant-color-border-secondary); border-radius: var(--ant-border-radius-lg); background: var(--ant-color-fill-quaternary); }
 .forms-parking-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .forms-parking-card label { display: grid; gap: 4px; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); }
 .forms-parking-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 8px; }
@@ -61,8 +61,8 @@
 .forms-fill-header span { color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); }
 .forms-fill-tabs { flex: none; padding: 10px 16px; overflow-x: auto; border-bottom: 1px solid var(--ant-color-border-secondary); scrollbar-width: none; }
 .forms-fill-tabs::-webkit-scrollbar { display: none; }
-.forms-fill-tabs-inner { display: flex; gap: 4px; width: max-content; min-width: 100%; padding: 4px; border-radius: var(--ant-border-radius-sm); background: var(--ant-color-fill-quaternary); }
-.forms-fill-tabs button { flex: none; height: 32px; padding: 0 12px; border: 1px solid transparent; border-radius: var(--ant-border-radius-sm); background: transparent; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-caption); font-weight: 500; cursor: pointer; white-space: nowrap; }
+.forms-fill-tabs-inner { display: flex; gap: 4px; width: max-content; min-width: 100%; padding: 4px; border-radius: var(--ant-border-radius-lg); background: var(--ant-color-fill-quaternary); }
+.forms-fill-tabs button { flex: none; height: 32px; padding: 0 12px; border: 1px solid transparent; border-radius: var(--ant-border-radius); background: transparent; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-caption); font-weight: 500; cursor: pointer; white-space: nowrap; }
 .forms-fill-tabs button.active { border-color: var(--ant-color-border-secondary); background: var(--ant-color-bg-container); color: var(--ant-color-text); }
 .forms-fill-tabs button b { display: inline-block; min-width: 15px; margin-left: 6px; padding: 1px 4px; border-radius: var(--ant-border-radius-sm); background: var(--ant-color-fill-secondary); color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-xs); }
 .forms-fill-tabs button.active b { background: var(--ant-color-text); color: var(--ant-color-bg-container); }
@@ -84,9 +84,10 @@
 .forms-fill-entry-select select { width: 140px; text-align: left; }
 .forms-fill-entry input::placeholder { color: var(--ant-color-text-tertiary); }
 .forms-fill-entry input:hover,
-.forms-fill-entry select:hover { border-color: var(--ant-color-border); }
+.forms-fill-entry select:hover { border-color: var(--ant-color-primary-border-hover); }
 .forms-fill-entry input:focus,
 .forms-fill-entry select:focus { border-color: var(--ant-color-primary); }
+.forms-fill-tabs button:focus-visible { outline: 2px solid var(--ant-color-primary-border); outline-offset: -2px; }
 .forms-fill-entry span { min-width: 20px; color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); font-weight: 600; }
 .forms-fill-parking { padding: 16px 20px; display: grid; gap: 10px; }
 .forms-fill-parking > strong { font-size: var(--ui-font-size-sm); }

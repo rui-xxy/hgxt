@@ -14,9 +14,7 @@ interface PageHeaderProps {
 export function PageHeader({ title, extra }: PageHeaderProps) {
   return (
     <div className="hgxt-page-header">
-      <div style={{ minWidth: 0 }}>
-        <h1 className="hgxt-page-title">{title}</h1>
-      </div>
+      <h1 className="hgxt-page-title">{title}</h1>
       {extra ? <div className="hgxt-page-extra">{extra}</div> : null}
     </div>
   );

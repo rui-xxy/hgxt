@@ -35,28 +35,10 @@ export function LoginPage() {
   // D1：不再凭「localStorage 有 token」自动跳后台——是否有有效会话由
   // RequireAuth 的 /me 结果决定，避免网络错误时的登录页↔后台循环跳转
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'grid',
-        placeItems: 'center',
-      }}
-    >
-      <div
-        style={{
-          width: 360,
-          padding: '28px 28px 24px',
-          backgroundColor: 'var(--ant-color-bg-container)',
-          border: '1px solid var(--ant-color-border-secondary)',
-          borderRadius: 12,
-        }}
-      >
-        <div style={{ marginBottom: 4, fontSize: 'var(--ui-font-size-xl)', fontWeight: 600 }}>
-          HGXT 管理后台
-        </div>
-        <div style={{ marginBottom: 20, color: 'var(--ant-color-text-secondary)' }}>
-          请使用账号登录
-        </div>
+    <div className="hgxt-fullscreen-center">
+      <div className="hgxt-login-card">
+        <h1 className="hgxt-login-title">HGXT 管理后台</h1>
+        <div className="hgxt-login-desc">请使用账号登录</div>
         <Form
           form={form}
           layout="vertical"
@@ -82,8 +64,8 @@ export function LoginPage() {
             type="primary"
             htmlType="submit"
             block
+            className="hgxt-login-submit"
             loading={loginMutation.isPending}
-            style={{ marginTop: 8 }}
           >
             登录
           </Button>

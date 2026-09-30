@@ -70,12 +70,8 @@ export function AdminLayout() {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Sider
-        width={240}
-        className="hgxt-sider"
-        style={{ borderRight: '1px solid var(--ant-color-border-secondary)' }}
-      >
+    <Layout className="hgxt-root">
+      <Sider width={240} className="hgxt-sider">
         <div className="hgxt-brand">
           <div className="hgxt-brand-mark">H</div>
           <div>
@@ -93,7 +89,7 @@ export function AdminLayout() {
         <div className="hgxt-sider-account">
           <Dropdown menu={accountMenu} placement="topRight" trigger={['click']}>
             <Button type="text" className="hgxt-sider-user">
-              <Avatar size={28} style={{ backgroundColor: 'var(--ant-color-primary)', flexShrink: 0 }}>
+              <Avatar size={28} className="hgxt-avatar">
                 {me.data?.name?.charAt(0) ?? '?'}
               </Avatar>
               <span className="hgxt-sider-user-copy">
@@ -106,14 +102,7 @@ export function AdminLayout() {
         </div>
       </Sider>
       <Layout>
-        <Header
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid var(--ant-color-border-secondary)',
-          }}
-        >
+        <Header className="hgxt-header">
           <div className="hgxt-header-left">
             {context.module ? <span className="hgxt-header-crumb">{context.module} /</span> : null}
             <span className="hgxt-header-page">{context.page}</span>

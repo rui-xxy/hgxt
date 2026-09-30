@@ -152,13 +152,13 @@ export function UsersPage() {
       title: '邮箱',
       dataIndex: 'email',
       ellipsis: true,
-      render: (email: string | null) => email ?? <span style={{ color: 'var(--ant-color-text-tertiary)' }}>—</span>,
+      render: (email: string | null) => email ?? <span className="hgxt-muted">—</span>,
     },
     {
       title: '手机号',
       dataIndex: 'phone',
       width: 130,
-      render: (phone: string | null) => phone ?? <span style={{ color: 'var(--ant-color-text-tertiary)' }}>—</span>,
+      render: (phone: string | null) => phone ?? <span className="hgxt-muted">—</span>,
     },
     {
       title: '创建时间',
@@ -266,7 +266,7 @@ export function UsersPage() {
           <Input.Search
             allowClear
             placeholder="搜索：用户名 / 姓名 / 手机 / 邮箱"
-            style={{ width: 300 }}
+            className="hgxt-toolbar-search"
             value={keywordInput}
             onChange={(event) => setKeywordInput(event.target.value)}
             onSearch={(value) => {

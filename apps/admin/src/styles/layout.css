@@ -4,7 +4,32 @@
  * （原始色值唯一允许出现在 theme/tokens.ts）。
  */
 
+/* ---------- 根布局 ---------- */
+
+.hgxt-root {
+  min-height: 100vh;
+}
+
+.hgxt-fullscreen-center {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.hgxt-muted {
+  color: var(--ant-color-text-tertiary);
+}
+
 /* ---------- 侧栏 ---------- */
+
+.hgxt-sider {
+  border-inline-end: 1px solid var(--ant-color-border-secondary);
+}
+
+.hgxt-avatar {
+  flex-shrink: 0;
+  background-color: var(--ant-color-primary);
+}
 
 /* Sider 内部纵向布局：品牌区 + 可伸缩导航 + 固定底部账户区 */
 .hgxt-sider .ant-layout-sider-children {
@@ -38,7 +63,7 @@
   place-items: center;
   width: 28px;
   height: 28px;
-  border-radius: var(--ant-border-radius);
+  border-radius: var(--ant-border-radius-sm);
   background-color: var(--ant-color-primary);
   color: var(--ant-color-text-light-solid);
   font-size: var(--ui-font-size-base);
@@ -59,11 +84,6 @@
 }
 
 /* ---------- 导航：克制的选中态（弱背景 + 左缘品牌条 + 文字品牌色） ---------- */
-
-.hgxt-menu {
-  border-inline-end: none;
-  padding-block: 8px;
-}
 
 .hgxt-menu .ant-menu-item-selected::before {
   content: '';
@@ -93,11 +113,6 @@
   height: 44px;
   padding-inline: 10px;
   text-align: start;
-}
-
-.hgxt-sider-user:hover,
-.hgxt-sider-user:focus-visible {
-  background-color: var(--ant-color-bg-text-hover) !important;
 }
 
 .hgxt-sider-user-copy {
@@ -138,6 +153,13 @@
 
 /* ---------- 顶栏 ---------- */
 
+.hgxt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
 .hgxt-header-left {
   display: flex;
   align-items: center;
@@ -173,16 +195,11 @@
 }
 
 .hgxt-page-title {
+  min-width: 0;
   margin: 0;
   font-size: var(--ui-font-size-lg);
   font-weight: 600;
   line-height: 1.4;
-}
-
-.hgxt-page-desc {
-  margin-top: 4px;
-  font-size: var(--ui-font-size-sm);
-  color: var(--ant-color-text-secondary);
 }
 
 .hgxt-page-extra {
@@ -204,4 +221,37 @@
   font-size: var(--ui-font-size-sm);
   color: var(--ant-color-text-tertiary);
   white-space: nowrap;
+}
+
+.hgxt-toolbar-search {
+  width: 300px;
+  max-width: 100%;
+}
+
+/* ---------- 登录页 ---------- */
+
+.hgxt-login-card {
+  box-sizing: border-box;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  padding: 24px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: var(--ant-border-radius-lg);
+  background-color: var(--ant-color-bg-container);
+}
+
+.hgxt-login-title {
+  margin: 0 0 4px;
+  font-size: var(--ui-font-size-xl);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.hgxt-login-desc {
+  margin-bottom: 20px;
+  color: var(--ant-color-text-secondary);
+}
+
+.hgxt-login-submit {
+  margin-top: 8px;
 }

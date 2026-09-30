@@ -33,7 +33,7 @@ export function FormsPage() {
           onChange={(event) => setSearch(event.target.value)}
           onSearch={(value) => { setPage(1); setKeyword(value.trim()); }}
           allowClear
-          style={{ width: 300, maxWidth: '100%' }}
+          className="hgxt-toolbar-search"
         />
         <span className="forms-muted">共 {query.data?.total ?? 0} 个表单</span>
       </div>

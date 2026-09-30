@@ -55,7 +55,17 @@ const overlayShadow = '0 4px 16px rgba(0, 0, 0, 0.08)';
 
 const sharedComponents = {
   Card: {
-    paddingLG: 20,
+    // 卡片标准内边距 16（DESIGN.md Spacing）
+    paddingLG: 16,
+  },
+  // 菜单/选择浮层壳 rounded-lg(8)，选项 rounded-md(6)（DESIGN.md Radius: Menus）
+  Dropdown: {
+    borderRadiusLG: 8,
+    borderRadiusSM: 6,
+  },
+  Select: {
+    borderRadiusLG: 8,
+    borderRadiusSM: 6,
   },
   Modal: {
     // 对话框 rounded-2xl(16)
