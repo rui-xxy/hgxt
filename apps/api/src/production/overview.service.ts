@@ -80,6 +80,13 @@ export class OverviewService {
     return d.toISOString().slice(0, 10);
   }
 
+  /** 旧系统迁入的数据把数字存成字符串（"56"），读取时兼容两种形态 */
+  private static toNum(v: unknown): number | null {
+    if (typeof v === 'number' && Number.isFinite(v)) return v;
+    if (typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v))) return Number(v);
+    return null;
+  }
+
   /** 仪表读数差 × 倍率的日序列（跨断天为 null，不把多天用量拆成日值；负差归 0） */
   private meterSeries(
     source: ByDate,
@@ -93,9 +100,9 @@ export class OverviewService {
       let total = 0;
       let seen = false;
       for (const { field, multiplier } of fields) {
-        const a = prev[field];
-        const b = current[field];
-        if (typeof a !== 'number' || typeof b !== 'number') continue;
+        const a = OverviewService.toNum(prev[field]);
+        const b = OverviewService.toNum(current[field]);
+        if (a === null || b === null) continue;
         seen = true;
         total += Math.max(0, (b - a) * multiplier);
       }
@@ -111,8 +118,8 @@ export class OverviewService {
       let total = 0;
       let seen = false;
       for (const field of fields) {
-        const v = data[field];
-        if (typeof v === 'number' && Number.isFinite(v)) {
+        const v = OverviewService.toNum(data[field]);
+        if (v !== null) {
           seen = true;
           total += v;
         }
@@ -232,8 +239,9 @@ export class OverviewService {
             values: this.meterSeries(anthraquinone, dates, [{ field: 'field_electricity_meter', multiplier: 1 }]),
           },
         ],
-        generation: this.meterSeries(thermal, dates, [{ field: 'field_condenser_gen_active', multiplier: 1 }]),
-        purchase: this.meterSeries(thermal, dates, [{ field: 'field_line2_active', multiplier: 1 }]),
+        // 发电/外购为电网关口有功表，读数单位万kWh，倍率取 b2 thermal.service 的 POWER_MULTIPLIER=12000
+        generation: this.meterSeries(thermal, dates, [{ field: 'field_condenser_gen_active', multiplier: 12000 }]),
+        purchase: this.meterSeries(thermal, dates, [{ field: 'field_line2_active', multiplier: 12000 }]),
       },
       steam: {
         internal: [
@@ -303,7 +311,7 @@ export class OverviewService {
       return date ? { date, data: m.get(date)! } : null;
     };
     const pick = (data: FormData, field?: string): number | null =>
-      field && typeof data[field] === 'number' ? (data[field] as number) : null;
+      field ? OverviewService.toNum(data[field]) : null;
 
     // 原辅料：最新库存 + 近 7 日平均耗用 → 可用天数与预警
     const rawMaterials: RawMaterialStockItem[] = [];
@@ -319,8 +327,8 @@ export class OverviewService {
       for (const t of triplets) {
         const stock = pick(warehouseLatest.data, t.c);
         const recent = recentDates
-          .map((d) => warehouse.get(d)![t.b ?? ''])
-          .filter((v): v is number => typeof v === 'number');
+          .map((d) => OverviewService.toNum(warehouse.get(d)![t.b ?? '']))
+          .filter((v): v is number => v !== null);
         const avg = recent.length ? recent.reduce((s, v) => s + v, 0) / recent.length : 0;
         const daysOfUse = stock !== null && avg > 0 ? +(stock / avg).toFixed(1) : null;
         rawMaterials.push({
@@ -397,8 +405,8 @@ export class OverviewService {
     const internalFlows: InternalFlowItem[] = [];
     const flowQty = (data: FormData | undefined, field: string, times = 1): number | null => {
       if (!data) return null;
-      const v = data[field];
-      return typeof v === 'number' && Number.isFinite(v) ? +(v * times).toFixed(3) : null;
+      const v = OverviewService.toNum(data[field]);
+      return v === null ? null : +(v * times).toFixed(3);
     };
     const aminoLatest = latestOf(amino);
     const mgLatest = latestOf(magnesium);
