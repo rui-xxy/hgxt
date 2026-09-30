@@ -1,9 +1,3 @@
-/**
- * HGXT 图标集 —— 全站唯一的图标来源（不再使用 @ant-design/icons）
- *
- * 规格：24 网格、1.75 描边、圆头圆角、currentColor、尺寸 1em（随所在文字缩放）。
- * 新增图标时保持同一网格与描边，别混用其他图标库。
- */
 import type { ReactNode, SVGProps } from 'react';
 
 export type IconProps = Omit<SVGProps<SVGSVGElement>, 'children'> & {

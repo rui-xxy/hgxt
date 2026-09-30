@@ -5,7 +5,7 @@ interface StatusViewProps {
   title: ReactNode;
   description?: ReactNode;
   actions?: ReactNode;
-  /** 语义色调：只在真实语义状态下使用 */
+  /** 语义色调 */
   tone?: 'neutral' | 'danger' | 'success';
   /** 占满视口（用于壳层之外的整页状态） */
   fullscreen?: boolean;
@@ -13,7 +13,7 @@ interface StatusViewProps {
   compact?: boolean;
 }
 
-/** 统一的状态页 / 空态：图标方块 + 标题 + 说明 + 操作，替代 AntD Result/Empty 的插画 */
+/** 统一的状态页 / 空态，替代 AntD Result/Empty */
 export function StatusView({
   icon,
   title,

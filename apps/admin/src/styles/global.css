@@ -1,22 +1,12 @@
-/**
- * 全局基础：字号刻度、字体、文档级背景、图标与状态原语、主题切换过渡。
- *
- * 约束：
- *   - 字号只引用 --ui-font-size-*（DESIGN.md text-ui-* 的等价物），禁止任意 px 字号
- *   - 颜色 / 阴影只引用 --hg-*（由 ThemeProvider 从 theme/tokens.ts 写到 <html>）
- *     或 AntD 的 --ant-*（仅组件树内可用）
- */
 :root {
   --ui-font-size: 14px;
-  --ui-font-size-xl: 18px; /* text-ui-xl：一级标题 */
-  --ui-font-size-lg: 16px; /* text-ui-lg：二级标题 */
-  --ui-font-size-base: 14px; /* text-ui-base：正文/默认 UI 文本 */
-  --ui-font-size-caption: 13px; /* text-ui-caption：紧凑辅助文本 */
-  --ui-font-size-sm: 12px; /* text-ui-sm：次级信息/帮助文本 */
-  --ui-font-size-xs: 10px; /* text-ui-xs：徽标级极弱元数据 */
-  --ui-font-size-mobile-input: 16px; /* text-mobile-input-safe：移动端输入防 iOS 聚焦缩放 */
-
-  /* 圆角层级（DESIGN.md Radius）：面板/卡片 lg → 控件 md → 嵌套 sm；弹窗 xl */
+  --ui-font-size-xl: 18px; /* 一级标题 */
+  --ui-font-size-lg: 16px; /* 二级标题 */
+  --ui-font-size-base: 14px; /* 正文/默认 UI 文本 */
+  --ui-font-size-caption: 13px; /* 紧凑辅助文本 */
+  --ui-font-size-sm: 12px; /* 次级信息/帮助文本 */
+  --ui-font-size-xs: 10px; /* 徽标级极弱元数据 */
+  --ui-font-size-mobile-input: 16px; /* 移动端输入防 iOS 聚焦缩放 */
   --hg-radius-sm: 6px;
   --hg-radius-md: 8px;
   --hg-radius-lg: 12px;
@@ -49,13 +39,11 @@ body {
   color: var(--hg-text);
 }
 
-/* 细滚动条：只在需要时出现，不喧宾夺主 */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--hg-fill-strong) transparent;
 }
 
-/* 标识符、技术值用等宽字体（DESIGN.md Typography: UI Mono） */
 .mono {
   font-family: var(--hg-font-mono);
   font-feature-settings: normal;

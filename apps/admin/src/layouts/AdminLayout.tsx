@@ -39,11 +39,6 @@ function readCollapsed() {
   }
 }
 
-/**
- * 后台壳层：
- * 画布上的透明侧栏（品牌 + 导航 + 底部账户）＋ 内缩浮起的主面板（顶栏 + 独立滚动的内容区）。
- * 侧栏可手动折叠为图标栏（记忆到 localStorage），窄屏自动折叠。
- */
 export function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();

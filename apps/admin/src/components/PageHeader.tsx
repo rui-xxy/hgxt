@@ -13,11 +13,6 @@ interface PageHeaderProps {
   back?: { to: string; label: string };
 }
 
-/**
- * 页面标题区——HGXT 页面模板的第一层：
- * 左侧（返回）+ 标题 + 计量标记，右侧主操作。**不加辅助说明小字**（用户明确要求），
- * 页面用途靠标题与内容本身表达。
- */
 export function PageHeader({ title, extra, meta, back }: PageHeaderProps) {
   return (
     <div className="hg-page-header">

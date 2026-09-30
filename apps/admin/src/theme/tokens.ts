@@ -1,15 +1,3 @@
-/**
- * HGXT 视觉系统 · 唯一的原始色值 / 尺寸来源
- *
- * 语言：中性单色 + 一抹靛紫强调色（Linear / Vercel 一类的当代工作台审美）
- *   - 画布（canvas）承载侧栏，主内容是一块浮起的圆角面板（panel）
- *   - 主按钮用「墨色」（浅色=近黑 / 深色=近白），强调色只用于焦点、选中、链接与品牌
- *   - 层次靠背景明度 + 发丝线边框，阴影只给浮层
- *
- * 同一份 palette 同时产出：
- *   1. AntD ThemeConfig（组件 token）
- *   2. `--hg-*` CSS 变量（ThemeProvider 写到 <html>，自定义样式只引用变量）
- */
 import { theme, type ThemeConfig } from 'antd';
 
 export type ThemeMode = 'light' | 'dark';
@@ -46,7 +34,7 @@ export interface Palette {
   accentHover: string;
   accentSoft: string;
   accentText: string;
-  /** 语义色：只表达真实状态 */
+  /** 语义色 */
   success: string;
   successSoft: string;
   warning: string;
@@ -59,7 +47,7 @@ export interface Palette {
   shadowOverlay: string;
   /** 焦点环 */
   focusRing: string;
-  /** 品牌标识：墨色微渐变（仅品牌图形使用，保持单色克制） */
+  /** 品牌标识渐变 */
   brandFrom: string;
   brandTo: string;
   onBrand: string;
@@ -216,7 +204,6 @@ function buildTheme(mode: ThemeMode): ThemeConfig {
       fontSizeHeading4: 16,
       fontSizeHeading5: 14,
 
-      // 圆角层级：面板/卡片 12 → 控件 8 → 嵌套 6
       borderRadius: 8,
       borderRadiusLG: 12,
       borderRadiusSM: 6,
@@ -248,7 +235,6 @@ function buildTheme(mode: ThemeMode): ThemeConfig {
         headerPadding: '0 20px',
       },
       Button: {
-        // 主按钮 = 墨色（强调色留给焦点/选中/链接）
         colorPrimary: p.ink,
         colorPrimaryHover: p.inkHover,
         colorPrimaryActive: p.inkActive,

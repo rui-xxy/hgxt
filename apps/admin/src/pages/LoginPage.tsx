@@ -15,7 +15,6 @@ interface LoginFormValues {
   password: string;
 }
 
-/** 登录页：点阵画布 + 居中浮起卡片（品牌时刻，装饰只用于背景，不进入表单本身） */
 export function LoginPage() {
   const [form] = Form.useForm<LoginFormValues>();
   const { message } = App.useApp();

@@ -1,5 +1,3 @@
-/* 登录页：点阵画布 + 顶部柔光（仅背景装饰）+ 居中浮起卡片 */
-
 .hg-login {
   position: relative;
   display: flex;

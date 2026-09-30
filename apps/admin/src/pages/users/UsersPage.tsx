@@ -22,11 +22,6 @@ const roleText: Record<string, string> = {
   [Role.USER]: '普通用户',
 };
 
-/**
- * 用户管理：HGXT 数据工作区模板——
- * PageHeader（标题 + 计数 + 主操作）→ 同一表面内的 Toolbar（搜索 + 计数）与 Table。
- * 低频 / 危险操作（禁用、启用、删除）收进行尾「更多」菜单，均需二次确认。
- */
 export function UsersPage() {
   const { message, modal } = App.useApp();
   const me = useMe();
