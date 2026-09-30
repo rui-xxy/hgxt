@@ -2,19 +2,20 @@ import type { ReactNode } from 'react';
 
 interface PageHeaderProps {
   title: ReactNode;
-  /** 页面级主操作（右置，如「新增用户」） */
+  /** 标题下一行说明（design/00 · .sub） */
+  description?: ReactNode;
+  /** 页面级主操作（右置，如「添加成员」） */
   extra?: ReactNode;
 }
 
-/**
- * 页面标题区——HGXT 页面模板的第一层（规范见 docs/ui-mapping.md）：
- * 左侧标题、右侧主操作。**不加辅助说明小字**（用户明确要求），
- * 页面用途靠标题与内容本身表达。
- */
-export function PageHeader({ title, extra }: PageHeaderProps) {
+/** 页面标题区：衬线标题 30 / 500，右侧主操作（design/00 · 页面模板） */
+export function PageHeader({ title, description, extra }: PageHeaderProps) {
   return (
     <div className="hgxt-page-header">
-      <h1 className="hgxt-page-title">{title}</h1>
+      <div>
+        <h1 className="hgxt-page-title">{title}</h1>
+        {description ? <div className="hgxt-page-sub">{description}</div> : null}
+      </div>
       {extra ? <div className="hgxt-page-extra">{extra}</div> : null}
     </div>
   );

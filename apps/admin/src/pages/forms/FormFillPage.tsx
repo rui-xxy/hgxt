@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { App, Button, Empty, Input, Result, Skeleton } from 'antd';
-import { CheckOutlined, PlusOutlined } from '@ant-design/icons';
+import { Check, Plus } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router';
 import type { FormData, FormField, FormLastValuesResult } from '@hgxt/shared';
@@ -78,7 +78,7 @@ export function FormFillPage() {
   };
   if (form.isLoading) return <div className="forms-fill-shell"><Skeleton active /></div>;
   if (!form.data) return <Result status="404" title="表单不存在" extra={<Link to="/forms">返回表单列表</Link>} />;
-  if (submitted) return <div className="forms-fill-success"><div className="forms-fill-success-card"><div className="forms-fill-success-icon"><CheckOutlined /></div><h1>提交成功</h1><p>感谢您的填写，数据已记录</p><Button type="primary" block onClick={() => { setValues({}); setParking([emptyParking(today())]); setActive(''); setSubmitted(false); setFormKey((key) => key + 1); }}>再填一份</Button></div></div>;
+  if (submitted) return <div className="forms-fill-success"><div className="forms-fill-success-card"><div className="forms-fill-success-icon"><Check size={24} strokeWidth={1.6} /></div><h1>提交成功</h1><p>感谢您的填写，数据已记录</p><Button type="primary" block onClick={() => { setValues({}); setParking([emptyParking(today())]); setActive(''); setSubmitted(false); setFormKey((key) => key + 1); }}>再填一份</Button></div></div>;
 
   return <div className="forms-fill-shell" key={formKey}>
     <main className="forms-fill-panel">
@@ -114,7 +114,7 @@ export function FormFillPage() {
             </div><label>原因<Input placeholder="请输入停车原因" value={record.reason} onChange={(e) => patchParking(index, { reason: e.target.value })} /></label>
           </div>)}
           {!parking.length && <Empty description="暂无停车记录" image={Empty.PRESENTED_IMAGE_SIMPLE} />}
-          <Button block type="dashed" icon={<PlusOutlined />} onClick={() => setParking((items) => [...items, emptyParking(today())])}>新增停车记录</Button>
+          <Button block type="dashed" icon={<Plus size={16} strokeWidth={1.6} />} onClick={() => setParking((items) => [...items, emptyParking(today())])}>新增停车记录</Button>
         </div>}
       </section>
       <footer className="forms-fill-footer"><Button type="primary" block size="large" disabled={filled !== requiredFields.length} loading={submit.isPending} onClick={handleSubmit}>{requiredFields.length > 0 ? `确认并提交 (${filled}/${requiredFields.length})` : '确认并提交'}</Button></footer>

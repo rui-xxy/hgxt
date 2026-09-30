@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { App as AntdApp, ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import 'dayjs/locale/zh-cn';
@@ -34,6 +34,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       return next;
     });
   }, []);
+
+  // 自定义 CSS 的配色变量（styles/global.css）随 data-theme 切换
+  useEffect(() => {
+    document.documentElement.dataset.theme = mode;
+  }, [mode]);
 
   const themeConfig = mode === 'dark' ? darkTheme : lightTheme;
 

@@ -1,5 +1,5 @@
 import { Button, Result } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { RotateCw } from 'lucide-react';
 
 /**
  * D1：网络/服务器错误页。后端未启动、断网、5xx 都不是「登录失效」，
@@ -12,7 +12,7 @@ export function ConnectionErrorPage({ message }: { message: string }) {
       title="无法连接服务器"
       subTitle={message}
       extra={
-        <Button type="primary" icon={<ReloadOutlined />} onClick={() => window.location.reload()}>
+        <Button type="primary" icon={<RotateCw size={16} strokeWidth={1.6} />} onClick={() => window.location.reload()}>
           重新加载
         </Button>
       }

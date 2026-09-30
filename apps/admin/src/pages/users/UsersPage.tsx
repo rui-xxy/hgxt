@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { App, Badge, Button, Card, Input, Popconfirm, Space, Table, Tag } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Plus } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Role, UserStatus, type UserDTO } from '@hgxt/shared';
@@ -163,8 +163,8 @@ export function UsersPage() {
     {
       title: '创建时间',
       dataIndex: 'createdAt',
-      width: 150,
-      render: (createdAt: string) => dayjs(createdAt).format('YYYY-MM-DD HH:mm'),
+      width: 120,
+      render: (createdAt: string) => dayjs(createdAt).format('YYYY-MM-DD'),
     },
     {
       title: '操作',
@@ -247,21 +247,22 @@ export function UsersPage() {
   return (
     <div>
       <PageHeader
-        title="用户管理"
+        title="成员"
+        description="管理可以登录系统、填写报表的人员"
         extra={
           <Button
             type="primary"
-            icon={<PlusOutlined />}
+            icon={<Plus size={16} strokeWidth={1.6} />}
             onClick={() => {
               setEditingUser(null);
               setFormOpen(true);
             }}
           >
-            新增用户
+            添加成员
           </Button>
         }
       />
-      <Card styles={{ body: { padding: 0 } }}>
+      <Card className="hgxt-surface" styles={{ body: { padding: 0 } }}>
         <div className="hgxt-toolbar">
           <Input.Search
             allowClear
@@ -281,7 +282,7 @@ export function UsersPage() {
           columns={columns}
           dataSource={usersQuery.data?.items}
           loading={usersQuery.isPending}
-          scroll={{ x: 1100 }}
+          scroll={{ x: 1000 }}
           pagination={{
             current: page,
             pageSize,

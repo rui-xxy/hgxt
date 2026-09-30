@@ -1,19 +1,58 @@
 /**
- * DESIGN.md 定义的 UI 字号刻度，以 CSS 变量落地。
- * 自定义 CSS（非 AntD 组件部分）只允许引用这些变量，禁止任意 px 字号。
- * AntD cssVar 模式同时提供 --ant-* 变量（背景、文本、边框等语义色）。
+ * design/00-设计规范.html 的配色与字体，以 CSS 变量落地（浅色 / 深色随 data-theme）。
+ * 自定义 CSS 只引用这些变量；AntD 组件的同一套色值在 theme/tokens.ts。
+ * 字号：界面 14 / 辅助 12.5 / 页面标题 30 / 区块标题 15 / 数字等宽。
  */
 :root {
-  --ui-font-size: 14px;
-  --ui-font-size-xl: 18px; /* text-ui-xl：一级标题 */
-  --ui-font-size-lg: 16px; /* text-ui-lg：二级标题 */
-  --ui-font-size-base: 14px; /* text-ui-base：正文/默认 UI 文本 */
-  --ui-font-size-caption: 13px; /* text-ui-caption：紧凑辅助文本 */
-  --ui-font-size-sm: 12px; /* text-ui-sm：次级信息/帮助文本 */
-  --ui-font-size-xs: 10px; /* text-ui-xs：徽标级极弱元数据（一般 UI 用 sm 起） */
+  --bg: #ffffff;
+  --side: #f6f6f4;
+  --sunken: #f9f9f8;
+  --ink: #1a1a19;
+  --ink2: #5e5e59;
+  --ink3: #8c8c86;
+  --line: #ecece9;
+  --line2: #dfdfdb;
+  --hover: rgba(20, 20, 18, 0.04);
+  --active: rgba(20, 20, 18, 0.065);
+  --brand: #2f55a4;
+  --brand-soft: #e7edf8;
+  --pop: 0 1px 2px rgba(31, 29, 26, 0.05), 0 12px 32px -8px rgba(31, 29, 26, 0.18);
 
-  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
-    'Liberation Mono', monospace;
+  --r-tag: 6px;
+  --r-control: 9px;
+  --r-pop: 12px;
+  --r-container: 14px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --ui-font-size: 14px;
+  --ui-font-size-title: 30px; /* 页面标题（衬线） */
+  --ui-font-size-xl: 26px; /* 区块大标题 */
+  --ui-font-size-lg: 15px; /* 区块标题 */
+  --ui-font-size-base: 14px; /* 正文 */
+  --ui-font-size-caption: 13.5px;
+  --ui-font-size-sm: 12.5px; /* 辅助 */
+  --ui-font-size-xs: 11.5px; /* 徽标级元数据 */
+
+  --font-sans: 'Geist', 'Noto Sans SC', system-ui, -apple-system, 'PingFang SC',
+    'Microsoft YaHei', sans-serif;
+  --font-serif: 'Newsreader', 'Noto Serif SC', Georgia, serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+:root[data-theme='dark'] {
+  --bg: #1d1d1c;
+  --side: #141414;
+  --sunken: #191918;
+  --ink: #ececea;
+  --ink2: #a6a6a0;
+  --ink3: #7a7a75;
+  --line: #2e2e2c;
+  --line2: #3d3d3a;
+  --hover: rgba(255, 255, 255, 0.04);
+  --active: rgba(255, 255, 255, 0.075);
+  --brand: #93afea;
+  --brand-soft: rgba(147, 175, 234, 0.15);
+  --pop: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 40px -8px rgba(0, 0, 0, 0.6);
 }
 
 html,
@@ -24,20 +63,43 @@ body,
 
 body {
   margin: 0;
+  font-family: var(--font-sans);
   font-size: var(--ui-font-size-base);
-  /* antd 的 --ant-* 变量只挂在组件作用域类（.hgxt）上，body 引用不到；
-     这里只做 overscroll 兜底，页面主背景由 Layout(min-height:100vh) 承担 */
-  background-color: #f5f6f8;
+  line-height: 1.55;
+  color: var(--ink);
+  background-color: var(--side);
   -webkit-font-smoothing: antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #0a0a0a;
+* {
+  box-sizing: border-box;
+}
+
+/* 标识符、数值、日期用等宽 + 等宽数字（一列一眼扫完） */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.serif {
+  font-family: var(--font-serif);
+}
+
+/* 页面进入：500ms，y 8→0（design/00 · 动效） */
+@keyframes hgxt-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
-/* 标识符、技术值用等宽字体（DESIGN.md Typography: UI Mono） */
-.mono {
-  font-family: var(--font-mono);
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }

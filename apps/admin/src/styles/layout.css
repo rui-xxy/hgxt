@@ -1,13 +1,15 @@
 /**
- * 壳层（AdminLayout）与页面模板（PageHeader / Toolbar）样式。
- * 约束：只引用语义 token（--ant-* / --ui-font-size-*），不写裸色值与任意 px 字号
- * （原始色值唯一允许出现在 theme/tokens.ts）。
+ * 壳层与页面模板样式（design/00 · 布局架构 / 页面模板）。
+ * 只引用 styles/global.css 的设计变量与 --ant-* 语义变量，不写裸色值。
  */
 
-/* ---------- 根布局 ---------- */
+/* ---------- 壳层：模块轨 + 模块面板 + 内容画布 ---------- */
 
-.hgxt-root {
-  min-height: 100vh;
+.hgxt-shell {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  background-color: var(--side);
 }
 
 .hgxt-fullscreen-center {
@@ -17,241 +19,477 @@
 }
 
 .hgxt-muted {
-  color: var(--ant-color-text-tertiary);
+  color: var(--ink3);
 }
 
-/* ---------- 侧栏 ---------- */
+/* ① 模块轨 68px */
+.hgxt-rail {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 68px;
+  padding: 12px 0;
+}
 
-.hgxt-sider {
-  border-inline-end: 1px solid var(--ant-color-border-secondary);
+.hgxt-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 14px;
+  border-radius: var(--r-control);
+  background-color: var(--ink);
+  color: var(--bg);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hgxt-rail-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 56px;
+  height: 54px;
+  border-radius: 10px;
+  color: var(--ink2);
+  font-size: var(--ui-font-size-xs);
+  text-decoration: none;
+  transition:
+    background-color 0.14s,
+    color 0.14s;
+}
+
+.hgxt-rail-link:hover {
+  background-color: var(--hover);
+  color: var(--ink);
+}
+
+.hgxt-rail-link.is-on {
+  background-color: var(--active);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.hgxt-rail-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.hgxt-iconbtn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-control);
+  background: transparent;
+  color: var(--ink2);
+  cursor: pointer;
+  transition:
+    background-color 0.14s,
+    color 0.14s;
+}
+
+.hgxt-iconbtn:hover {
+  background-color: var(--active);
+  color: var(--ink);
+}
+
+.hgxt-account {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
 }
 
 .hgxt-avatar {
   flex-shrink: 0;
-  background-color: var(--ant-color-primary);
+  background-color: var(--brand-soft);
+  color: var(--brand);
+  font-size: var(--ui-font-size-base);
+  font-weight: 600;
 }
 
-/* Sider 内部纵向布局：品牌区 + 可伸缩导航 + 固定底部账户区 */
-.hgxt-sider .ant-layout-sider-children {
+/* ② 模块面板 236px */
+.hgxt-panel {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: 236px;
+  padding: 12px 10px 10px 2px;
+}
+
+.hgxt-panel-head {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 4px 0 10px;
+  margin-bottom: 10px;
+}
+
+.hgxt-panel-title {
+  font-size: var(--ui-font-size-lg);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.hgxt-panel-nav {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-}
-
-/* 导航占满品牌区与账户区之间的剩余空间；内容多时仅导航区域滚动 */
-.hgxt-menu {
-  flex: 1 1 auto;
+  gap: 1px;
   min-height: 0;
   overflow-y: auto;
-  border-inline-end: none;
-  padding-block: 8px;
 }
 
-/* ---------- 侧栏品牌区 ---------- */
-
-.hgxt-brand {
+.hgxt-panel-link {
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 56px;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--ant-color-border-secondary);
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--ink2);
+  text-decoration: none;
+  transition:
+    background-color 0.14s,
+    color 0.14s;
 }
 
-.hgxt-brand-mark {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--ant-border-radius-sm);
-  background-color: var(--ant-color-primary);
-  color: var(--ant-color-text-light-solid);
-  font-size: var(--ui-font-size-base);
-  font-weight: 600;
+.hgxt-panel-link:hover {
+  background-color: var(--hover);
+  color: var(--ink);
 }
 
-.hgxt-brand-name {
-  font-size: var(--ui-font-size-base);
-  font-weight: 600;
-  line-height: 1.2;
+.hgxt-panel-link.is-on {
+  background-color: var(--active);
+  color: var(--ink);
+  font-weight: 500;
 }
 
-.hgxt-brand-sub {
-  margin-top: 2px;
-  font-size: var(--ui-font-size-sm);
-  color: var(--ant-color-text-tertiary);
-  line-height: 1.2;
-}
-
-/* ---------- 导航：克制的选中态（弱背景 + 左缘品牌条 + 文字品牌色） ---------- */
-
-.hgxt-menu .ant-menu-item-selected::before {
-  content: '';
-  position: absolute;
-  inset-inline-start: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 2px;
-  height: 60%;
-  background-color: var(--ant-color-primary);
-}
-
-/* ---------- 侧栏账户区：固定在底部，不与导航混在一起 ---------- */
-
-.hgxt-sider-account {
-  flex-shrink: 0;
-  padding: 8px 10px 10px;
-  border-top: 1px solid var(--ant-color-border-secondary);
-}
-
-.hgxt-sider-user {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
-  width: 100%;
-  height: 44px;
-  padding-inline: 10px;
-  text-align: start;
-}
-
-.hgxt-sider-user-copy {
-  display: flex;
-  flex: 1;
+.hgxt-panel-user {
+  margin-top: auto;
+  padding: 8px 10px;
   min-width: 0;
-  flex-direction: column;
-  align-items: flex-start;
-  line-height: 1.25;
 }
 
-.hgxt-sider-user-name,
-.hgxt-sider-user-meta {
-  max-width: 100%;
+.hgxt-panel-user-name,
+.hgxt-panel-user-meta {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.hgxt-sider-user-name {
+.hgxt-panel-user-name {
   font-weight: 500;
 }
 
-.hgxt-sider-user-meta {
-  margin-top: 2px;
-  color: var(--ant-color-text-tertiary);
+.hgxt-panel-user-meta {
+  color: var(--ink3);
   font-size: var(--ui-font-size-sm);
 }
 
-.hgxt-sider-user-more {
-  flex-shrink: 0;
-  color: var(--ant-color-text-tertiary);
-}
-
-.hgxt-theme-toggle {
-  flex-shrink: 0;
-}
-
-/* ---------- 顶栏 ---------- */
-
-.hgxt-header {
+/* ③ 内容画布：圆角 14 的嵌入式白底 */
+.hgxt-canvas {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--ant-color-border-secondary);
-}
-
-.hgxt-header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  flex: 1;
+  flex-direction: column;
   min-width: 0;
+  margin: 8px 8px 8px 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r-container);
+  background-color: var(--bg);
 }
 
-.hgxt-header-crumb {
-  color: var(--ant-color-text-tertiary);
-  font-size: var(--ui-font-size-sm);
+.hgxt-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: 52px;
+  padding: 0 16px;
+}
+
+.hgxt-crumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--ink2);
+  font-size: var(--ui-font-size-caption);
   white-space: nowrap;
 }
 
-.hgxt-header-page {
+.hgxt-crumb b {
+  color: var(--ink);
   font-weight: 500;
-  white-space: nowrap;
 }
 
-/* ---------- 内容区 ---------- */
-
-.hgxt-content {
-  padding: 24px;
+.hgxt-crumb-sep {
+  color: var(--line2);
 }
 
-/* ---------- 页面模板：PageHeader ---------- */
+.hgxt-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.hgxt-page {
+  padding: 8px 48px 40px;
+  animation: hgxt-enter 0.5s var(--ease) both;
+}
+
+/* ---------- 页面模板：标题区 ---------- */
 
 .hgxt-page-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .hgxt-page-title {
   min-width: 0;
   margin: 0;
-  font-size: var(--ui-font-size-lg);
-  font-weight: 600;
-  line-height: 1.4;
+  font-family: var(--font-serif);
+  font-size: var(--ui-font-size-title);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+}
+
+.hgxt-page-sub {
+  margin-top: 6px;
+  color: var(--ink2);
 }
 
 .hgxt-page-extra {
   flex-shrink: 0;
 }
 
-/* ---------- 页面模板：数据工作区（Toolbar + Table 同一表面） ---------- */
+/* ---------- 页面模板：列表页（工具栏 + 表格同一表面，无卡片边框） ---------- */
 
 .hgxt-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--ant-color-border-secondary);
+  padding: 0 0 16px;
 }
 
 .hgxt-toolbar-meta {
+  color: var(--ink3);
   font-size: var(--ui-font-size-sm);
-  color: var(--ant-color-text-tertiary);
   white-space: nowrap;
 }
 
 .hgxt-toolbar-search {
-  width: 300px;
+  width: 320px;
   max-width: 100%;
 }
 
-/* ---------- 登录页 ---------- */
+/* 列表页容器：留白代替边框，去掉 Card 的描边与圆角 */
+.hgxt-surface.ant-card {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
 
-.hgxt-login-card {
-  box-sizing: border-box;
+/* ---------- 首页：应用启动台 ---------- */
+
+.hgxt-greeting {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--ui-font-size-title);
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.hgxt-section-title {
+  margin: 32px 0 12px;
+  font-size: var(--ui-font-size-lg);
+  font-weight: 500;
+}
+
+.hgxt-appgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.hgxt-appcard {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-container);
+  background-color: var(--bg);
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    border-color 0.14s,
+    box-shadow 0.14s,
+    transform 0.14s;
+}
+
+.hgxt-appcard:hover {
+  border-color: var(--line2);
+  transform: translateY(-1px);
+}
+
+.hgxt-appicon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background-color: var(--sunken);
+}
+
+.hgxt-appcard-name {
+  font-weight: 500;
+}
+
+.hgxt-appcard-desc {
+  margin-top: 2px;
+  color: var(--ink2);
+  font-size: var(--ui-font-size-sm);
+}
+
+/* ---------- 登录页：左品牌右表单（design/07） ---------- */
+
+.hgxt-login {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 100vh;
+  background-color: var(--bg);
+}
+
+.hgxt-login-hero {
+  display: flex;
+  flex-direction: column;
+  padding: 48px 64px;
+  background-color: var(--side);
+}
+
+.hgxt-login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hgxt-login-brand .hgxt-mark {
+  margin-bottom: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.hgxt-login-word {
+  font-family: var(--font-serif);
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.hgxt-login-copy {
+  max-width: 520px;
+  margin-top: auto;
+  animation: hgxt-enter 0.5s var(--ease) both;
+}
+
+.hgxt-login-headline {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 52px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.18;
+}
+
+.hgxt-login-headline em {
+  color: var(--brand);
+}
+
+.hgxt-login-lead {
+  max-width: 420px;
+  margin-top: 20px;
+  color: var(--ink2);
+  font-size: var(--ui-font-size-lg);
+}
+
+.hgxt-login-foot {
+  margin-top: 64px;
+  color: var(--ink3);
+  font-size: var(--ui-font-size-sm);
+}
+
+.hgxt-login-panel {
+  display: grid;
+  place-items: center;
+  padding: 48px;
+}
+
+.hgxt-login-form {
   width: 360px;
-  max-width: calc(100vw - 32px);
-  padding: 24px;
-  border: 1px solid var(--ant-color-border-secondary);
-  border-radius: var(--ant-border-radius-lg);
-  background-color: var(--ant-color-bg-container);
+  max-width: 100%;
+  animation: hgxt-enter 0.5s var(--ease) 0.05s both;
 }
 
 .hgxt-login-title {
-  margin: 0 0 4px;
-  font-size: var(--ui-font-size-xl);
-  font-weight: 600;
-  line-height: 1.4;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--ui-font-size-title);
+  font-weight: 500;
+  line-height: 1.25;
 }
 
 .hgxt-login-desc {
-  margin-bottom: 20px;
-  color: var(--ant-color-text-secondary);
+  margin: 6px 0 32px;
+  color: var(--ink2);
 }
 
 .hgxt-login-submit {
-  margin-top: 8px;
+  margin-top: 12px;
+}
+
+.hgxt-login-note {
+  margin-top: 20px;
+  color: var(--ink3);
+  font-size: var(--ui-font-size-sm);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .hgxt-page {
+    padding: 8px 20px 32px;
+  }
+
+  .hgxt-login {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hgxt-login-hero {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .hgxt-panel {
+    display: none;
+  }
 }

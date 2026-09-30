@@ -24,9 +24,9 @@ export function FormsPage() {
   useEffect(() => { if (query.error) message.error(query.error.message); }, [query.error, message]);
 
   return <>
-    <PageHeader title="表单系统" />
-    <Card styles={{ body: { padding: 0 } }}>
-      <div className="forms-list-toolbar">
+    <PageHeader title="表单" description="选择表单填写，或查看已提交的数据" />
+    <Card className="hgxt-surface" styles={{ body: { padding: 0 } }}>
+      <div className="hgxt-toolbar">
         <Input.Search
           placeholder="搜索表单标题"
           value={search}
@@ -35,7 +35,7 @@ export function FormsPage() {
           allowClear
           className="hgxt-toolbar-search"
         />
-        <span className="forms-muted">共 {query.data?.total ?? 0} 个表单</span>
+        <span className="hgxt-toolbar-meta">共 {query.data?.total ?? 0} 个表单</span>
       </div>
       <Table<FormDTO>
         rowKey="id"

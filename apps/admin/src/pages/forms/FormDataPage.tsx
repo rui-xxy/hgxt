@@ -1,6 +1,6 @@
 import { App, Button, Card, Result, Skeleton } from 'antd';
 import { useEffect, useRef } from 'react';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { ArrowLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from 'react-router';
 import { getForm, listSubmissions } from '../../api/forms';
@@ -22,7 +22,7 @@ export function FormDataPage() {
 
   return <>
     <PageHeader
-      title={<><Link to="/forms" aria-label="返回表单列表" className="forms-back"><ArrowLeftOutlined /></Link>{form.data.title}</>}
+      title={<><Link to="/forms" aria-label="返回表单列表" className="forms-back"><ArrowLeft size={20} strokeWidth={1.6} /></Link>{form.data.title}</>}
       extra={<Button onClick={() => navigate(`/form-fill/${id}`)}>预览表单</Button>}
     />
     <Card styles={{ body: { padding: 0 } }}>
