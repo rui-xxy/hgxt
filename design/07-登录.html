@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <title>登录</title>
-
+<script src="./dc-runtime.js"></script>
 </head>
 <body style="margin:0;background:#E9E9E6;display:flex;justify-content:center;padding:24px 0">
-
-
+<x-dc>
+<helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;family=Noto+Serif+SC:wght@500;600&amp;family=Noto+Sans+SC:wght@400;500;600&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
 <style>
 body{margin:0;background:#F6F6F4}
@@ -140,8 +140,55 @@ body{margin:0;background:#F6F6F4}
 .palette .it{display:flex;align-items:center;gap:12px;height:42px;margin:0 8px;padding:0 10px;border-radius:9px;color:var(--ink)}
 .palette .it.hl{background:var(--active)}
 .palette .it .r{margin-left:auto;font-size:12px;color:var(--ink3)}
-</style>
 
+.dash{padding:4px 32px 40px}
+.dh{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.ct{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.ct b{font-weight:600;font-size:13.5px}
+.ct span{font-size:12px;color:var(--ink3)}
+.ct .r{margin-left:auto;display:flex;gap:12px;align-items:center}
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+.kpi{padding:14px 16px 12px;border-left:1px solid var(--line);min-width:0}
+.kpi:first-child{border-left:0}
+.kl{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kv{font-size:22px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.25;margin-top:2px}
+.kv small{font-size:12px;font-weight:400;color:var(--ink3);margin-left:3px}
+.kd{font-size:12px;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:6px;margin-top:2px;color:var(--ink3)}
+.up{color:var(--ok)}.dn{color:var(--danger)}
+.lg{display:flex;gap:12px;font-size:12px;color:var(--ink2);align-items:center}
+.lg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:0}
+.lg i.ln{height:2px;width:12px;border-radius:1px;vertical-align:3px}
+.dt{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.dt th{font-weight:500;color:var(--ink3);text-align:right;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:12px}
+.dt th:first-child,.dt td:first-child{text-align:left}
+.dt td{text-align:right;padding:0 10px;height:32px;border-bottom:1px solid var(--line);white-space:nowrap}
+.dt tbody tr:hover td{background:var(--hover)}
+.dt tr.sum td{font-weight:600;border-bottom:0;background:var(--sunken)}
+.dt .grp th{text-align:center;color:var(--ink2);border-bottom:1px solid var(--line)}
+.bar-in{height:6px;border-radius:3px;background:var(--active);position:relative;overflow:hidden}
+.bar-in>i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.hm{display:inline-block;min-width:64px;padding:3px 8px;border-radius:6px;font-weight:500}
+.tip{position:absolute;background:var(--surface);border-radius:10px;box-shadow:var(--pop),0 0 0 1px var(--line);padding:10px 12px;font-size:12px;min-width:170px;z-index:3;pointer-events:none}
+.tip .tr{display:flex;align-items:center;gap:8px;line-height:1.9}
+.tip .tr b{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:7px;background:var(--sunken);border:1px solid var(--line);font-size:12px;color:var(--ink2);white-space:nowrap}
+.tag{display:inline-block;font-size:11px;font-weight:500;padding:0 6px;line-height:18px;border-radius:5px;margin-right:6px;vertical-align:1px}
+.t-d{background:var(--active);color:var(--ink2)}
+.t-c{background:var(--brand-soft);color:var(--brand)}
+.t-x{background:var(--amber-soft);color:var(--amber)}
+
+.wstabs{display:flex;align-items:center;gap:4px;padding:4px;border-radius:12px;background:var(--active)}
+.wstabs button{height:36px;padding:0 14px;border:0;border-radius:9px;background:transparent;font:inherit;font-size:13.5px;color:var(--ink2);cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .14s,color .14s}
+.wstabs button:hover{color:var(--ink)}
+.wstabs button.on{background:var(--surface);color:var(--ink);font-weight:500;box-shadow:0 1px 2px rgba(20,20,18,.08)}
+.wstabs .sd{width:6px;height:6px;border-radius:50%}
+.pager{display:flex;align-items:center;gap:4px;margin-left:auto}
+.pager .num{font-size:12.5px;color:var(--ink3);margin:0 6px}
+.swap{animation:swap .36s cubic-bezier(.2,.8,.2,1) both}
+@keyframes swap{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none} }
+</style>
+</helmet>
 <div class="app plain" style="width: 1440px; height: 900px">
 <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); height: 100%">
   <section style="background: var(--side); padding: 48px 64px; display: flex; flex-direction: column; position: relative; overflow: hidden">
@@ -170,7 +217,11 @@ body{margin:0;background:#F6F6F4}
   </section>
 </div>
 </div>
-
-
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
 </body>
 </html>

@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>车间版面</title>
+<script src="./dc-runtime.js"></script>
+</head>
+<body style="margin:0;background:#E9E9E6;display:flex;justify-content:center;padding:24px 0">
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;family=Noto+Serif+SC:wght@500;600&amp;family=Noto+Sans+SC:wght@400;500;600&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;background:#F6F6F4}
+.app{--bg:#FFFFFF;--side:#F6F6F4;--surface:#FFFFFF;--sunken:#F9F9F8;--ink:#1A1A19;--ink2:#5E5E59;--ink3:#8C8C86;--line:#ECECE9;--line2:#DFDFDB;--hover:rgba(20,20,18,.04);--active:rgba(20,20,18,.065);
+ --brand:#2F55A4;--brand-strong:#243F7C;--brand-soft:#E7EDF8;--primary:#1A1A19;--primary-ink:#FFFFFF;
+ --amber:#8A5A12;--amber-soft:#FAF0DC;--danger:#B3261E;--danger-soft:#FBEAE8;--ok:#2E6A45;--ok-soft:#E5EFE7;
+ --pop:0 1px 2px rgba(31,29,26,.05),0 12px 32px -8px rgba(31,29,26,.18);--rest:0 1px 2px rgba(31,29,26,.04);
+ font-family:'Geist','Noto Sans SC',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.55;
+ -webkit-font-smoothing:antialiased;box-sizing:border-box;overflow:hidden;position:relative}
+.app.dark{--bg:#1D1D1C;--side:#141414;--surface:#1D1D1C;--sunken:#191918;--ink:#ECECEA;--ink2:#A6A6A0;--ink3:#7A7A75;--line:#2E2E2C;--line2:#3D3D3A;--hover:rgba(255,255,255,.04);--active:rgba(255,255,255,.075);
+ --brand:#93AFEA;--brand-strong:#B3C7F1;--brand-soft:rgba(147,175,234,.15);--primary:#ECECEA;--primary-ink:#1D1D1C;
+ --amber:#E3B873;--amber-soft:rgba(227,184,115,.12);--danger:#F28B80;--danger-soft:rgba(242,139,128,.12);--ok:#8FC6A0;--ok-soft:rgba(143,198,160,.12);
+ --pop:0 0 0 1px rgba(255,255,255,.06),0 16px 40px -8px rgba(0,0,0,.6);--rest:none}
+.app *{box-sizing:border-box}
+.serif{font-family:'Newsreader','Noto Serif SC',Georgia,serif}
+.mono{font-family:'Geist Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+.shell{display:flex;width:100%;height:100%}
+.side{width:256px;flex:none;background:var(--side);display:flex;flex-direction:column;padding:12px 10px 10px}
+.brand{display:flex;align-items:center;gap:10px;height:40px;padding:0 6px 0 8px}
+.mark{width:26px;height:26px;border-radius:8px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:'Noto Serif SC',serif;font-size:14px;font-weight:600}
+.word{font-family:'Newsreader',serif;font-size:21px;font-weight:500;letter-spacing:.01em;flex:1}
+.iconbtn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--ink2);background:transparent;border:0;cursor:pointer;transition:background .14s ease,color .14s ease}
+.iconbtn:hover{background:var(--active);color:var(--ink)}
+.newbtn{margin:10px 0 6px;height:38px;border-radius:10px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);display:flex;align-items:center;gap:10px;padding:0 10px;font:inherit;font-weight:500;cursor:pointer;box-shadow:var(--rest);transition:border-color .14s,transform .08s}
+.newbtn:hover{border-color:var(--ink3)}
+.newbtn:active{transform:scale(.985)}
+.nav{display:flex;flex-direction:column;gap:1px}
+.nav a{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:8px;color:var(--ink2);text-decoration:none;transition:background .14s,color .14s}
+.nav a:hover{background:var(--hover);color:var(--ink)}
+.nav a.on{background:var(--active);color:var(--ink);font-weight:500}
+.kbd{margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink3);border:1px solid var(--line2);border-radius:5px;padding:0 5px;line-height:18px}
+.sect{font-size:12px;color:var(--ink3);padding:20px 10px 6px;letter-spacing:.02em}
+.recent{display:flex;flex-direction:column;gap:1px;overflow:hidden}
+.recent a{display:block;height:32px;line-height:32px;padding:0 10px;border-radius:8px;color:var(--ink2);text-decoration:none;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .14s,color .14s}
+.recent a:hover{background:var(--hover);color:var(--ink)}
+.acct{margin-top:auto;display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;transition:background .14s;cursor:pointer}
+.acct:hover{background:var(--hover)}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-size:13px;font-weight:600;flex:none}
+.main{flex:1;min-width:0;position:relative;overflow:hidden}
+.topbar{height:52px;display:flex;align-items:center;justify-content:flex-end;gap:4px;padding:0 16px}
+.page{max-width:1080px;margin:0 auto;padding:12px 56px 40px}
+.h1{font-family:'Newsreader','Noto Serif SC',serif;font-size:30px;font-weight:500;letter-spacing:-.005em;margin:0;line-height:1.25}
+.sub{color:var(--ink2);font-size:14px;margin-top:6px}
+.btn{height:34px;padding:0 14px;border-radius:9px;border:1px solid transparent;font:inherit;font-size:13.5px;font-weight:500;display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap;transition:background .14s,border-color .14s,opacity .14s,transform .08s;color:var(--ink)}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--primary);color:var(--primary-ink)}
+.btn.primary:hover{opacity:.86}
+.btn.secondary{background:var(--surface);border-color:var(--line2);box-shadow:var(--rest)}
+.btn.secondary:hover{border-color:var(--ink3)}
+.btn.ghost{background:transparent;color:var(--ink2)}
+.btn.ghost:hover{background:var(--active);color:var(--ink)}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.sm{height:30px;padding:0 10px;font-size:13px;border-radius:8px}
+.btn.lg{height:44px;padding:0 18px;font-size:15px;border-radius:12px}
+.search{height:38px;border:1px solid var(--line2);background:var(--surface);border-radius:10px;padding:0 12px;display:flex;align-items:center;gap:8px;color:var(--ink3);transition:border-color .14s,box-shadow .14s}
+.search:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.search input{border:0;outline:0;background:transparent;font:inherit;color:var(--ink);flex:1;min-width:0}
+.search input::placeholder{color:var(--ink3)}
+.seg{display:inline-flex;padding:3px;border-radius:10px;background:var(--active);gap:2px}
+.seg button{height:30px;padding:0 12px;border:0;border-radius:8px;background:transparent;font:inherit;font-size:13px;color:var(--ink2);cursor:pointer;transition:background .14s,color .14s}
+.seg button.on{background:var(--surface);color:var(--ink);font-weight:500;box-shadow:0 1px 2px rgba(31,29,26,.08)}
+.badge{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap}
+.b-neutral{background:var(--active);color:var(--ink2)}
+.b-brand{background:var(--brand-soft);color:var(--brand)}
+.b-ok{background:var(--ok-soft);color:var(--ok)}
+.b-amber{background:var(--amber-soft);color:var(--amber)}
+.b-danger{background:var(--danger-soft);color:var(--danger)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.list{border-top:1px solid var(--line)}
+.lrow{display:flex;align-items:center;gap:16px;min-height:64px;padding:0 12px;margin:0 -12px;border-bottom:1px solid var(--line);border-radius:0;transition:background .14s}
+.lrow:hover{background:var(--hover);border-radius:10px;border-bottom-color:transparent}
+.tile{width:36px;height:36px;border-radius:10px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;color:var(--ink2);flex:none}
+.muted{color:var(--ink2)}
+.faint{color:var(--ink3)}
+.menu{position:absolute;background:var(--surface);border-radius:12px;box-shadow:var(--pop);padding:6px;min-width:188px;z-index:5}
+.menu button{width:100%;height:34px;display:flex;align-items:center;gap:10px;padding:0 10px;border:0;border-radius:8px;background:transparent;font:inherit;font-size:13.5px;color:var(--ink);cursor:pointer;text-align:left;transition:background .12s}
+.menu button:hover,.menu button.hl{background:var(--active)}
+.menu hr{border:0;border-top:1px solid var(--line);margin:6px 4px}
+.menu .danger{color:var(--danger)}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-weight:500;font-size:12.5px;color:var(--ink3);text-align:left;padding:0 12px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:0 12px;height:60px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl tbody tr{transition:background .14s}
+.tbl tbody tr:hover td{background:var(--hover)}
+.enter{animation:enter .5s cubic-bezier(.2,.8,.2,1) both}
+.d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}.d4{animation-delay:.2s}.d5{animation-delay:.25s}
+@keyframes enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none} }
+.pop{animation:pop .2s cubic-bezier(.2,.8,.2,1) both;transform-origin:top right}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(-4px)}to{opacity:1;transform:none} }
+@media (prefers-reduced-motion:reduce){.app *{animation:none !important;transition:none !important} }
+
+.app{background:var(--side)}
+.app.plain{background:var(--bg)}
+.frame{display:flex;width:100%;height:100%}
+/* 一级：模块导航轨 */
+.rail{width:68px;flex:none;display:flex;flex-direction:column;align-items:center;padding:12px 0 12px;gap:2px}
+.rail .mark{width:32px;height:32px;border-radius:9px;font-size:15px;margin-bottom:14px}
+.rail a{width:56px;height:54px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--ink2);text-decoration:none;font-size:11.5px;transition:background .14s,color .14s}
+.rail a:hover{background:var(--hover);color:var(--ink)}
+.rail a.on{background:var(--active);color:var(--ink);font-weight:500}
+.rail .sep{width:28px;height:1px;background:var(--line2);margin:8px 0}
+.rail .foot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:6px}
+/* 二级：模块面板 */
+.panel{width:236px;flex:none;display:flex;flex-direction:column;padding:12px 10px 10px 2px}
+.panel-head{display:flex;align-items:center;gap:8px;height:32px;padding:0 4px 0 10px;margin-bottom:10px}
+.panel-title{font-size:15px;font-weight:600;flex:1;letter-spacing:.01em}
+.jump{height:34px;border-radius:9px;border:1px solid var(--line2);background:var(--surface);display:flex;align-items:center;gap:8px;padding:0 8px 0 10px;color:var(--ink3);font-size:13.5px;margin:0 0 12px 0;cursor:pointer;transition:border-color .14s}
+.jump:hover{border-color:var(--ink3)}
+.nav a .cnt{margin-left:auto;font-size:12px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.nav a.on .cnt{color:var(--ink2)}
+/* 内容区：嵌入式白色画布 */
+.canvas{flex:1;min-width:0;margin:8px 8px 8px 0;background:var(--bg);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.app.dark .canvas{border-color:var(--line)}
+.bar{height:52px;flex:none;display:flex;align-items:center;gap:6px;padding:0 12px 0 16px}
+.crumb{display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--ink2);flex:1;min-width:0}
+.crumb b{color:var(--ink);font-weight:500}
+.crumb .sl{color:var(--line2)}
+.scroll{flex:1;min-height:0;overflow:hidden}
+.page{padding:8px 48px 40px}
+.appcard{display:flex;gap:14px;align-items:flex-start;padding:16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);transition:border-color .14s,box-shadow .14s,transform .14s}
+.appcard:hover{border-color:var(--line2);box-shadow:0 4px 16px -8px rgba(20,20,18,.14);transform:translateY(-1px)}
+.appicon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--sunken);border:1px solid var(--line);color:var(--ink)}
+.scrim{position:absolute;inset:0;background:rgba(20,20,18,.28);z-index:8;animation:fade .2s ease both}
+.app.dark .scrim{background:rgba(0,0,0,.5)}
+@keyframes fade{from{opacity:0}to{opacity:1} }
+.palette{position:absolute;left:50%;top:120px;width:640px;margin-left:-320px;background:var(--surface);border-radius:16px;box-shadow:var(--pop),0 0 0 1px var(--line);z-index:9;overflow:hidden;animation:pal .22s cubic-bezier(.2,.8,.2,1) both}
+@keyframes pal{from{opacity:0;transform:scale(.97) translateY(-6px)}to{opacity:1;transform:none} }
+.palette .grp{font-size:12px;color:var(--ink3);padding:12px 18px 6px}
+.palette .it{display:flex;align-items:center;gap:12px;height:42px;margin:0 8px;padding:0 10px;border-radius:9px;color:var(--ink)}
+.palette .it.hl{background:var(--active)}
+.palette .it .r{margin-left:auto;font-size:12px;color:var(--ink3)}
+
+.dash{padding:4px 32px 40px}
+.dh{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.ct{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.ct b{font-weight:600;font-size:13.5px}
+.ct span{font-size:12px;color:var(--ink3)}
+.ct .r{margin-left:auto;display:flex;gap:12px;align-items:center}
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+.kpi{padding:14px 16px 12px;border-left:1px solid var(--line);min-width:0}
+.kpi:first-child{border-left:0}
+.kl{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kv{font-size:22px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.25;margin-top:2px}
+.kv small{font-size:12px;font-weight:400;color:var(--ink3);margin-left:3px}
+.kd{font-size:12px;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:6px;margin-top:2px;color:var(--ink3)}
+.up{color:var(--ok)}.dn{color:var(--danger)}
+.lg{display:flex;gap:12px;font-size:12px;color:var(--ink2);align-items:center}
+.lg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:0}
+.lg i.ln{height:2px;width:12px;border-radius:1px;vertical-align:3px}
+.dt{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.dt th{font-weight:500;color:var(--ink3);text-align:right;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:12px}
+.dt th:first-child,.dt td:first-child{text-align:left}
+.dt td{text-align:right;padding:0 10px;height:32px;border-bottom:1px solid var(--line);white-space:nowrap}
+.dt tbody tr:hover td{background:var(--hover)}
+.dt tr.sum td{font-weight:600;border-bottom:0;background:var(--sunken)}
+.dt .grp th{text-align:center;color:var(--ink2);border-bottom:1px solid var(--line)}
+.bar-in{height:6px;border-radius:3px;background:var(--active);position:relative;overflow:hidden}
+.bar-in>i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.hm{display:inline-block;min-width:64px;padding:3px 8px;border-radius:6px;font-weight:500}
+.tip{position:absolute;background:var(--surface);border-radius:10px;box-shadow:var(--pop),0 0 0 1px var(--line);padding:10px 12px;font-size:12px;min-width:170px;z-index:3;pointer-events:none}
+.tip .tr{display:flex;align-items:center;gap:8px;line-height:1.9}
+.tip .tr b{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:7px;background:var(--sunken);border:1px solid var(--line);font-size:12px;color:var(--ink2);white-space:nowrap}
+.tag{display:inline-block;font-size:11px;font-weight:500;padding:0 6px;line-height:18px;border-radius:5px;margin-right:6px;vertical-align:1px}
+.t-d{background:var(--active);color:var(--ink2)}
+.t-c{background:var(--brand-soft);color:var(--brand)}
+.t-x{background:var(--amber-soft);color:var(--amber)}
+
+.wstabs{display:flex;align-items:center;gap:4px;padding:4px;border-radius:12px;background:var(--active)}
+.wstabs button{height:36px;padding:0 14px;border:0;border-radius:9px;background:transparent;font:inherit;font-size:13.5px;color:var(--ink2);cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .14s,color .14s}
+.wstabs button:hover{color:var(--ink)}
+.wstabs button.on{background:var(--surface);color:var(--ink);font-weight:500;box-shadow:0 1px 2px rgba(20,20,18,.08)}
+.wstabs .sd{width:6px;height:6px;border-radius:50%}
+.pager{display:flex;align-items:center;gap:4px;margin-left:auto}
+.pager .num{font-size:12.5px;color:var(--ink3);margin:0 6px}
+.swap{animation:swap .36s cubic-bezier(.2,.8,.2,1) both}
+@keyframes swap{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none} }
+
+.vtabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:20px 0 16px}
+.vtabs button{height:40px;padding:0 16px;border:0;background:transparent;font:inherit;font-size:14px;color:var(--ink2);cursor:pointer;position:relative;transition:color .14s}
+.vtabs button:hover{color:var(--ink)}
+.vtabs button.on{color:var(--ink);font-weight:600}
+.vtabs button.on::after{content:'';position:absolute;left:12px;right:12px;bottom:-1px;height:2px;border-radius:2px;background:var(--ink)}
+.stepper{display:inline-flex;align-items:center;height:32px;border:1px solid var(--line2);border-radius:9px;background:var(--surface)}
+.stepper button{width:30px;height:30px;border:0;background:transparent;color:var(--ink2);display:grid;place-items:center;cursor:pointer;border-radius:8px}
+.stepper button:hover{background:var(--active);color:var(--ink)}
+.stepper span{font-size:13px;font-weight:500;padding:0 6px;font-variant-numeric:tabular-nums}
+.chart{position:relative}
+.chart .gl{position:absolute;left:44px;right:0;height:1px;background:var(--line)}
+.chart .yl{position:absolute;left:0;width:36px;text-align:right;font-size:11px;color:var(--ink3);transform:translateY(-50%);font-variant-numeric:tabular-nums}
+.chart .xl{position:absolute;font-size:11px;color:var(--ink3);transform:translateX(-50%);white-space:nowrap}
+.chart .hit{position:absolute;top:0;cursor:pointer}
+.chart .cross{position:absolute;top:0;width:1px;background:var(--ink3);opacity:.5;pointer-events:none}
+.chart .selbar{position:absolute;top:0;background:var(--brand-soft);pointer-events:none;border-radius:4px}
+.chart .dot{position:absolute;width:10px;height:10px;border-radius:50%;border:2px solid var(--surface);transform:translate(-50%,-50%);pointer-events:none}
+.chart .tip{top:8px}
+.chart svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.sp-row{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:10px;align-items:center;font-size:13px;padding:8px 0 4px}
+.sp-sub{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:10px;font-size:12px;color:var(--ink2);padding:2px 0 2px 16px}
+.scrolltbl{max-height:440px;overflow:auto;border-top:1px solid var(--line)}
+.tank{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 4px 10px;border-radius:12px;transition:background .14s}
+.tank:hover{background:var(--hover)}
+.tank .vessel{position:relative;width:46px;height:92px;border-radius:10px 10px 8px 8px;background:var(--sunken);border:1px solid var(--line2);overflow:hidden}
+.tank .fill{position:absolute;left:0;right:0;bottom:0;transition:height .4s cubic-bezier(.2,.8,.2,1)}
+.tank .mark{position:absolute;left:0;right:0;height:1px;background:var(--ink3);opacity:.35}
+.gt-row{display:grid;align-items:center;min-height:32px;border-bottom:1px solid var(--line);font-size:12.5px;font-variant-numeric:tabular-nums}
+.gt-row>div{padding:0 10px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gt-row>div:first-child{text-align:left}
+.gt-head{position:sticky;top:0;background:var(--surface);color:var(--ink3);font-size:12px;font-weight:500;z-index:1;align-items:end}
+.gt-head>div{white-space:normal;line-height:1.35;padding-top:6px;padding-bottom:6px;word-break:keep-all}
+.gt-body .gt-row{transition:background .12s}
+.gt-body .gt-row:hover{background:var(--hover)}
+.gt-row.on{background:var(--brand-soft) !important}
+.clickrow{cursor:pointer}
+.warn{color:#9A6412}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:56px 0;color:var(--ink3)}
+
+.bars{position:relative}
+.bars .gl{position:absolute;left:40px;right:0;height:1px;background:var(--line)}
+.bars .yl{position:absolute;left:0;width:32px;text-align:right;font-size:11px;color:var(--ink3);transform:translateY(-50%);font-variant-numeric:tabular-nums}
+.bars .xl{position:absolute;font-size:11px;color:var(--ink3);transform:translateX(-50%);white-space:nowrap}
+.bars .cbar{position:absolute;padding:0;height:auto;border-radius:4px 4px 0 0;transition:background .14s,height .3s cubic-bezier(.2,.8,.2,1),top .3s cubic-bezier(.2,.8,.2,1)}
+.bars .bv{position:absolute;transform:translateX(-50%);font-size:10px;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;letter-spacing:-.02em}
+.bars .avg{position:absolute;left:40px;right:0;height:0;border-top:1px dashed var(--ink3);opacity:.7;pointer-events:none}
+.bars .avgl{position:absolute;right:0;transform:translateY(-100%);font-size:11px;color:var(--ink2);background:var(--surface);padding:0 0 2px 6px;pointer-events:none}
+.bars .hit{position:absolute;cursor:pointer}
+.bars .tip{top:0}
+.split{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:0;align-items:stretch}
+.split .left{padding-right:20px;min-width:0}
+.split .right{border-left:1px solid var(--line);padding-left:20px;min-width:0}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.stats .sl{font-size:12px;color:var(--ink3)}
+.stats .sv{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.lvl{display:grid;grid-template-columns:120px minmax(0,1fr) 52px 72px;gap:14px;align-items:center;height:32px;font-size:13px}
+.lvl .trk{position:relative;height:10px;border-radius:5px;background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line)}
+.lvl .trk i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;opacity:.9}
+.lvl .trk b{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--ink3);opacity:.45}
+.lvl .p{text-align:right;color:var(--ink2);font-variant-numeric:tabular-nums}
+.lvl .t{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.igrp{min-width:0}
+.igrp .ih{display:flex;align-items:baseline;gap:8px;padding-bottom:8px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.tbtabs{display:inline-flex;gap:2px;padding:3px;border-radius:10px;background:var(--active)}
+.tbtabs button{height:30px;padding:0 14px;border:0;border-radius:8px;background:transparent;font:inherit;font-size:13px;color:var(--ink2);cursor:pointer;transition:background .14s,color .14s}
+.tbtabs button.on{background:var(--surface);color:var(--ink);font-weight:500;box-shadow:0 1px 2px rgba(20,20,18,.08)}
+
+.calc{position:absolute;z-index:6;width:640px;background:var(--surface);border-radius:14px;box-shadow:var(--pop),0 0 0 1px var(--line);padding:14px 16px 12px;font-size:12.5px;pointer-events:none;animation:pop .16s cubic-bezier(.2,.8,.2,1) both;transform-origin:top right}
+.calc .cb{padding:8px 0;border-top:1px solid var(--line)}
+.calc .cbh{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px}
+.calc .cbh b{margin-left:auto;font-variant-numeric:tabular-nums}
+.calc .cl{display:grid;grid-template-columns:18px minmax(0,1fr) 80px;color:var(--ink2);line-height:20px;font-variant-numeric:tabular-nums}
+.calc .cl span:last-child{text-align:right}
+.calc .op{color:var(--ink3);text-align:center}
+.hotcell{cursor:help;text-decoration:underline dotted var(--ink3);text-underline-offset:3px;font-weight:600}
+.hotcell.act{background:var(--brand-soft);border-radius:4px}
+
+.erow{display:grid;grid-template-columns:minmax(0,1.3fr) 110px minmax(0,1.5fr) 110px 90px 84px 110px;gap:16px;align-items:center;min-height:52px;padding:6px 8px;border-bottom:1px solid var(--line);font-size:13px;border-radius:8px}
+.erow:hover{background:var(--hover)}
+.erow>div:not(:first-child){text-align:right}
+.erow.off{color:var(--ink3)}
+.erow.off>div:nth-child(2){text-align:left}
+.erow.ehead{min-height:34px;font-size:12px;color:var(--ink3);border-radius:0}
+.erow.ehead:hover{background:transparent}
+</style>
+</helmet>
+<div class="app" style="width: 1440px; height: 1900px">
+<div class="frame">
+<nav class="rail" aria-label="模块">
+  <div class="mark">化</div>
+  <a href="#" class="on"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg><span>首页</span></a><a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M12 16h.01"></path><path d="M16 16h.01"></path><path d="M3 19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5a.5.5 0 0 0-.769-.422l-4.462 2.844A.5.5 0 0 1 15 10.5v-2a.5.5 0 0 0-.769-.422L9.77 10.922A.5.5 0 0 1 9 10.5V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"></path><path d="M8 16h.01"></path></svg><span>生产</span></a><a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"></path></svg><span>设备</span></a><a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"></path><path d="m7.5 4.27 9 5.15"></path></svg><span>仓储</span></a><a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="m19 9-5 5-4-4-3 3"></path></svg><span>分析</span></a>
+  <div class="sep"></div>
+  <a href="#" aria-label="全部应用"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"></path><path d="m2 12 8.58 3.91a2 2 0 0 0 1.66 0L21 12"></path><path d="m2 17 8.58 3.91a2 2 0 0 0 1.66 0L21 17"></path></svg><span>更多</span></a>
+  <div class="foot">
+    <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg><span>系统</span></a>
+    <button class="iconbtn" aria-label="帮助" style="width: 40px; height: 40px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><circle cx="12" cy="12" r="9.5"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg></button>
+    <div class="avatar" style="width: 32px; height: 32px; margin-top: 4px">王</div>
+  </div>
+</nav>
+<aside class="panel">
+  <div class="panel-head"><span class="panel-title">首页</span><button class="iconbtn" aria-label="收起面板" style="width: 28px; height: 28px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M9 3v18"></path></svg></button></div>
+  <div class="jump"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><circle cx="11" cy="11" r="7.5"></circle><path d="m20.5 20.5-4.2-4.2"></path></svg><span style="flex: 1">搜索或跳转…</span><span class="kbd">⌘K</span></div>
+  <div class="nav"><a href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><rect width="7" height="7" x="3" y="3" rx="1.5"></rect><rect width="7" height="7" x="14" y="3" rx="1.5"></rect><rect width="7" height="7" x="14" y="14" rx="1.5"></rect><rect width="7" height="7" x="3" y="14" rx="1.5"></rect></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">工作台</span></a><a href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">待办</span><span class="cnt">3</span></a><a href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">通知</span></a></div><div class="sect" style="padding-top: 18px">指标分析</div><div class="nav"><a href="#" class="on"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M12 16h.01"></path><path d="M16 16h.01"></path><path d="M3 19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5a.5.5 0 0 0-.769-.422l-4.462 2.844A.5.5 0 0 1 15 10.5v-2a.5.5 0 0 0-.769-.422L9.77 10.922A.5.5 0 0 1 9 10.5V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"></path><path d="M8 16h.01"></path></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">车间版面</span></a><a href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">能源中心</span></a><a href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"></path><path d="m7.5 4.27 9 5.15"></path></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">物料与库存</span></a><a href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><circle cx="12" cy="12" r="9.5"></circle><circle cx="12" cy="12" r="5.5"></circle><circle cx="12" cy="12" r="1.5"></circle></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">单耗对标</span></a></div><div class="sect" style="padding-top: 18px">收藏</div><div class="nav"><a href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M12 17v5"></path><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">硫酸车间报表</span></a><a href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M12 17v5"></path><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path></svg><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">成员</span></a></div>
+</aside>
+<main class="canvas">
+<div class="bar"><div class="crumb"><span>首页</span><span class="sl">/</span><span>指标分析</span><span class="sl">/</span><b>车间版面</b></div>
+  <button class="iconbtn" aria-label="通知"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg></button>
+  <button class="iconbtn" aria-label="切换主题"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button>
+</div>
+<div class="scroll"><div class="dash">
+<div class="enter" style="display: flex; align-items: center; gap: 12px">
+  <div class="wstabs" role="tablist" aria-label="车间">
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="7"><button role="tab" class="{{ t.cls }}" onClick="{{ t.pick }}">{{ t.name }}</button></sc-for>
+  </div>
+  <div class="pager">
+    <button class="iconbtn" aria-label="上一个车间" onClick="{{ prevWs }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="m15 18-6-6 6-6"></path></svg></button>
+    <span class="num">{{ pos }}</span>
+    <button class="iconbtn" aria-label="下一个车间" onClick="{{ nextWs }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="m9 18 6-6-6-6"></path></svg></button>
+  </div>
+</div>
+
+<div class="enter" style="display: flex; align-items: center; gap: 12px; margin: 22px 0 16px">
+  <h1 class="h1" style="font-size: 28px; flex: 1">{{ w.title }}</h1>
+  <div class="seg"><button class="{{ perMonth }}" onClick="{{ setMonth }}">本月</button><button class="{{ perCustom }}" onClick="{{ setCustom }}">自定义</button></div>
+  <sc-if value="{{ isMonth }}" hint-placeholder-val="{{ true }}">
+    <div class="stepper"><button aria-label="上个月"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="m15 18-6-6 6-6"></path></svg></button><span>2026 年 9 月</span><button aria-label="下个月"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="m9 18 6-6-6-6"></path></svg></button></div>
+  </sc-if>
+  <sc-if value="{{ isCustom }}" hint-placeholder-val="{{ false }}">
+    <button class="btn secondary sm"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M3 10h18"></path></svg>2026-09-01 → 2026-09-30</button>
+  </sc-if>
+  <button class="btn ghost sm"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path><path d="M12 15V3"></path></svg>导出</button>
+</div>
+
+<div class="kpis enter d1">
+  <sc-for list="{{ w.kpis }}" as="k" hint-placeholder-count="6">
+    <div class="kpi"><div class="kl">{{ k.label }}</div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+        <div class="kv" style="white-space: nowrap">{{ k.val }}<small>{{ k.unit }}</small></div>
+        <svg width="52" height="26" viewBox="0 0 52 26" aria-hidden="true" style="display: block; flex: none"><polyline points="{{ k.pts }}" style="fill: none; stroke: #2F55A4; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round"></polyline></svg>
+      </div>
+      <div class="kd" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><span class="{{ k.dcls }}">{{ k.dtxt }}</span><span>{{ k.sub }}</span></div>
+    </div>
+  </sc-for>
+</div>
+
+<div class="card enter d2" style="margin-top: 16px; padding: 18px 20px">
+  <div class="split">
+    <div class="left">
+      <div class="ct" style="margin-bottom: 14px"><b>{{ ch.title }}</b><span>{{ ch.sub }}</span><div class="r lg"><span><i style="width: 12px; height: 0; border-top: 1px dashed var(--ink3); border-radius: 0; vertical-align: 3px"></i>月均 {{ ch.avg }}</span><span><i style="background: #2F55A4"></i>选中日</span></div></div>
+      <div class="bars" style="width: {{ ch.W }}px; height: {{ ch.H }}px" onMouseLeave="{{ unhover }}">
+        <sc-for list="{{ ch.grid }}" as="g"><div class="gl" style="top: {{ g.y }}px"></div><div class="yl" style="top: {{ g.y }}px">{{ g.label }}</div></sc-for>
+        <sc-for list="{{ ch.bars }}" as="b">
+          <div class="cbar" style="left: {{ b.x }}px; top: {{ b.y }}px; width: {{ b.w }}px; height: {{ b.h }}px; background: {{ b.bg }}"></div>
+          <div class="bv" style="left: {{ b.cx }}px; top: {{ b.ly }}px; color: {{ b.lc }}; font-weight: {{ b.lw }}">{{ b.label }}</div>
+        </sc-for>
+        <div class="avg" style="top: {{ ch.avgY }}px"></div>
+        <sc-for list="{{ ch.xl }}" as="x"><div class="xl" style="left: {{ x.x }}px; top: {{ ch.xly }}px">{{ x.label }}</div></sc-for>
+        <sc-for list="{{ ch.hits }}" as="h"><div class="hit" style="left: {{ h.x }}px; top: 0; width: {{ h.w }}px; height: {{ ch.xly }}px" onMouseEnter="{{ h.enter }}" onClick="{{ h.click }}"></div></sc-for>
+        <sc-if value="{{ ch.hv.show }}" hint-placeholder-val="{{ false }}">
+          <div class="tip" style="left: {{ ch.hv.tx }}px">
+            <div style="font-weight: 600; margin-bottom: 2px">{{ ch.hv.date }}</div>
+            <sc-for list="{{ ch.hv.rows }}" as="r"><div class="tr"><i style="width: 8px; height: 8px; border-radius: 2px; background: {{ r.color }}; display: inline-block"></i><span class="muted">{{ r.name }}</span><b>{{ r.val }}</b></div></sc-for>
+            <sc-if value="{{ ch.hv.hasTotal }}" hint-placeholder-val="{{ true }}"><div class="tr" style="border-top: 1px solid var(--line); margin-top: 4px; padding-top: 2px"><span>{{ ch.hv.totalName }}</span><b>{{ ch.hv.total }}</b></div></sc-if>
+            <div class="faint" style="font-size: 11px; margin-top: 4px">点击查看当天构成</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+    <div class="right">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <span style="font-weight: 600; font-size: 13.5px">{{ sp.head }}</span>
+        <div class="seg"><button class="{{ spDay }}" onClick="{{ setSpDay }}">当日</button><button class="{{ spMonth }}" onClick="{{ setSpMonth }}">本月</button></div>
+      </div>
+      <div style="margin-top: 12px"><div class="faint" style="font-size: 12px">{{ sp.totalName }}</div><div class="kv" style="font-size: 28px">{{ sp.total }}<small>{{ sp.unit }}</small></div></div>
+      <sc-if value="{{ sp.multi }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top: 8px; border-top: 1px solid var(--line)">
+        <sc-for list="{{ sp.items }}" as="it">
+          <div class="sp-row"><div style="min-width: 0"><div style="display: flex; align-items: center; gap: 8px"><i style="width: 8px; height: 8px; border-radius: 2px; background: {{ it.color }}; display: inline-block; flex: none"></i><span style="font-weight: 500">{{ it.name }}</span></div>
+            <div class="bar-in" style="margin-top: 5px; height: 4px"><i style="width: {{ it.pct }}%; background: {{ it.color }}"></i></div></div>
+            <span class="num" style="text-align: right; font-weight: 600">{{ it.val }}</span></div>
+          <sc-for list="{{ it.dest }}" as="d"><div class="sp-sub"><span>{{ d.name }}</span><span class="num" style="text-align: right">{{ d.val }}</span></div></sc-for>
+        </sc-for>
+      </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+
+<sc-if value="{{ hasInv }}" hint-placeholder-val="{{ true }}">
+<div class="card enter d3" style="margin-top: 16px; padding: 18px 20px">
+  <div class="ct" style="margin-bottom: 14px"><b>{{ iv.title }}</b><span>{{ iv.sub }}</span>
+    <div class="r lg"><span><i style="background: var(--ink3); width: 1px; height: 10px; border-radius: 0"></i>{{ iv.markNote }}</span></div></div>
+  <div style="display: grid; grid-template-columns: {{ iv.gcols }}; gap: 20px 48px">
+    <sc-for list="{{ iv.groups }}" as="g">
+      <div class="igrp">
+        <div class="ih"><i style="width: 8px; height: 8px; border-radius: 2px; background: {{ g.color }}; display: inline-block"></i><span style="font-weight: 600">{{ g.name }}</span><span class="faint" style="font-size: 12px">{{ g.meta }}</span><span class="num" style="margin-left: auto; font-weight: 600">{{ g.total }}</span></div>
+        <sc-for list="{{ g.rows }}" as="r">
+          <div class="lvl" title="{{ r.tip }}"><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ r.name }}</span>
+            <div class="trk"><i style="width: {{ r.pct }}%; background: {{ r.color }}"></i><b style="left: {{ r.m1 }}%"></b><b style="left: {{ r.m2 }}%"></b></div>
+            <span class="p">{{ r.p }}</span><span class="t">{{ r.t }}</span></div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<div class="card enter d4" style="margin-top: 16px; padding-bottom: 8px; position: relative">
+  <div class="ct" style="align-items: center; margin-bottom: 12px"><b>明细</b>
+    <div class="tbtabs" role="tablist" aria-label="明细类别" style="margin-left: 8px"><sc-for list="{{ tbtabs }}" as="v" hint-placeholder-count="4"><button role="tab" class="{{ v.cls }}" onClick="{{ v.pick }}">{{ v.name }}</button></sc-for></div>
+    <div class="r"><span class="faint" style="font-size: 12px">{{ tb.note }}</span><button class="btn ghost sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path><path d="M12 15V3"></path></svg>导出 Excel</button></div></div>
+  <sc-if value="{{ tb.has }}" hint-placeholder-val="{{ true }}">
+  <div class="scrolltbl" onMouseLeave="{{ calcOff }}">
+    <div class="gt-row gt-head" style="grid-template-columns: {{ tb.gcols }}"><sc-for list="{{ tb.head }}" as="h"><div title="{{ h }}">{{ h }}</div></sc-for></div>
+    <div class="gt-body"><sc-for list="{{ tb.rows }}" as="r"><div class="gt-row clickrow {{ r.cls }}" style="grid-template-columns: {{ tb.gcols }}" onClick="{{ r.pick }}"><sc-for list="{{ r.cells }}" as="c"><div class="{{ c.cls }}" onMouseEnter="{{ c.enter }}">{{ c.v }}</div></sc-for></div></sc-for></div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ tb.empty }}" hint-placeholder-val="{{ false }}">
+    <div class="empty" style="padding: 40px 0"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><circle cx="12" cy="12" r="9.5"></circle><path d="M12 7v5l3 2"></path></svg><div style="font-size: 13.5px; color: var(--ink2)">{{ tb.emptyText }}</div></div>
+  </sc-if>
+
+  <sc-if value="{{ cc.show }}" hint-placeholder-val="{{ false }}">
+  <div class="calc" style="right: 20px; top: 58px">
+    <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px"><span style="font-weight: 600; font-size: 13.5px">{{ cc.title }}</span><span class="faint" style="font-size: 12px">计算过程</span></div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px">
+    <sc-for list="{{ cc.blocks }}" as="b">
+      <div class="cb">
+        <div class="cbh"><i style="width: 8px; height: 8px; border-radius: 2px; background: {{ b.color }}; display: inline-block"></i>{{ b.name }}<b>{{ b.result }}</b></div>
+        <sc-for list="{{ b.lines }}" as="l"><div class="cl"><span class="op">{{ l.op }}</span><span>{{ l.l }}</span><span>{{ l.v }}</span></div></sc-for>
+      </div>
+    </sc-for>
+    </div>
+    <div class="cb" style="padding-bottom: 2px">
+      <div class="cbh">折 98% 合计<b style="font-size: 15px">{{ cc.total }}</b></div>
+      <div class="faint" style="font-size: 11.5px; margin-top: 2px">{{ cc.formula }}</div>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</div></div>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { ws: 0, day: 29, hover: -1, per: 'month', sp: 'day', tab: 'prod', calc: -1 };
+  }
+  renderVals() {
+    const D = [{"key":"sulfuric","tab":"硫酸","title":"硫酸车间","kpis":[{"label":"折 98% 产量 · 今日","val":"310.0","unit":"t","sub":"月累计 10,069 t","d":-7.9,"good":true,"sp":[334.523,369.999,362.859,342.679,343.765,326.618,361.018,292.013,305.075,333.709,293.757,318.759,321.021,325.793,365.557,316.718,321.33,155.156,355.611,347.867,384.523,350.607,337.094,396.618,379.308,366.345,371.575,339.236,339.449,310.024]},{"label":"罐区库存","val":"930","unit":"t","sub":"三种酸合计","d":8.6,"good":true,"sp":[936.5,947.7,958.1,963.4,946.4,915.6,904.6,862.1,819.2,798.1,768.4,764.6,746.2,729.8,748.9,747.9,740.1,775.6,790.8,792.2,841.5,859.4,852.9,911.3,927.5,941.8,951.4,944.8,955.0,930.1]},{"label":"电单耗","val":"87.3","unit":"kWh/t","sub":"月均 90.2","d":-4.4,"good":false,"sp":[86.317,87.781,92.193,93.224,84.818,85.318,92.901,90.861,92.456,86.345,88.668,86.839,92.909,88.058,91.19,94.881,87.579,142.0,92.207,94.129,88.704,88.062,85.067,93.627,84.864,84.913,90.206,89.333,91.539,87.288]},{"label":"硫铁矿单耗","val":"1.57","unit":"t/t","sub":"月均 1.59","d":-1.2,"good":false,"sp":[1.629,1.531,1.55,1.613,1.531,1.563,1.621,1.617,1.56,1.54,1.57,1.622,1.571,1.536,1.619,1.6,1.649,1.652,1.648,1.581,1.632,1.563,1.564,1.576,1.651,1.645,1.555,1.571,1.571,1.571]},{"label":"双氧水单耗","val":"4.8","unit":"kg/t","sub":"月均 4.7","d":3.7,"good":false,"sp":[4.577,4.571,4.436,4.695,4.858,4.678,4.885,4.694,4.424,4.831,4.917,4.497,4.316,4.661,4.681,4.697,4.976,4.756,4.863,4.345,4.683,4.852,4.359,4.357,4.816,4.929,4.359,4.744,4.401,4.822]},{"label":"开工率 · 本月","val":"99.1","unit":"%","sub":"停车 6.5 h","d":-2.3,"good":true,"sp":[99.295,99.468,100.283,102.025,101.929,102.48,101.491,100.826,101.285,99.76,98.421,97.585,97.19,96.653,96.855,95.975,97.23,97.613,98.87,99.755,100.772,101.721,102.483,102.196,101.986,102.051,101.64,100.069,99.114,97.588]}],"views":[["prod","产量"],["inv","库存"],["lvl","液位"],["cons","消耗"],["park","停车记录"]],"prod":{"unit":"t","totalName":"折 98% 合计","total":[334.52,370.0,362.86,342.68,343.77,326.62,361.02,292.01,305.08,333.71,293.76,318.76,321.02,325.79,365.56,316.72,321.33,155.16,355.61,347.87,384.52,350.61,337.09,396.62,379.31,366.34,371.57,339.24,339.45,310.02],"items":[{"name":"98% 酸","color":"#2F55A4","v":[196.45,209.94,221.81,187.36,218.17,199.35,204.4,198.38,170.72,208.74,183.21,192.61,197.23,192.48,248.82,184.49,173.58,95.87,204.27,212.7,227.9,184.55,196.52,233.87,202.88,219.64,216.08,203.84,195.71,182.72],"dest":[["外销",[196.45,214.44,200.91,196.96,221.87,208.55,220.1,197.18,204.62,211.94,188.01,192.11,206.33,212.78,214.22,186.49,200.18,73.47,203.37,211.4,197.1,194.95,197.42,195.87,212.78,210.94,211.48,195.94,195.21,193.82]],["库存变化",[0,-4.5,20.9,-9.6,-3.7,-9.2,-15.7,1.2,-33.9,-3.2,-4.8,0.5,-9.1,-20.3,34.6,-2.0,-26.6,22.4,0.9,1.3,30.8,-10.4,-0.9,38.0,-9.9,8.7,4.6,7.9,0.5,-11.1]]]},{"name":"93% 酸","color":"#EB6834","v":[49.29,50.59,52.52,45.08,42.62,52.94,47.99,50.42,46.54,45.51,47.58,46.36,46.64,41.78,47.46,47.16,43.16,15.04,46.94,45.14,41.84,43.47,47.9,43.82,49.51,51.68,49.39,48.9,47.9,45.17],"dest":[["外销",[30.86,32.39,32.11,25.31,25.14,32.63,28.45,30.83,26.93,27.84,27.97,26.99,28.21,23.13,28.85,30.09,24.64,9.49,29.78,27.25,25.75,25.74,28.83,24.75,32.13,31.28,30.3,31.38,29.16,27.0]],["→ 硫酸镁车间",[18.43,18.2,20.42,19.77,17.48,20.31,19.55,19.59,19.61,17.67,19.61,19.37,18.43,18.65,18.61,17.08,18.52,5.54,17.17,17.89,16.09,17.73,19.07,19.07,17.38,20.4,19.09,17.52,18.74,18.17]]]},{"name":"试剂酸","color":"#1BAF7A","v":[27.32,19.29,35.26,26.66,26.54,19.85,32.0,3.15,30.99,12.84,19.58,34.64,14.82,23.89,19.38,29.72,33.42,18.07,27.86,30.12,35.84,45.59,36.52,26.94,45.61,8.4,31.8,21.05,34.15,19.69],"dest":[["外销",[27.32,26.19,32.36,29.06,29.74,30.35,32.4,22.95,28.49,29.44,24.48,25.64,22.02,23.29,24.98,22.32,23.92,10.67,27.26,27.12,31.84,28.19,32.52,29.14,30.81,23.6,28.5,29.85,22.65,30.99]],["库存变化",[0,-6.9,2.9,-2.4,-3.2,-10.5,-0.4,-19.8,2.5,-16.6,-4.9,9.0,-7.2,0.6,-5.6,7.4,9.5,7.4,0.6,3.0,4.0,17.4,4.0,-2.2,14.8,-15.2,3.3,-8.8,11.5,-11.3]]]},{"name":"发烟硫酸","color":"#EDA100","v":[57.37,84.16,49.71,78.01,52.67,50.84,71.51,37.39,53.04,62.18,40.5,42.14,58.18,63.13,46.57,51.66,66.42,24.44,71.43,55.92,73.67,71.86,52.42,85.86,75.89,80.85,69.35,61.08,57.57,58.29],"dest":[["外销",[22.04,24.07,22.54,24.58,25.34,22.17,27.22,24.06,24.48,24.67,23.09,22.41,24.35,23.68,22.03,24.56,22.24,7.27,22.33,21.4,22.29,25.94,23.99,27.0,26.14,22.05,27.31,26.86,21.61,26.16]],["→ 氨基磺酸车间",[29.58,30.16,33.4,29.22,31.01,33.52,32.15,30.46,33.28,32.03,30.45,27.24,30.06,28.9,27.32,26.45,29.44,9.53,29.41,31.05,30.07,29.16,31.27,30.4,32.56,30.98,33.6,33.09,31.49,28.21]],["→ 蒽醌车间",[5.75,7.33,7.17,6.91,6.41,6.25,7.04,6.77,6.77,6.79,6.96,5.8,5.86,7.25,7.12,7.05,5.44,1.94,6.0,6.36,6.81,5.85,6.75,5.86,5.89,7.02,6.73,6.84,6.27,6.41]],["库存变化",[0,22.6,-13.4,17.3,-10.1,-11.1,5.1,-23.9,-11.5,-1.3,-20.0,-13.3,-2.1,3.3,-9.9,-6.4,9.3,5.7,13.7,-2.9,14.5,10.9,-9.6,22.6,11.3,20.8,1.7,-5.7,-1.8,-2.5]]]}]},"inv":{"mode":"tank","groups":[{"name":"98% 酸","color":"#2F55A4","items":[{"name":"2# 罐","cap":100,"den":1.84,"lv":[57.9,57.3,60.5,63.7,62.5,66.4,68.0,69.1,62.6,62.6,58.7,61.7,57.8,49.5,54.0,51.1,46.3,44.2,39.5,38.1,42.7,40.2,43.2,46.1,47.2,53.8,56.7,62.8,62.8,65.9],"t":[106.5,105.4,111.4,117.2,114.9,122.2,125.1,127.1,115.1,115.2,108.0,113.6,106.3,91.0,99.3,94.0,85.1,81.4,72.8,70.2,78.6,74.0,79.5,84.8,86.9,98.9,104.3,115.6,115.6,121.2]},{"name":"3# 罐","cap":100,"den":1.84,"lv":[66.8,66.8,73.2,73.0,70.8,68.0,62.5,58.9,56.2,51.1,53.5,47.6,48.7,43.2,46.7,45.5,39.2,42.2,49.9,49.0,56.1,54.7,55.4,63.0,67.0,65.1,65.2,67.9,72.9,70.3],"t":[123.0,123.0,134.8,134.4,130.3,125.1,115.0,108.4,103.4,94.1,98.4,87.6,89.6,79.5,85.8,83.7,72.2,77.7,91.8,90.1,103.3,100.7,102.0,115.9,123.2,119.8,119.9,124.9,134.1,129.4]},{"name":"4# 罐","cap":100,"den":1.84,"lv":[49.7,48.0,52.1,45.0,45.7,42.3,37.8,39.9,33.3,36.0,31.0,33.2,31.9,33.4,40.5,41.1,39.4,46.5,43.6,47.4,53.2,53.1,49.9,57.6,51.3,51.0,53.9,48.6,46.3,42.1],"t":[91.4,88.3,95.9,82.8,84.0,77.8,69.6,73.5,61.2,66.2,57.0,61.0,58.7,61.4,74.5,75.7,72.5,85.6,80.2,87.2,97.8,97.7,91.9,106.0,94.5,93.9,99.2,89.5,85.1,77.5]},{"name":"拨酸槽","cap":50,"den":1.84,"lv":[42.6,42.3,37.4,35.3,37.0,31.4,31.1,33.2,28.2,29.2,37.2,39.0,37.3,40.0,47.5,52.1,48.8,56.9,57.8,56.3,54.8,51.4,49.3,54.5,46.0,46.7,40.0,41.4,36.8,31.9],"t":[39.2,38.9,34.4,32.5,34.0,28.9,28.6,30.5,25.9,26.9,34.2,35.9,34.4,36.8,43.7,47.9,44.9,52.4,53.2,51.8,50.4,47.3,45.4,50.1,42.3,43.0,36.8,38.1,33.8,29.4]}]},{"name":"发烟硫酸","color":"#EDA100","items":[{"name":"1# 罐","cap":100,"den":1.92,"lv":[42.2,46.8,52.7,57.8,58.1,56.9,62.7,56.8,54.3,54.5,53.4,47.4,45.0,43.1,41.4,34.8,34.1,36.4,36.0,33.1,33.9,34.5,33.0,34.9,37.9,48.4,50.2,55.5,50.8,58.0],"t":[81.0,89.9,101.2,111.0,111.6,109.3,120.3,109.0,104.2,104.6,102.6,90.9,86.3,82.7,79.4,66.8,65.5,69.9,69.1,63.6,65.2,66.2,63.4,67.0,72.8,93.0,96.3,106.6,97.6,111.4]},{"name":"5# 罐","cap":100,"den":1.92,"lv":[65.6,72.6,65.8,69.4,69.9,69.4,65.6,62.3,59.7,57.3,49.4,49.0,48.2,46.0,41.2,43.9,45.1,44.1,46.7,47.5,52.2,55.8,55.1,62.8,68.5,69.9,70.2,68.3,71.0,68.9],"t":[126.0,139.3,126.4,133.3,134.2,133.3,126.0,119.7,114.7,109.9,94.8,94.1,92.5,88.3,79.2,84.3,86.5,84.7,89.6,91.1,100.3,107.2,105.7,120.5,131.5,134.1,134.9,131.2,136.3,132.2]},{"name":"烟酸拨酸槽","cap":50,"den":1.92,"lv":[64.1,67.5,59.1,60.5,56.0,50.3,50.5,45.7,43.9,44.3,37.8,35.5,38.4,42.9,41.3,44.0,53.2,54.9,56.8,63.8,62.4,67.5,65.5,68.2,71.1,71.0,68.9,62.4,60.8,55.2],"t":[61.6,64.8,56.8,58.1,53.8,48.3,48.5,43.8,42.1,42.5,36.3,34.1,36.9,41.2,39.7,42.2,51.1,52.7,54.5,61.3,59.9,64.8,62.9,65.4,68.3,68.1,66.1,59.9,58.4,53.0]},{"name":"氨基磺酸转运槽","cap":50,"den":1.92,"lv":[48.7,45.9,41.8,41.1,33.5,31.0,32.3,30.6,30.6,33.4,36.9,38.2,39.5,46.7,50.8,49.4,48.8,50.5,58.6,52.6,57.9,56.0,52.4,54.2,45.4,43.5,43.1,36.7,40.5,33.5],"t":[46.8,44.0,40.2,39.5,32.2,29.8,31.0,29.4,29.4,32.1,35.4,36.7,38.0,44.8,48.8,47.4,46.9,48.4,56.2,50.5,55.6,53.7,50.3,52.0,43.6,41.8,41.4,35.3,38.9,32.1]}]},{"name":"试剂酸","color":"#1BAF7A","items":[{"name":"1# 罐","cap":60,"den":1.84,"lv":[45.5,46.2,49.6,51.5,54.0,56.1,54.3,50.3,51.9,48.5,45.6,47.5,47.4,41.0,39.7,38.5,39.7,37.2,37.2,38.2,35.6,39.6,41.8,36.9,45.6,46.0,43.3,47.9,51.0,54.7],"t":[50.3,51.0,54.7,56.8,59.6,62.0,60.0,55.6,57.3,53.5,50.3,52.4,52.3,45.3,43.9,42.5,43.9,41.0,41.1,42.2,39.3,43.8,46.2,40.8,50.4,50.8,47.9,52.9,56.3,60.4]},{"name":"2# 罐","cap":60,"den":1.84,"lv":[65.7,66.3,68.1,64.1,64.7,59.5,61.3,59.4,55.0,52.4,45.4,48.1,46.4,44.6,40.1,41.8,38.6,44.6,46.0,44.5,45.2,51.2,55.2,59.9,60.2,58.6,66.3,61.1,66.9,61.0],"t":[72.5,73.2,75.2,70.8,71.4,65.6,67.7,65.6,60.7,57.9,50.1,53.1,51.2,49.3,44.3,46.2,42.6,49.2,50.8,49.1,49.9,56.5,60.9,66.1,66.5,64.7,73.2,67.4,73.8,67.4]},{"name":"3# 罐","cap":60,"den":1.84,"lv":[60.9,59.0,59.4,58.0,55.5,50.7,49.3,42.5,43.5,34.6,34.5,36.6,35.3,40.3,41.7,43.6,49.5,50.7,52.3,56.2,62.9,65.7,61.8,67.8,68.6,64.1,62.7,57.3,56.9,53.2],"t":[67.2,65.2,65.6,64.0,61.2,56.0,54.4,46.9,48.0,38.2,38.1,40.5,39.0,44.5,46.1,48.2,54.6,56.0,57.7,62.1,69.4,72.5,68.2,74.8,75.8,70.8,69.2,63.2,62.8,58.8]},{"name":"4# 罐","cap":60,"den":1.84,"lv":[64.3,58.6,55.7,57.1,53.6,51.9,52.9,47.7,51.8,51.6,57.2,58.6,55.2,58.9,58.2,62.5,67.3,69.3,66.9,66.1,65.0,67.9,69.3,61.5,65.0,57.0,56.3,54.6,56.4,51.9],"t":[71.0,64.7,61.5,63.0,59.2,57.3,58.4,52.6,57.2,57.0,63.2,64.7,61.0,65.0,64.2,69.0,74.3,76.6,73.8,73.0,71.8,75.0,76.5,67.9,71.7,62.9,62.2,60.2,62.3,57.3]}]},{"name":"双氧水","color":"#8C8C86","items":[{"name":"储罐","cap":80,"den":1.11,"lv":[48.2,56.4,54.6,60.3,60.3,61.3,64.5,63.6,62.2,60.8,59.4,53.6,50.8,51.0,47.9,44.2,44.4,40.7,41.6,36.3,40.9,42.7,45.5,43.3,46.3,54.3,51.9,61.2,63.0,59.1],"t":[42.8,50.1,48.5,53.5,53.5,54.4,57.3,56.5,55.2,54.0,52.7,47.6,45.1,45.3,42.6,39.3,39.4,36.1,36.9,32.2,36.3,37.9,40.4,38.5,41.1,48.2,46.1,54.3,55.9,52.5]}]}]},"cons":[{"name":"电","unit":"kWh","v":[28875.0,32479.0,33453.0,31946.0,29157.0,27866.0,33539.0,26533.0,28206.0,28814.0,26047.0,27681.0,29826.0,28689.0,33335.0,30050.0,28142.0,22032.0,32790.0,32744.0,34109.0,30875.0,28676.0,37134.0,32189.0,31108.0,33518.0,30305.0,31073.0,27061.0],"uu":"kWh/t","u":[86.3,87.8,92.2,93.2,84.8,85.3,92.9,90.9,92.5,86.3,88.7,86.8,92.9,88.1,91.2,94.9,87.6,142.0,92.2,94.1,88.7,88.1,85.1,93.6,84.9,84.9,90.2,89.3,91.5,87.3]},{"name":"硫铁矿","unit":"t","v":[544.8,566.3,562.4,552.6,526.5,510.4,585.4,472.2,475.8,513.9,461.2,516.9,504.4,500.6,591.9,506.7,529.7,256.3,586.0,550.1,627.7,547.9,527.4,625.0,626.2,602.7,577.7,532.8,533.3,487.0],"uu":"t/t","u":[1.629,1.531,1.55,1.613,1.531,1.563,1.621,1.617,1.56,1.54,1.57,1.622,1.571,1.536,1.619,1.6,1.649,1.652,1.648,1.581,1.632,1.563,1.564,1.576,1.651,1.645,1.555,1.571,1.571,1.571]},{"name":"双氧水","unit":"t","v":[1.53,1.69,1.61,1.61,1.67,1.53,1.76,1.37,1.35,1.61,1.44,1.43,1.39,1.52,1.71,1.49,1.6,0.74,1.73,1.51,1.8,1.7,1.47,1.73,1.83,1.81,1.62,1.61,1.49,1.49],"uu":"kg/t","u":[4.58,4.57,4.44,4.69,4.86,4.68,4.89,4.69,4.42,4.83,4.92,4.5,4.32,4.66,4.68,4.7,4.98,4.76,4.86,4.34,4.68,4.85,4.36,4.36,4.82,4.93,4.36,4.74,4.4,4.82]}],"park":{"enabled":true,"records":[{"day":17,"start":"09-18 08:30","end":"09-18 15:00","h":6.5,"reason":"1# 电炉检修","by":"张磊"}]}},{"key":"amino","tab":"氨基磺酸","title":"氨基磺酸车间","kpis":[{"label":"产量 · 今日","val":"27.7","unit":"t","sub":"月累计 784 t","d":6.2,"good":true,"sp":[27.779,29.362,26.332,25.408,25.706,26.894,26.121,29.565,24.527,25.597,24.307,26.886,27.361,24.062,23.386,25.519,26.299,28.21,23.821,24.466,25.126,25.524,25.787,28.432,27.789,25.742,25.377,25.667,24.837,27.674]},{"label":"尿素单耗","val":"0.660","unit":"t/t","sub":"月均 0.673","d":-1.9,"good":false,"sp":[0.666,0.674,0.684,0.672,0.664,0.686,0.687,0.667,0.674,0.688,0.672,0.663,0.657,0.688,0.683,0.668,0.673,0.673,0.665,0.69,0.678,0.663,0.655,0.672,0.668,0.683,0.68,0.676,0.661,0.66]},{"label":"发烟酸单耗","val":"1.10","unit":"t/t","sub":"月均 1.12","d":-2.4,"good":false,"sp":[1.106,1.101,1.15,1.121,1.131,1.159,1.101,1.123,1.092,1.142,1.08,1.146,1.148,1.146,1.087,1.102,1.137,1.088,1.118,1.117,1.156,1.127,1.149,1.104,1.143,1.113,1.153,1.087,1.146,1.097]},{"label":"汽单耗","val":"1.44","unit":"t/t","sub":"月均 1.48","d":-2.7,"good":false,"sp":[1.5,1.496,1.415,1.563,1.449,1.448,1.397,1.447,1.483,1.537,1.459,1.531,1.403,1.467,1.482,1.593,1.563,1.524,1.383,1.463,1.536,1.432,1.504,1.481,1.382,1.598,1.556,1.425,1.516,1.444]},{"label":"电单耗","val":"113","unit":"kWh/t","sub":"月均 118","d":-4.2,"good":false,"sp":[117.264,119.557,116.175,116.723,117.491,121.334,115.59,114.799,122.24,116.612,125.231,119.879,122.133,116.643,123.576,113.292,113.972,113.322,121.488,121.916,114.518,117.632,123.717,120.298,113.261,115.172,114.199,113.738,117.696,113.018]},{"label":"稀酸副产","val":"13.8","unit":"m³","sub":"月累计 371 m³","d":12.4,"good":true,"sp":[12.81,13.801,11.81,12.267,12.833,12.666,12.614,14.491,11.082,12.714,11.61,12.149,12.175,10.941,11.099,12.296,12.091,13.985,10.997,11.445,11.242,12.722,11.556,14.053,13.133,12.193,12.019,11.701,12.283,13.824]}],"views":[["prod","产量"],["inv","库存"],["cons","消耗"],["park","停车记录"]],"prod":{"unit":"t","totalName":"产量","total":[27.78,29.36,26.33,25.41,25.71,26.89,26.12,29.56,24.53,25.6,24.31,26.89,27.36,24.06,23.39,25.52,26.3,28.21,23.82,24.47,25.13,25.52,25.79,28.43,27.79,25.74,25.38,25.67,24.84,27.67],"items":[{"name":"氨基磺酸","color":"#2F55A4","v":[27.78,29.36,26.33,25.41,25.71,26.89,26.12,29.56,24.53,25.6,24.31,26.89,27.36,24.06,23.39,25.52,26.3,28.21,23.82,24.47,25.13,25.52,25.79,28.43,27.79,25.74,25.38,25.67,24.84,27.67]}]},"inv":{"mode":"list","items":[{"name":"尿素","unit":"t","v":[130.5,112.2,96.4,76.8,60.2,150.3,133.8,115.6,96.1,80.0,61.9,156.4,141.1,125.0,104.6,84.4,65.8,159.0,140.3,121.2,104.1,85.8,66.3,161.1,144.9,127.3,111.4,94.2,76.0,170.0]},{"name":"氨基磺酸成品","unit":"t","v":[188.0,186.1,184.1,182.2,180.1,178.4,176.3,174.5,172.2,170.2,168.2,166.2,164.2,162.0,159.9,157.7,155.7,153.4,151.2,149.0,147.1,145.1,143.1,140.8,138.8,136.8,134.9,132.6,130.7,129.0]}]},"cons":[{"name":"尿素","unit":"t","v":[18.5,19.8,18.0,17.07,17.07,18.45,17.94,19.72,16.54,17.62,16.33,17.82,17.97,16.56,15.97,17.06,17.71,18.99,15.83,16.87,17.04,16.93,16.9,19.09,18.56,17.58,17.26,17.36,16.4,18.28],"uu":"t/t","u":[0.666,0.674,0.684,0.672,0.664,0.686,0.687,0.667,0.674,0.688,0.672,0.663,0.657,0.688,0.683,0.668,0.673,0.673,0.665,0.69,0.678,0.663,0.655,0.672,0.668,0.683,0.68,0.676,0.661,0.66]},{"name":"发烟硫酸","unit":"t","v":[30.72,32.32,30.27,28.49,29.07,31.18,28.77,33.19,26.79,29.22,26.25,30.8,31.4,27.57,25.41,28.11,29.91,30.69,26.64,27.34,29.06,28.76,29.62,31.4,31.77,28.66,29.27,27.91,28.47,30.35],"uu":"t/t","u":[1.106,1.101,1.15,1.121,1.131,1.159,1.101,1.123,1.092,1.142,1.08,1.146,1.148,1.146,1.087,1.102,1.137,1.088,1.118,1.117,1.156,1.127,1.149,1.104,1.143,1.113,1.153,1.087,1.146,1.097]},{"name":"蒸汽","unit":"t","v":[41.7,43.9,37.3,39.7,37.2,39.0,36.5,42.8,36.4,39.4,35.5,41.2,38.4,35.3,34.6,40.6,41.1,43.0,32.9,35.8,38.6,36.6,38.8,42.1,38.4,41.1,39.5,36.6,37.6,40.0],"uu":"t/t","u":[1.5,1.5,1.41,1.56,1.45,1.45,1.4,1.45,1.48,1.54,1.46,1.53,1.4,1.47,1.48,1.59,1.56,1.52,1.38,1.46,1.54,1.43,1.5,1.48,1.38,1.6,1.56,1.43,1.52,1.44]},{"name":"电","unit":"kWh","v":[3257.0,3510.0,3059.0,2966.0,3020.0,3263.0,3019.0,3394.0,2998.0,2985.0,3044.0,3223.0,3342.0,2807.0,2890.0,2891.0,2997.0,3197.0,2894.0,2983.0,2877.0,3002.0,3190.0,3420.0,3147.0,2965.0,2898.0,2919.0,2923.0,3128.0],"uu":"kWh/t","u":[117.0,120.0,116.0,117.0,117.0,121.0,116.0,115.0,122.0,117.0,125.0,120.0,122.0,117.0,124.0,113.0,114.0,113.0,121.0,122.0,115.0,118.0,124.0,120.0,113.0,115.0,114.0,114.0,118.0,113.0]},{"name":"水","unit":"t","v":[236.0,232.0,211.0,208.0,214.0,226.0,205.0,231.0,194.0,190.0,192.0,222.0,235.0,201.0,192.0,207.0,195.0,220.0,186.0,200.0,189.0,200.0,207.0,237.0,233.0,209.0,193.0,214.0,211.0,223.0],"uu":"t/t","u":[8.5,7.9,8.0,8.2,8.3,8.4,7.9,7.8,7.9,7.4,7.9,8.2,8.6,8.3,8.2,8.1,7.4,7.8,7.8,8.2,7.5,7.9,8.0,8.3,8.4,8.1,7.6,8.3,8.5,8.1]},{"name":"稀酸（副产）","unit":"m³","v":[12.8,13.8,11.8,12.3,12.8,12.7,12.6,14.5,11.1,12.7,11.6,12.1,12.2,10.9,11.1,12.3,12.1,14.0,11.0,11.4,11.2,12.7,11.6,14.1,13.1,12.2,12.0,11.7,12.3,13.8],"uu":"m³/t","u":[0.46,0.47,0.45,0.48,0.5,0.47,0.48,0.49,0.45,0.5,0.48,0.45,0.44,0.45,0.47,0.48,0.46,0.5,0.46,0.47,0.45,0.5,0.45,0.49,0.47,0.47,0.47,0.46,0.49,0.5]}],"park":{"enabled":false,"records":[]}},{"key":"mg","tab":"硫酸镁","title":"硫酸镁车间","kpis":[{"label":"产量 · 今日","val":"44.7","unit":"t","sub":"月累计 1,244 t","d":8.0,"good":true,"sp":[43.22,45.34,44.044,42.995,44.674,40.303,43.038,37.656,37.867,40.652,40.792,39.367,35.66,41.775,40.029,37.254,38.094,39.261,38.057,36.815,45.507,46.398,43.698,45.815,41.444,45.095,39.108,43.934,41.77,44.675]},{"label":"氧化镁单耗","val":"0.197","unit":"t/t","sub":"月均 0.200","d":-1.3,"good":false,"sp":[0.192,0.206,0.192,0.201,0.209,0.19,0.195,0.196,0.196,0.191,0.208,0.206,0.198,0.197,0.202,0.191,0.191,0.208,0.196,0.2,0.209,0.21,0.199,0.194,0.196,0.208,0.208,0.194,0.207,0.197]},{"label":"酸耗","val":"0.89","unit":"m³/t","sub":"月均 0.88","d":0.8,"good":false,"sp":[0.897,0.883,0.887,0.885,0.89,0.904,0.842,0.918,0.84,0.886,0.89,0.884,0.913,0.876,0.917,0.832,0.888,0.911,0.856,0.831,0.876,0.864,0.891,0.876,0.831,0.888,0.908,0.873,0.87,0.886]},{"label":"废酸消纳","val":"19.1","unit":"m³","sub":"月累计 536 m³","d":6.9,"good":true,"sp":[19.382,20.519,18.222,17.424,20.454,17.968,17.688,16.747,15.78,18.686,17.404,17.539,15.663,16.858,18.175,15.052,16.237,17.071,15.586,14.966,20.158,19.751,18.712,20.366,16.603,20.446,17.525,17.803,17.863,19.052]},{"label":"汽单耗","val":"0.75","unit":"t/t","sub":"月均 0.77","d":-2.8,"good":false,"sp":[0.792,0.806,0.789,0.825,0.742,0.738,0.722,0.78,0.772,0.773,0.752,0.816,0.729,0.829,0.788,0.785,0.815,0.749,0.738,0.757,0.725,0.758,0.795,0.783,0.752,0.791,0.731,0.818,0.741,0.751]},{"label":"电单耗","val":"112","unit":"kWh/t","sub":"月均 114","d":-2.5,"good":false,"sp":[110.237,117.669,119.633,119.014,108.856,113.749,113.102,111.029,121.588,108.59,114.854,118.658,121.807,110.024,114.374,118.429,108.549,111.369,120.461,109.982,113.501,112.173,113.942,109.071,108.48,121.946,118.686,118.277,111.218,111.545]}],"views":[["prod","产量"],["inv","库存"],["cons","消耗"],["park","停车记录"]],"prod":{"unit":"t","totalName":"产量","total":[43.22,45.34,44.04,42.99,44.67,40.3,43.04,37.66,37.87,40.65,40.79,39.37,35.66,41.78,40.03,37.25,38.09,39.26,38.06,36.82,45.51,46.4,43.7,45.81,41.44,45.1,39.11,43.93,41.77,44.67],"items":[{"name":"硫酸镁","color":"#2F55A4","v":[43.22,45.34,44.04,42.99,44.67,40.3,43.04,37.66,37.87,40.65,40.79,39.37,35.66,41.78,40.03,37.25,38.09,39.26,38.06,36.82,45.51,46.4,43.7,45.81,41.44,45.1,39.11,43.93,41.77,44.67]}]},"inv":{"mode":"list","items":[{"name":"氧化镁","unit":"t","v":[152.4,144.4,135.1,126.6,117.6,110.2,162.4,155.3,146.8,139.0,131.4,124.5,117.2,169.7,161.8,152.7,144.1,136.5,128.8,121.5,172.3,164.6,155.8,147.2,138.1,131.2,123.5,175.7,168.6,159.6]},{"name":"硫酸镁成品","unit":"t","v":[119.1,118.0,117.0,116.1,115.1,114.2,113.3,112.5,111.4,110.6,109.6,108.6,107.6,106.7,105.7,104.7,103.7,102.6,101.7,100.8,99.9,98.8,97.9,96.9,95.8,94.9,93.9,93.0,92.1,91.2]}]},"cons":[{"name":"氧化镁","unit":"t","v":[8.3,9.33,8.48,8.63,9.34,7.66,8.39,7.38,7.44,7.77,8.48,8.12,7.06,8.24,8.07,7.11,7.26,8.17,7.47,7.36,9.5,9.72,8.72,8.89,8.12,9.4,8.13,8.52,8.64,8.8],"uu":"t/t","u":[0.192,0.206,0.192,0.201,0.209,0.19,0.195,0.196,0.196,0.191,0.208,0.206,0.198,0.197,0.202,0.191,0.191,0.208,0.196,0.2,0.209,0.21,0.199,0.194,0.196,0.208,0.208,0.194,0.207,0.197]},{"name":"93% 酸（硫酸车间）","unit":"m³","v":[19.4,19.5,20.8,20.6,19.3,18.5,18.6,17.8,16.0,17.3,18.9,17.3,16.9,19.7,18.5,15.9,17.6,18.7,17.0,15.6,19.7,20.3,20.2,19.8,17.9,19.6,18.0,20.5,18.5,20.5],"uu":"m³/t","u":[0.45,0.43,0.47,0.48,0.43,0.46,0.43,0.47,0.42,0.43,0.46,0.44,0.47,0.47,0.46,0.43,0.46,0.48,0.45,0.42,0.43,0.44,0.46,0.43,0.43,0.43,0.46,0.47,0.44,0.46]},{"name":"稀酸（氨基磺酸）","unit":"m³","v":[14.4,14.3,12.9,12.8,15.0,12.9,12.8,12.0,10.8,13.8,12.5,12.3,11.1,11.8,12.6,11.1,11.2,12.9,10.9,10.9,14.8,13.7,13.0,14.3,12.1,15.1,13.3,12.4,12.9,14.5],"uu":"m³/t","u":[0.33,0.32,0.29,0.3,0.34,0.32,0.3,0.32,0.29,0.34,0.31,0.31,0.31,0.28,0.32,0.3,0.3,0.33,0.29,0.3,0.33,0.29,0.3,0.31,0.29,0.33,0.34,0.28,0.31,0.33]},{"name":"稀酸（蒽醌）","unit":"m³","v":[5.0,6.2,5.3,4.6,5.5,5.1,4.9,4.8,5.0,4.9,4.9,5.3,4.5,5.0,5.5,4.0,5.0,4.2,4.7,4.0,5.4,6.1,5.7,6.0,4.5,5.4,4.3,5.4,5.0,4.5],"uu":"m³/t","u":[0.12,0.14,0.12,0.11,0.12,0.13,0.11,0.13,0.13,0.12,0.12,0.13,0.13,0.12,0.14,0.11,0.13,0.11,0.12,0.11,0.12,0.13,0.13,0.13,0.11,0.12,0.11,0.12,0.12,0.1]},{"name":"蒸汽","unit":"t","v":[34.2,36.5,34.7,35.5,33.1,29.8,31.1,29.4,29.2,31.4,30.7,32.1,26.0,34.6,31.6,29.3,31.0,29.4,28.1,27.9,33.0,35.2,34.7,35.9,31.2,35.7,28.6,36.0,30.9,33.5],"uu":"t/t","u":[0.79,0.81,0.79,0.82,0.74,0.74,0.72,0.78,0.77,0.77,0.75,0.82,0.73,0.83,0.79,0.79,0.81,0.75,0.74,0.76,0.73,0.76,0.79,0.78,0.75,0.79,0.73,0.82,0.74,0.75]},{"name":"电","unit":"kWh","v":[4764.0,5335.0,5269.0,5117.0,4863.0,4584.0,4868.0,4181.0,4604.0,4414.0,4685.0,4671.0,4344.0,4596.0,4578.0,4412.0,4135.0,4372.0,4584.0,4049.0,5165.0,5205.0,4979.0,4997.0,4496.0,5499.0,4642.0,5196.0,4646.0,4983.0],"uu":"kWh/t","u":[110.0,118.0,120.0,119.0,109.0,114.0,113.0,111.0,122.0,109.0,115.0,119.0,122.0,110.0,114.0,118.0,109.0,111.0,120.0,110.0,114.0,112.0,114.0,109.0,108.0,122.0,119.0,118.0,111.0,112.0]},{"name":"水","unit":"t","v":[185.0,187.0,186.0,192.0,187.0,168.0,193.0,162.0,152.0,171.0,176.0,159.0,149.0,182.0,177.0,160.0,169.0,166.0,160.0,163.0,191.0,204.0,179.0,191.0,170.0,193.0,160.0,180.0,172.0,189.0],"uu":"t/t","u":[4.3,4.1,4.2,4.5,4.2,4.2,4.5,4.3,4.0,4.2,4.3,4.0,4.2,4.3,4.4,4.3,4.4,4.2,4.2,4.4,4.2,4.4,4.1,4.2,4.1,4.3,4.1,4.1,4.1,4.2]}],"park":{"enabled":false,"records":[]}},{"key":"ht","tab":"水滑石","title":"水滑石车间","kpis":[{"label":"产量 · 今日","val":"8.4","unit":"t","sub":"月累计 255 t","d":-1.0,"good":true,"sp":[8.347,9.129,8.861,9.18,9.345,8.885,8.917,9.098,8.732,8.715,8.864,8.678,7.864,8.179,8.409,7.867,8.418,7.73,7.576,8.179,8.88,8.488,7.92,8.525,8.392,8.364,8.301,9.151,8.038,8.433]},{"label":"氧化镁单耗","val":"0.40","unit":"t/t","sub":"月均 0.41","d":-3.0,"good":false,"sp":[0.395,0.408,0.421,0.409,0.397,0.425,0.425,0.392,0.4,0.41,0.422,0.406,0.419,0.4,0.419,0.403,0.403,0.42,0.424,0.423,0.413,0.407,0.418,0.415,0.423,0.422,0.395,0.405,0.417,0.399]},{"label":"氢氧化铝单耗","val":"0.37","unit":"t/t","sub":"月均 0.37","d":-1.0,"good":false,"sp":[0.357,0.351,0.373,0.388,0.389,0.355,0.378,0.367,0.375,0.366,0.387,0.39,0.352,0.379,0.355,0.352,0.361,0.379,0.39,0.355,0.363,0.351,0.372,0.369,0.365,0.362,0.382,0.384,0.361,0.366]},{"label":"纯碱单耗","val":"0.16","unit":"t/t","sub":"月均 0.17","d":-2.6,"good":false,"sp":[0.172,0.175,0.18,0.168,0.174,0.171,0.176,0.163,0.164,0.162,0.179,0.165,0.17,0.162,0.166,0.16,0.171,0.163,0.173,0.165,0.165,0.17,0.167,0.165,0.161,0.161,0.178,0.166,0.162,0.164]},{"label":"汽单耗","val":"2.24","unit":"t/t","sub":"月均 2.33","d":-4.0,"good":false,"sp":[2.391,2.351,2.27,2.445,2.366,2.343,2.371,2.35,2.286,2.375,2.429,2.29,2.348,2.398,2.429,2.386,2.375,2.32,2.382,2.219,2.214,2.239,2.272,2.287,2.276,2.396,2.265,2.295,2.288,2.24]},{"label":"HG-200 占比","val":"33","unit":"%","sub":"当日产量","d":-11.9,"good":true,"sp":[32.87,36.768,37.499,38.968,40.129,34.909,38.7,40.358,34.03,38.96,37.697,41.356,44.263,34.918,38.429,34.502,36.26,39.343,36.31,37.814,34.585,38.409,38.789,34.797,38.147,38.995,35.489,37.135,36.813,33.041]}],"views":[["prod","产量"],["inv","库存"],["cons","消耗"],["park","停车记录"]],"prod":{"unit":"t","totalName":"4 牌号合计","total":[8.35,9.13,8.86,9.18,9.34,8.88,8.92,9.1,8.73,8.72,8.86,8.68,7.87,8.18,8.41,7.86,8.41,7.73,7.57,8.18,8.88,8.48,7.92,8.52,8.39,8.36,8.3,9.16,8.03,8.44],"items":[{"name":"HG-200","color":"#2F55A4","v":[2.74,3.36,3.32,3.58,3.75,3.1,3.45,3.67,2.97,3.4,3.34,3.59,3.48,2.86,3.23,2.71,3.05,3.04,2.75,3.09,3.07,3.26,3.07,2.97,3.2,3.26,2.95,3.4,2.96,2.79]},{"name":"HG-201","color":"#EB6834","v":[2.25,2.35,2.11,2.54,2.66,2.52,2.66,1.99,2.33,2.28,1.97,2.27,1.92,2.33,2.41,2.3,2.17,2.12,1.92,2.26,2.8,2.51,2.23,2.63,2.17,2.43,2.56,2.87,2.27,2.46]},{"name":"HG-300","color":"#1BAF7A","v":[2.12,2.01,1.93,1.93,1.79,1.79,1.69,2.08,2.1,1.72,2.08,1.44,1.5,1.75,1.61,1.65,2.1,1.52,1.56,1.61,1.95,1.64,1.49,1.88,1.78,1.66,1.83,1.93,1.84,1.88]},{"name":"HG-205","color":"#EDA100","v":[1.24,1.41,1.5,1.13,1.14,1.47,1.12,1.36,1.33,1.32,1.47,1.38,0.97,1.24,1.16,1.2,1.09,1.05,1.34,1.22,1.06,1.07,1.13,1.04,1.24,1.01,0.96,0.96,0.96,1.31]}]},"inv":{"mode":"list","items":[{"name":"氧化镁","unit":"t","v":[146.9,143.6,139.8,136.6,132.9,129.3,150.7,147.5,144.4,141.3,137.9,134.5,131.5,153.0,149.6,146.3,142.8,138.8,135.6,131.7,153.4,149.6,146.5,142.5,139.1,135.1,131.9,153.5,149.8,146.6]},{"name":"高活性氧化镁","unit":"t","v":[36.7,33.1,29.1,25.8,22.6,19.3,15.2,12.1,8.5,5.1,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8]},{"name":"氢氧化铝","unit":"t","v":[36.7,33.5,30.2,26.9,23.3,20.5,17.3,13.6,40.2,37.2,33.7,30.1,27.0,23.4,20.6,16.9,13.7,40.8,37.2,33.9,30.3,26.8,23.3,20.1,16.4,13.6,40.1,36.7,33.7,30.2]},{"name":"纯碱","unit":"t","v":[28.6,27.2,25.7,24.4,23.1,21.6,20.4,19.0,17.4,16.0,14.8,28.2,26.7,25.2,23.7,22.2,20.7,19.4,18.1,16.8,15.6,14.3,12.7,26.2,25.0,23.7,22.3,20.8,19.3,17.8]}]},"cons":[{"name":"氧化镁","unit":"t","v":[3.29,3.73,3.73,3.76,3.71,3.77,3.79,3.57,3.49,3.58,3.74,3.52,3.29,3.27,3.52,3.17,3.4,3.25,3.21,3.46,3.66,3.45,3.31,3.54,3.55,3.53,3.28,3.71,3.35,3.37],"uu":"t/t","u":[0.395,0.408,0.421,0.409,0.397,0.425,0.425,0.392,0.4,0.41,0.422,0.406,0.419,0.4,0.419,0.403,0.403,0.42,0.424,0.423,0.413,0.407,0.418,0.415,0.423,0.422,0.395,0.405,0.417,0.399]},{"name":"氢氧化铝","unit":"t","v":[2.98,3.2,3.31,3.56,3.63,3.16,3.37,3.34,3.28,3.19,3.43,3.38,2.77,3.1,2.98,2.77,3.04,2.93,2.95,2.9,3.23,2.98,2.94,3.15,3.06,3.03,3.17,3.51,2.9,3.08],"uu":"t/t","u":[0.357,0.351,0.373,0.388,0.389,0.355,0.378,0.367,0.375,0.366,0.387,0.39,0.352,0.379,0.355,0.352,0.361,0.379,0.39,0.355,0.363,0.351,0.372,0.369,0.365,0.362,0.382,0.384,0.361,0.366]},{"name":"纯碱","unit":"t","v":[1.44,1.6,1.59,1.54,1.62,1.52,1.57,1.48,1.43,1.41,1.58,1.43,1.34,1.33,1.4,1.26,1.44,1.26,1.31,1.35,1.46,1.44,1.33,1.41,1.35,1.35,1.48,1.52,1.3,1.38],"uu":"t/t","u":[0.172,0.175,0.18,0.168,0.174,0.171,0.176,0.163,0.164,0.162,0.179,0.165,0.17,0.162,0.166,0.16,0.171,0.163,0.173,0.165,0.165,0.17,0.167,0.165,0.161,0.161,0.178,0.166,0.162,0.164]},{"name":"中压蒸汽","unit":"t","v":[11.7,13.7,11.9,13.5,13.1,12.3,13.0,12.5,11.5,12.3,12.7,12.4,10.7,12.2,12.4,11.8,11.7,11.3,10.9,10.9,11.6,11.3,10.5,11.2,11.5,12.1,11.3,12.8,10.5,11.3],"uu":"t/t","u":[1.4,1.5,1.34,1.47,1.4,1.38,1.46,1.38,1.31,1.41,1.43,1.42,1.36,1.49,1.47,1.5,1.39,1.47,1.44,1.34,1.31,1.33,1.32,1.31,1.37,1.45,1.36,1.4,1.3,1.34]},{"name":"低压蒸汽","unit":"t","v":[8.3,7.8,8.2,8.9,9.1,8.5,8.1,8.8,8.5,8.4,8.8,7.5,7.8,7.4,8.0,7.0,8.3,6.6,7.1,7.2,8.1,7.7,7.5,8.3,7.6,7.9,7.5,8.2,7.9,7.6],"uu":"t/t","u":[0.99,0.85,0.93,0.97,0.97,0.96,0.91,0.97,0.97,0.97,1.0,0.87,0.99,0.91,0.96,0.89,0.99,0.85,0.94,0.88,0.91,0.91,0.95,0.97,0.9,0.95,0.9,0.89,0.99,0.9]}],"park":{"enabled":false,"records":[]}},{"key":"aq","tab":"二乙基蒽醌","title":"二乙基蒽醌车间","kpis":[{"label":"精品产量 · 今日","val":"3.3","unit":"t","sub":"月累计 99 t","d":0.1,"good":true,"sp":[2.887,3.662,3.0,3.51,3.644,3.671,3.103,3.469,3.273,3.041,3.087,3.148,3.22,3.038,3.193,3.463,2.886,3.034,3.465,3.244,3.156,3.008,3.803,3.498,3.248,2.992,3.707,3.396,3.454,3.289]},{"label":"精制收率","val":"83.6","unit":"%","sub":"精品 ÷ 粗品","d":4.5,"good":true,"sp":[0.785,0.793,0.772,0.81,0.794,0.826,0.793,0.797,0.801,0.835,0.788,0.816,0.779,0.806,0.783,0.83,0.783,0.828,0.814,0.796,0.835,0.791,0.819,0.808,0.796,0.765,0.794,0.783,0.795,0.836]},{"label":"苯酐单耗","val":"1.07","unit":"t/t","sub":"月均 1.08","d":-1.4,"good":false,"sp":[1.063,1.096,1.094,1.06,1.073,1.051,1.112,1.06,1.074,1.067,1.106,1.108,1.087,1.084,1.048,1.112,1.047,1.069,1.07,1.098,1.094,1.068,1.112,1.116,1.042,1.091,1.078,1.069,1.077,1.065]},{"label":"三氯化铝单耗","val":"1.39","unit":"t/t","sub":"月均 1.36","d":2.1,"good":false,"sp":[1.374,1.365,1.416,1.417,1.419,1.335,1.396,1.371,1.378,1.42,1.289,1.345,1.336,1.372,1.311,1.419,1.309,1.332,1.3,1.335,1.384,1.292,1.303,1.371,1.367,1.384,1.315,1.394,1.382,1.389]},{"label":"天然气单耗","val":"686","unit":"m³/t","sub":"月均 705","d":-2.7,"good":false,"sp":[687.181,708.12,680.948,731.581,736.672,733.749,681.451,701.066,712.153,712.02,686.673,727.353,698.093,710.439,687.475,714.072,687.783,685.302,710.732,697.638,726.649,694.807,704.835,683.258,693.058,707.101,713.487,707.563,731.044,686.261]},{"label":"燃气余量","val":"1.84","unit":"万m³","sub":"约 7.8 天","d":-30.3,"good":true,"sp":[18400,17800,17200,16600,16000,15400,14800,14200,13600,13000,12400,11800,11200,10600,10000,18400,17800,17200,16600,16000,15400,14800,14200,13600,13000,12400,11800,11200,10600,10000]}],"views":[["prod","产量"],["inv","库存"],["cons","消耗"],["park","停车记录"]],"prod":{"unit":"t","totalName":"粗品 + 精品","total":[6.57,8.28,6.89,7.84,8.23,8.12,7.01,7.82,7.36,6.68,7.01,7.01,7.35,6.81,7.27,7.63,6.58,6.69,7.73,7.31,6.94,6.81,8.44,7.83,7.33,6.9,8.38,7.74,7.79,7.22],"items":[{"name":"精品","color":"#2F55A4","v":[2.89,3.66,3.0,3.51,3.64,3.67,3.1,3.47,3.27,3.04,3.09,3.15,3.22,3.04,3.19,3.46,2.89,3.03,3.47,3.24,3.16,3.01,3.8,3.5,3.25,2.99,3.71,3.4,3.45,3.29]},{"name":"粗品","color":"#EB6834","v":[3.68,4.62,3.89,4.33,4.59,4.45,3.91,4.35,4.09,3.64,3.92,3.86,4.13,3.77,4.08,4.17,3.69,3.66,4.26,4.07,3.78,3.8,4.64,4.33,4.08,3.91,4.67,4.34,4.34,3.93]}]},"inv":{"mode":"list","items":[{"name":"苯酐","unit":"t","v":[36.7,32.9,29.1,25.4,22.4,18.6,15.6,36.9,33.4,29.4,25.8,22.8,18.8,15.1,11.5,33.5,29.8,26.3,22.7,18.6,14.7,11.7,7.9,29.4,25.7,22.3,18.8,15.4,12.3,9.0]},{"name":"无水三氯化铝","unit":"t","v":[65.4,61.7,57.8,53.1,48.6,44.2,40.4,36.6,32.6,67.7,63.3,58.5,54.5,50.3,46.0,41.3,37.5,32.7,28.4,64.7,60.5,56.4,51.8,47.0,42.7,38.1,34.0,29.3,25.5,60.9]},{"name":"甲苯","unit":"t","v":[23.2,22.3,21.4,20.6,19.8,18.9,18.0,17.1,16.2,15.3,14.3,13.4,12.5,11.6,22.6,21.7,20.8,20.0,19.1,18.2,17.2,16.4,15.6,14.6,13.8,12.8,11.9,11.0,10.1,21.1]},{"name":"活性炭","unit":"t","v":[3.6,3.3,2.9,2.6,2.2,1.9,1.6,1.2,0.9,0.5,0.2,2.8,2.5,2.2,1.8,1.4,1.0,0.7,0.3,0.2,0.2,0.2,0.2,2.9,2.5,2.1,1.7,1.3,1.0,0.6]},{"name":"精品库存","unit":"t","v":[15.8,15.6,15.4,15.2,14.9,14.8,14.6,14.4,14.2,14.0,13.8,13.6,13.5,13.3,13.1,12.9,12.7,12.5,12.3,12.1,11.9,11.7,11.4,11.2,11.0,10.8,10.6,10.4,10.2,10.0]},{"name":"粗品库存","unit":"t","v":[23.9,23.8,23.7,23.6,23.5,23.4,23.3,23.2,23.1,23.0,22.9,22.8,22.7,22.6,22.5,22.4,22.3,22.2,22.1,22.0,21.9,21.8,21.7,21.6,21.5,21.4,21.3,21.2,21.1,21.0]}]},"cons":[{"name":"苯酐","unit":"t","v":[3.07,4.01,3.28,3.72,3.91,3.86,3.45,3.68,3.51,3.25,3.41,3.49,3.5,3.29,3.35,3.85,3.02,3.24,3.71,3.56,3.45,3.21,4.23,3.9,3.38,3.26,3.99,3.63,3.72,3.5],"uu":"t/t","u":[1.063,1.096,1.094,1.06,1.073,1.051,1.112,1.06,1.074,1.067,1.106,1.108,1.087,1.084,1.048,1.112,1.047,1.069,1.07,1.098,1.094,1.068,1.112,1.116,1.042,1.091,1.078,1.069,1.077,1.065]},{"name":"无水三氯化铝","unit":"t","v":[3.97,5.0,4.25,4.97,5.17,4.9,4.33,4.76,4.51,4.32,3.98,4.23,4.3,4.17,4.18,4.91,3.78,4.04,4.5,4.33,4.37,3.89,4.96,4.8,4.44,4.14,4.88,4.73,4.78,4.57],"uu":"t/t","u":[1.374,1.365,1.416,1.417,1.419,1.335,1.396,1.371,1.378,1.42,1.289,1.345,1.336,1.372,1.311,1.419,1.309,1.332,1.3,1.335,1.384,1.292,1.303,1.371,1.367,1.384,1.315,1.394,1.382,1.389]},{"name":"天然气","unit":"m³","v":[1984.0,2593.0,2043.0,2568.0,2685.0,2694.0,2114.0,2432.0,2331.0,2165.0,2120.0,2290.0,2248.0,2158.0,2195.0,2473.0,1985.0,2079.0,2463.0,2263.0,2293.0,2090.0,2680.0,2390.0,2251.0,2116.0,2645.0,2403.0,2525.0,2257.0],"uu":"m³/t","u":[687.0,708.0,681.0,732.0,737.0,734.0,681.0,701.0,712.0,712.0,687.0,727.0,698.0,710.0,687.0,714.0,688.0,685.0,711.0,698.0,727.0,695.0,705.0,683.0,693.0,707.0,713.0,708.0,731.0,686.0]},{"name":"电","unit":"kWh","v":[5434.0,6587.0,5689.0,6469.0,6665.0,6804.0,5844.0,6575.0,5988.0,5417.0,5551.0,5913.0,6015.0,5668.0,5743.0,6386.0,5146.0,5441.0,6293.0,6150.0,5861.0,5661.0,6790.0,6402.0,5813.0,5419.0,6648.0,6418.0,6285.0,6048.0],"uu":"kWh/t","u":[1882.0,1799.0,1896.0,1843.0,1829.0,1853.0,1884.0,1896.0,1830.0,1781.0,1798.0,1878.0,1868.0,1866.0,1799.0,1844.0,1783.0,1793.0,1816.0,1896.0,1857.0,1882.0,1786.0,1830.0,1789.0,1811.0,1793.0,1890.0,1819.0,1839.0]},{"name":"蒸汽","unit":"t","v":[21.1,27.5,22.7,25.5,26.2,27.6,22.1,24.4,24.2,21.3,21.9,22.5,23.1,21.5,22.8,24.8,19.7,22.7,23.7,23.4,22.8,21.4,26.5,24.1,23.1,21.1,26.6,23.7,25.6,23.7],"uu":"t/t","u":[7.32,7.51,7.56,7.25,7.2,7.52,7.12,7.04,7.39,7.01,7.09,7.14,7.18,7.09,7.14,7.16,6.84,7.47,6.85,7.22,7.24,7.12,6.98,6.88,7.1,7.05,7.19,6.98,7.4,7.19]},{"name":"水","unit":"t","v":[52.0,70.0,63.0,63.0,72.0,77.0,59.0,69.0,63.0,57.0,61.0,62.0,61.0,59.0,62.0,70.0,52.0,55.0,65.0,61.0,64.0,58.0,78.0,67.0,61.0,60.0,68.0,71.0,71.0,62.0],"uu":"t/t","u":[18.0,19.2,20.9,18.0,19.8,20.9,19.1,19.8,19.1,18.9,19.8,19.8,18.9,19.5,19.5,20.3,18.2,18.3,18.8,18.8,20.4,19.3,20.6,19.2,18.9,20.0,18.3,21.0,20.5,19.0]}],"park":{"enabled":false,"records":[]}},{"key":"fl","tab":"丰联","title":"丰联","kpis":[{"label":"干料产量 · 今日","val":"5.1","unit":"t","sub":"月累计 144 t","d":5.3,"good":true,"sp":[4.972,4.929,5.213,5.213,4.895,4.394,5.048,4.244,4.783,4.745,4.434,4.104,4.981,4.66,4.309,3.882,4.701,4.751,5.182,4.794,4.434,4.688,4.387,4.827,5.468,5.593,5.458,5.167,5.012,5.056]},{"label":"湿料产量 · 今日","val":"8.6","unit":"t","sub":"三车间","d":7.2,"good":true,"sp":[8.704,8.223,8.61,8.53,8.067,7.241,8.063,7.379,7.957,7.56,7.754,7.116,8.007,7.428,7.54,6.787,7.585,7.772,8.619,7.927,7.204,7.58,7.695,8.408,8.853,8.899,8.803,8.693,8.493,8.558]},{"label":"干燥收率","val":"59.1","unit":"%","sub":"干料 ÷ 湿料","d":-1.7,"good":true,"sp":[0.571,0.599,0.605,0.611,0.607,0.607,0.626,0.575,0.601,0.628,0.572,0.577,0.622,0.627,0.571,0.572,0.62,0.611,0.601,0.605,0.615,0.618,0.57,0.574,0.618,0.629,0.62,0.594,0.59,0.591]},{"label":"磷酸单耗","val":"0.95","unit":"t/t","sub":"月均 0.95","d":0.2,"good":false,"sp":[0.978,0.976,0.941,0.976,0.929,0.963,0.977,0.932,0.928,0.961,0.973,0.964,0.977,0.947,0.942,0.927,0.936,0.976,0.924,0.931,0.941,0.923,0.938,0.931,0.927,0.952,0.952,0.954,0.966,0.952]},{"label":"哌嗪单耗","val":"0.59","unit":"t/t","sub":"月均 0.61","d":-3.0,"good":false,"sp":[0.628,0.593,0.599,0.593,0.602,0.62,0.627,0.61,0.596,0.603,0.613,0.602,0.622,0.629,0.608,0.614,0.624,0.609,0.598,0.628,0.629,0.591,0.621,0.606,0.592,0.597,0.597,0.619,0.598,0.591]},{"label":"汽单耗","val":"2.80","unit":"t/t","sub":"月均 2.65","d":5.7,"good":false,"sp":[2.566,2.74,2.65,2.696,2.64,2.555,2.505,2.591,2.512,2.578,2.686,2.611,2.642,2.687,2.595,2.607,2.765,2.674,2.625,2.662,2.638,2.6,2.774,2.57,2.781,2.756,2.765,2.549,2.653,2.795]}],"views":[["prod","产量"],["inv","库存"],["cons","消耗"],["park","停车记录"]],"prod":{"unit":"t","totalName":"标准厂房合计","total":[7.13,7.98,7.67,7.88,7.63,7.33,7.87,6.89,7.57,7.96,6.84,6.33,7.62,7.42,7.02,6.56,7.1,7.38,7.75,7.64,6.99,7.86,6.69,7.44,8.06,8.01,8.59,7.82,7.74,7.97],"items":[{"name":"焦磷酸哌嗪干料","color":"#2F55A4","v":[4.97,4.93,5.21,5.21,4.89,4.39,5.05,4.24,4.78,4.74,4.43,4.1,4.98,4.66,4.31,3.88,4.7,4.75,5.18,4.79,4.43,4.69,4.39,4.83,5.47,5.59,5.46,5.17,5.01,5.06]},{"name":"阻燃母粒","color":"#EB6834","v":[1.29,1.79,1.48,1.7,1.66,1.54,1.76,1.61,1.45,1.85,1.38,1.35,1.41,1.54,1.73,1.45,1.39,1.67,1.43,1.62,1.46,1.87,1.44,1.48,1.52,1.53,1.78,1.73,1.79,1.61]},{"name":"无卤阻燃剂","color":"#1BAF7A","v":[0.87,1.26,0.98,0.97,1.08,1.4,1.06,1.04,1.34,1.37,1.03,0.88,1.23,1.22,0.98,1.23,1.01,0.96,1.14,1.23,1.1,1.3,0.86,1.13,1.07,0.89,1.35,0.92,0.94,1.3]}]},"inv":{"mode":"list","items":[{"name":"85% 磷酸","unit":"t","v":[23.1,16.4,8.5,31.7,24.1,17.5,9.1,32.2,25.6,17.8,10.8,33.2,25.8,17.5,10.1,32.9,26.7,19.3,12.4,34.8,27.1,19.8,13.3,35.9,28.6,20.8,12.4,35.5,28.2,21.7]},{"name":"68 哌嗪","unit":"t","v":[16.9,12.6,7.4,2.4,23.0,17.7,13.0,8.4,3.6,23.3,18.6,14.0,9.6,4.4,24.7,20.2,15.9,11.6,6.4,26.3,20.9,15.7,10.7,5.6,25.6,20.4,15.3,11.1,5.9,26.5]},{"name":"MPP 母粒级","unit":"t","v":[7.5,7.0,6.5,6.0,5.6,5.0,4.5,3.9,3.4,2.9,2.4,1.9,1.5,0.9,0.3,0.2,0.2,0.2,0.2,4.7,4.2,3.7,3.2,2.7,2.2,1.7,1.1,0.6,0.2,0.2]},{"name":"干料成品","unit":"t","v":[59.2,58.4,57.6,56.8,56.1,55.4,54.6,53.8,53.0,52.1,51.3,50.5,49.7,49.0,48.2,47.4,46.6,45.7,44.9,44.0,43.1,42.3,41.4,40.6,39.7,38.8,38.1,37.3,36.5,35.7]}]},"cons":[{"name":"85% 磷酸","unit":"t","v":[8.51,8.02,8.1,8.32,7.49,6.97,7.88,6.87,7.39,7.26,7.54,6.86,7.82,7.04,7.11,6.29,7.1,7.59,7.97,7.38,6.78,7.0,7.22,7.83,8.21,8.47,8.38,8.29,8.2,8.14],"uu":"t/t 湿料","u":[0.978,0.976,0.941,0.976,0.929,0.963,0.977,0.932,0.928,0.961,0.973,0.964,0.977,0.947,0.942,0.927,0.936,0.976,0.924,0.931,0.941,0.923,0.938,0.931,0.927,0.952,0.952,0.954,0.966,0.952]},{"name":"68 哌嗪","unit":"t","v":[5.47,4.88,5.16,5.06,4.86,4.49,5.06,4.5,4.75,4.56,4.75,4.28,4.98,4.67,4.59,4.17,4.73,4.73,5.15,4.98,4.53,4.48,4.77,5.1,5.24,5.31,5.25,5.38,5.08,5.06],"uu":"t/t 湿料","u":[0.628,0.593,0.599,0.593,0.602,0.62,0.627,0.61,0.596,0.603,0.613,0.602,0.622,0.629,0.608,0.614,0.624,0.609,0.598,0.628,0.629,0.591,0.621,0.606,0.592,0.597,0.597,0.619,0.598,0.591]},{"name":"焦磷酸哌嗪湿料","unit":"t","v":[8.7,8.22,8.61,8.53,8.07,7.24,8.06,7.38,7.96,7.56,7.75,7.12,8.01,7.43,7.54,6.79,7.59,7.77,8.62,7.93,7.2,7.58,7.7,8.41,8.85,8.9,8.8,8.69,8.49,8.56],"uu":"收率 %","u":[57.1,59.9,60.5,61.1,60.7,60.7,62.6,57.5,60.1,62.8,57.2,57.7,62.2,62.7,57.1,57.2,62.0,61.1,60.1,60.5,61.5,61.8,57.0,57.4,61.8,62.9,62.0,59.4,59.0,59.1]},{"name":"蒸汽","unit":"t","v":[12.8,13.5,13.8,14.1,12.9,11.2,12.6,11.0,12.0,12.2,11.9,10.7,13.2,12.5,11.2,10.1,13.0,12.7,13.6,12.8,11.7,12.2,12.2,12.4,15.2,15.4,15.1,13.2,13.3,14.1],"uu":"t/t","u":[2.57,2.74,2.65,2.7,2.64,2.55,2.5,2.59,2.51,2.58,2.69,2.61,2.64,2.69,2.6,2.61,2.77,2.67,2.63,2.66,2.64,2.6,2.77,2.57,2.78,2.76,2.76,2.55,2.65,2.8]}],"park":{"enabled":false,"records":[]}},{"key":"th","tab":"热电","title":"热电车间","kpis":[{"label":"供汽 · 今日","val":"460","unit":"t","sub":"月累计 14,018 t","d":-1.5,"good":true,"sp":[466.573,475.805,473.9,471.359,479.668,481.14,468.739,476.036,461.163,472.551,453.554,453.664,444.469,452.142,463.304,457.709,451.705,457.568,457.815,465.996,480.258,476.862,466.535,485.912,470.909,468.594,476.086,480.506,466.782,460.405]},{"label":"外供蒸汽","val":"332","unit":"t","sub":"5 家客户","d":-1.9,"good":true,"sp":[340.38,339.563,343.194,340.853,348.655,353.127,341.163,347.57,334.737,345.564,330.114,330.3,317.896,327.453,334.795,328.721,324.354,331.466,334.14,331.931,345.771,351.966,337.232,349.866,336.203,335.987,346.962,345.678,336.385,331.752]},{"label":"管网损耗率","val":"2.7","unit":"%","sub":"警戒 3%","d":-9.6,"good":false,"sp":[3.203,2.97,2.959,2.773,3.064,2.878,2.506,2.854,2.741,2.838,2.405,2.361,3.142,2.614,2.573,2.424,2.809,3.1,2.508,2.804,2.831,3.078,2.928,2.663,2.622,3.063,2.503,3.141,2.416,2.519]},{"label":"发电量","val":"1.10","unit":"万kWh","sub":"1# 冷凝机","d":-1.1,"good":true,"sp":[11322.799,11048.082,11068.634,11347.473,11822.923,11977.091,11850.499,11681.397,10589.087,10712.512,11558.833,10892.011,10769.81,10442.405,11148.147,10705.744,11378.862,10248.923,11558.925,10374.215,10659.177,11070.965,11470.428,10810.259,11408.866,11872.746,11141.767,11482.312,11151.434,11029.711]},{"label":"外购电","val":"1.89","unit":"万kWh","sub":"2# 进线","d":-4.8,"good":false,"sp":[18989.557,19995.003,21384.541,20887.637,19691.225,20346.513,20564.245,19876.908,20389.63,20350.813,18442.954,18820.701,19884.729,18549.53,18113.383,20057.147,18951.605,20830.275,19896.894,18819.18,20504.569,19629.871,21293.887,21111.05,21210.395,19196.125,19012.796,20975.905,18952.971,18926.116]},{"label":"自发电占比","val":"36.8","unit":"%","sub":"发电 ÷ 总用电","d":2.4,"good":true,"sp":[0.374,0.356,0.341,0.352,0.375,0.371,0.366,0.37,0.342,0.345,0.385,0.367,0.351,0.36,0.381,0.348,0.375,0.33,0.367,0.355,0.342,0.361,0.35,0.339,0.35,0.382,0.369,0.354,0.37,0.368]}],"views":[["prod","供汽"],["cons","电与水"],["park","停车记录"]],"prod":{"unit":"t","totalName":"供汽合计","total":[466.6,475.8,473.9,471.4,479.7,481.1,468.8,476.1,461.1,472.6,453.5,453.7,444.5,452.2,463.3,457.7,451.8,457.6,457.8,466.0,480.3,476.9,466.5,485.9,470.9,468.6,476.1,480.5,466.8,460.5],"items":[{"name":"内部车间","color":"#2F55A4","v":[126.2,136.2,130.7,130.5,131.0,128.0,127.6,128.5,126.4,127.0,123.4,123.4,126.6,124.7,128.5,129.0,127.4,126.1,123.7,134.1,134.5,124.9,129.3,136.0,134.7,132.6,129.1,134.8,130.4,128.7],"dest":[["氨基磺酸",[35.7,41.2,39.5,39.4,41.2,38.2,37.8,39.9,37.5,37.7,35.7,35.3,36.8,37.7,40.2,38.4,37.1,37.4,36.6,38.5,41.9,37.0,39.2,40.9,41.4,40.0,40.3,41.8,41.2,36.8]],["硫酸镁",[33.4,36.2,34.0,32.4,35.6,31.8,32.2,34.2,32.4,34.5,34.2,31.7,33.9,33.1,33.3,32.0,32.0,30.5,32.8,35.7,35.6,31.5,31.8,33.0,35.2,33.8,31.9,33.2,33.7,34.3]],["二乙基蒽醌",[23.6,25.1,25.4,25.3,22.6,25.8,23.0,22.5,24.3,21.9,21.9,23.2,23.4,21.5,25.6,25.1,23.4,24.1,23.0,26.5,22.5,23.6,23.4,26.6,24.9,24.3,24.1,26.3,23.0,25.3]],["水滑石",[20.9,19.8,19.6,20.1,20.3,19.6,21.0,19.9,19.2,21.3,19.6,19.5,21.3,19.1,18.7,21.2,21.7,20.9,19.3,20.7,21.3,19.3,21.5,22.6,21.2,21.2,20.0,20.9,18.6,21.0]],["丰联",[12.5,14.0,12.2,13.3,11.3,12.5,13.5,12.0,12.9,11.6,12.0,13.7,11.2,13.3,10.7,12.3,13.1,13.2,12.0,12.7,13.2,13.4,13.5,13.0,12.0,13.3,12.8,12.7,13.9,11.2]]]},{"name":"外供客户","color":"#EB6834","v":[340.4,339.6,343.2,340.9,348.7,353.1,341.2,347.6,334.7,345.6,330.1,330.3,317.9,327.5,334.8,328.7,324.4,331.5,334.1,331.9,345.8,352.0,337.2,349.9,336.2,336.0,347.0,345.7,336.4,331.8],"dest":[["建衡",[100.1,94.9,101.1,104.8,96.1,100.1,99.3,98.3,93.1,98.4,101.1,97.1,91.3,97.7,92.3,88.7,95.4,94.1,95.9,103.1,98.3,104.3,96.8,102.6,93.4,96.2,100.9,100.1,101.0,94.0]],["旭光",[79.1,80.9,83.6,78.3,82.6,85.9,79.9,81.3,87.1,87.0,78.4,76.8,75.5,74.7,82.6,82.1,77.0,80.2,83.2,76.4,86.3,87.4,80.5,86.4,86.4,82.0,87.7,79.5,81.6,79.0]],["鑫科思",[63.6,68.0,66.1,66.9,71.1,63.3,63.1,66.8,61.5,69.2,62.2,62.6,62.0,65.8,66.5,64.2,59.3,61.6,65.8,61.4,68.9,69.3,63.1,64.7,63.3,68.2,60.9,67.0,59.9,67.2]],["力泓",[53.2,54.1,49.9,49.8,52.9,59.0,55.2,57.4,49.4,49.2,47.9,53.9,48.5,49.2,52.8,53.1,49.8,51.6,50.4,53.5,52.0,52.5,51.8,52.4,52.1,49.6,52.1,54.3,50.7,48.7]],["湘硕",[44.4,41.7,42.4,41.0,45.9,44.8,43.6,43.7,43.7,41.7,40.5,40.0,40.6,40.1,40.5,40.6,42.9,44.0,38.9,37.6,40.3,38.4,45.0,43.7,41.0,40.0,45.4,44.8,43.1,42.8]]]}]},"inv":null,"cons":[{"name":"发电量","unit":"kWh","v":[11323.0,11048.0,11069.0,11347.0,11823.0,11977.0,11850.0,11681.0,10589.0,10713.0,11559.0,10892.0,10770.0,10442.0,11148.0,10706.0,11379.0,10249.0,11559.0,10374.0,10659.0,11071.0,11470.0,10810.0,11409.0,11873.0,11142.0,11482.0,11151.0,11030.0],"uu":"占比 %","u":[37.4,35.6,34.1,35.2,37.5,37.1,36.6,37.0,34.2,34.5,38.5,36.7,35.1,36.0,38.1,34.8,37.5,33.0,36.7,35.5,34.2,36.1,35.0,33.9,35.0,38.2,36.9,35.4,37.0,36.8]},{"name":"外购电","unit":"kWh","v":[18990.0,19995.0,21385.0,20888.0,19691.0,20347.0,20564.0,19877.0,20390.0,20351.0,18443.0,18821.0,19885.0,18550.0,18113.0,20057.0,18952.0,20830.0,19897.0,18819.0,20505.0,19630.0,21294.0,21111.0,21210.0,19196.0,19013.0,20976.0,18953.0,18926.0],"uu":"占比 %","u":[62.6,64.4,65.9,64.8,62.5,62.9,63.4,63.0,65.8,65.5,61.5,63.3,64.9,64.0,61.9,65.2,62.5,67.0,63.3,64.5,65.8,63.9,65.0,66.1,65.0,61.8,63.1,64.6,63.0,63.2]},{"name":"水","unit":"t","v":[1036.0,1071.0,1136.0,1230.0,1121.0,1110.0,1209.0,1088.0,1160.0,1145.0,1192.0,1021.0,1106.0,1068.0,1144.0,1043.0,1131.0,1044.0,1110.0,1206.0,1086.0,1102.0,1224.0,1184.0,1075.0,1094.0,1096.0,1096.0,1185.0,1148.0],"uu":"t/t 汽","u":[2.22,2.25,2.4,2.61,2.34,2.31,2.58,2.29,2.51,2.42,2.63,2.25,2.49,2.36,2.47,2.28,2.5,2.28,2.42,2.59,2.26,2.31,2.62,2.44,2.28,2.33,2.3,2.28,2.54,2.49]}],"park":{"enabled":false,"records":[]}}];
+    const N = 30, S1 = '#2F55A4';
+    const st = this.state;
+    const w = D[st.ws];
+    const set = (o) => this.setState(o);
+    const WD = ['日', '一', '二', '三', '四', '五', '六'];
+    const dayLabel = (i) => { const d = new Date(2026, 8, i + 1); return '09-' + String(i + 1).padStart(2, '0') + ' 周' + WD[d.getDay()]; };
+    const nf = (v, d) => (v == null || isNaN(v)) ? '—' : Number(v).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+    const dec = (arr) => { const m = Math.max.apply(null, arr.map(Math.abs)); return m >= 1000 ? 0 : (m >= 10 ? 1 : 2); };
+    const niceMax = (v) => { if (v <= 0) return 1; const e = Math.pow(10, Math.floor(Math.log10(v))); const ms = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]; for (const m of ms) if (m * e >= v) return m * e; return 10 * e; };
+    const sum = (a) => a.reduce((x, y) => x + y, 0);
+    const day = st.day;
+
+    const kpis = w.kpis.map(k => {
+      const lo = Math.min.apply(null, k.sp), hi = Math.max.apply(null, k.sp), rg = (hi - lo) || 1;
+      const pts = k.sp.map((v, i) => (1 + i * 50 / (k.sp.length - 1)).toFixed(1) + ',' + (22 - (v - lo) / rg * 18).toFixed(1)).join(' ');
+      let dcls = '', dtxt = '';
+      if (k.d != null) { const up = k.d >= 0; dcls = (up === k.good) ? 'up' : 'dn'; dtxt = (up ? '▲ ' : '▼ ') + Math.abs(k.d).toFixed(1) + '%'; }
+      return Object.assign({}, k, { pts, dcls, dtxt });
+    });
+
+    // ---- 日产量柱状图（柱顶标数值）----
+    const P = w.prod, T = P.total, multi = P.items.length > 1, isTh = w.key === 'th';
+    const W = 700, H = 400, PL = 40, PT = 22, PB = 24, PR = 4;
+    const ih = H - PT - PB, slot = (W - PL - PR) / N, bw = Math.min(16, slot - 6);
+    const mx = niceMax(Math.max.apply(null, T) * 1.1);
+    const Y = (v) => PT + ih - v / mx * ih;
+    const ld = Math.max.apply(null, T) >= 100 ? 0 : 1;
+    const grid = [0, 1, 2, 3, 4].map(k => ({ y: Y(mx * k / 4), label: nf(mx * k / 4, mx >= 10 ? 0 : 1) }));
+    const bars = T.map((v, i) => {
+      const x = PL + slot * i + (slot - bw) / 2, y = Y(v), sel = i === day, hv = i === st.hover;
+      return { x, y, w: bw, h: PT + ih - y, cx: x + bw / 2, ly: y - 16, label: nf(v, ld),
+        bg: sel ? S1 : (hv ? '#5C7CC4' : '#B9C8E8'), lc: sel || hv ? 'var(--ink)' : 'var(--ink2)', lw: sel || hv ? 600 : 400 };
+    });
+    const avg = sum(T) / N;
+    const xl = []; for (let i = 0; i < N - 3; i += 5) xl.push({ x: PL + slot * i + slot / 2, label: '09-' + String(i + 1).padStart(2, '0') }); xl.push({ x: PL + slot * (N - 1) + slot / 2, label: '09-30' });
+    const hits = T.map((_, i) => ({ x: PL + slot * i, w: slot, enter: () => set({ hover: i }), click: () => set({ day: i, sp: 'day' }) }));
+    const h = st.hover;
+    const hv = { show: h >= 0 && multi, tx: 0, date: '', rows: [], hasTotal: multi, totalName: P.totalName, total: '' };
+    if (h >= 0) {
+      const cx = PL + slot * h + slot / 2;
+      hv.tx = h > 15 ? cx - 226 : cx + 16; hv.date = dayLabel(h);
+      hv.rows = P.items.map(it => ({ name: it.name, color: it.color, val: nf(it.v[h], 1) + ' ' + P.unit }));
+      hv.total = nf(T[h], 1) + ' ' + P.unit;
+    }
+    const ch = { title: isTh ? '日供汽' : '日产量', sub: P.unit + (multi ? ' · ' + P.totalName + ' · 悬停查看构成' : ''), W, H, grid, bars, xl, xly: PT + ih + 8, hits, hv,
+      avgY: Y(avg), avg: nf(avg, ld) };
+
+    // ---- 右侧构成 ----
+    const isDay = st.sp === 'day';
+    const val = (arr) => isDay ? arr[day] : sum(arr);
+    const mxv = Math.max.apply(null, P.items.map(it => Math.abs(val(it.v)))) || 1;
+    const maxI = T.indexOf(Math.max.apply(null, T)), minI = T.indexOf(Math.min.apply(null, T));
+    const sp = { head: isDay ? dayLabel(day) : '2026 年 9 月', totalName: P.totalName, total: nf(val(T), 1), unit: P.unit, multi,
+      items: P.items.map(it => ({ name: it.name, color: it.color, val: nf(val(it.v), 1) + ' ' + P.unit, pct: (Math.abs(val(it.v)) / mxv * 100).toFixed(1),
+        dest: (it.dest || []).map(d => { const x = val(d[1]); return { name: d[0], val: (d[0] === '库存变化' && x > 0 ? '+' : '') + nf(x, 1) }; }) })),
+      stats: [{ l: '月累计', v: nf(sum(T), 0) + ' ' + P.unit }, { l: '日均', v: nf(avg, 1) + ' ' + P.unit },
+              { l: '最高 · ' + dayLabel(maxI).slice(0, 5), v: nf(T[maxI], 1) }, { l: '最低 · ' + dayLabel(minI).slice(0, 5), v: nf(T[minI], 1) }] };
+
+    // ---- 库存 ----
+    let hasInv = false, iv = { title: '', sub: '', markNote: '', gcols: '1fr', groups: [] };
+    if (w.inv && w.inv.mode === 'tank') {
+      hasInv = true;
+      iv = { title: '罐区库存 · ' + dayLabel(day), sub: '液位 × 罐容 × 密度 · 点上方柱子切换日期', markNote: '20% / 90% 警戒线', gcols: 'repeat(2, minmax(0, 1fr))',
+        groups: w.inv.groups.map(g => { const tot = sum(g.items.map(t => t.t[day])); const cap = sum(g.items.map(t => t.cap * t.den));
+          return { name: g.name, color: g.color, meta: '库容率 ' + (tot / cap * 100).toFixed(0) + '%', total: nf(tot, 1) + ' t',
+            rows: g.items.map(t => { const lv = t.lv[day]; return { name: t.name, pct: lv.toFixed(1), m1: 20, m2: 90, p: lv.toFixed(0) + '%', t: nf(t.t[day], 1),
+              color: lv > 90 || lv < 20 ? 'var(--danger)' : g.color, tip: t.name + ' · 罐容 ' + t.cap + ' m³' }; }) }; }) };
+    } else if (w.inv && w.inv.items && w.inv.items.length) {
+      hasInv = true;
+      const rows = w.inv.items.map(x => {
+        let use = 0, n = 0; for (let i = Math.max(1, day - 6); i <= day; i++) { const dl = x.v[i - 1] - x.v[i]; if (dl > 0) { use += dl; n++; } }
+        const a = n ? use / n : 0, dd = a ? x.v[day] / a : null;
+        return { name: x.name, pct: dd == null ? 100 : Math.min(dd / 30 * 100, 100).toFixed(1), m1: 10, m2: 23.3, p: dd == null ? '—' : dd.toFixed(1) + '天', t: nf(x.v[day], 1),
+          color: dd != null && dd < 3 ? 'var(--danger)' : (dd != null && dd < 7 ? '#C98500' : S1), tip: x.name + ' · 近 7 日均耗 ' + nf(a, 2) + ' ' + x.unit };
+      });
+      const half = Math.ceil(rows.length / 2);
+      iv = { title: '库存 · ' + dayLabel(day), sub: '条长 = 可用天数（满格 30 天）· 数值为库存吨数', markNote: '3 天 / 7 天', gcols: 'repeat(2, minmax(0, 1fr))',
+        groups: [{ name: '原辅料与成品', color: S1, meta: '', total: '', rows: rows.slice(0, half) }, { name: '', color: 'transparent', meta: '', total: '', rows: rows.slice(half) }] };
+    }
+
+    // ---- 明细表（分类切换）----
+    const tabs = w.views; const tab = tabs.map(v => v[0]).indexOf(st.tab) >= 0 ? st.tab : tabs[0][0];
+    let tb = { has: true, empty: false, emptyText: '', note: '', head: [], rows: [], gcols: '1fr' };
+    const noop = () => {};
+    const table = (cols, note) => {
+      const rows = []; for (let i = N - 1; i >= 0; i--) rows.push({ cls: i === day ? 'on' : '', pick: () => set({ day: i, sp: 'day' }),
+        cells: [{ v: dayLabel(i), cls: '', enter: noop }].concat(cols.map(c => c.hot
+          ? { v: nf(c.v[i], c.d), cls: 'hotcell' + (st.calc === i ? ' act' : ''), enter: () => { if (st.calc !== i) set({ calc: i }); } }
+          : { v: nf(c.v[i], c.d), cls: '', enter: noop })) });
+      tb = { has: true, empty: false, emptyText: '', note, head: ['日期'].concat(cols.map(c => c.name)), rows, gcols: '104px repeat(' + cols.length + ', minmax(0, 1fr))' };
+    };
+    if (tab === 'prod') {
+      const cols = P.items.map(it => ({ name: it.name, v: it.v, d: 1 }));
+      if (multi) cols.push({ name: P.totalName, v: T, d: 1, hot: w.key === 'sulfuric' });
+      if (!isTh) P.items.forEach(it => (it.dest || []).forEach(d => { if (d[0] !== '库存变化') cols.push({ name: it.name.replace('硫酸', '') + ' · ' + d[0].replace('→ ', ''), v: d[1], d: 1 }); }));
+      table(cols, '单位 t · 点行切换日期');
+    } else if (tab === 'inv') {
+      const cols = [];
+      if (w.inv.mode === 'tank') w.inv.groups.forEach(g => g.items.forEach(t => cols.push({ name: g.name.replace('% 酸', '').replace('硫酸', '') + ' ' + t.name, v: t.t, d: 1 })));
+      else w.inv.items.forEach(x => cols.push({ name: x.name, v: x.v, d: 1 }));
+      table(cols, '单位 t · 点行切换日期');
+    } else if (tab === 'lvl') {
+      const cols = []; w.inv.groups.forEach(g => g.items.forEach(t => cols.push({ name: g.name.replace('% 酸', '').replace('硫酸', '') + ' ' + t.name, v: t.lv, d: 1 })));
+      table(cols, '单位 % · 点行切换日期');
+    } else if (tab === 'cons') {
+      const cols = []; w.cons.forEach(x => { cols.push({ name: x.name + ' ' + x.unit, v: x.v, d: dec(x.v) }); cols.push({ name: x.name + ' ' + x.uu, v: x.u, d: dec(x.u) }); });
+      table(cols, '用量 + 单耗 · 点行切换日期');
+    } else {
+      const recs = w.park.records || [];
+      if (!w.park.enabled) tb = { has: false, empty: true, emptyText: '该车间的表单未开启停车记录', note: '', head: [], rows: [], gcols: '1fr' };
+      else if (!recs.length) tb = { has: false, empty: true, emptyText: '本月无停车记录', note: '', head: [], rows: [], gcols: '1fr' };
+      else { const hrs = sum(recs.map(r => r.h));
+        tb = { has: true, empty: false, emptyText: '', note: '本月 ' + recs.length + ' 次 · ' + hrs + ' h · 开工率 ' + ((1 - hrs / 720) * 100).toFixed(1) + '%', head: ['开始', '结束', '时长', '原因', '填报人'],
+          rows: recs.map(r => ({ cls: r.day === day ? 'on' : '', pick: () => set({ day: r.day, sp: 'day' }), cells: [r.start, r.end, r.h + ' h', r.reason, r.by].map(v => ({ v, cls: '', enter: noop })) })), gcols: '140px 140px 90px minmax(0, 1fr) 120px' }; }
+    }
+
+    // ---- 折 98% 计算过程 ----
+    let cc = { show: false, title: '', blocks: [], total: '', formula: '' };
+    const ci = st.calc;
+    if (w.key === 'sulfuric' && tab === 'prod' && ci >= 0) {
+      const inv = (gname, i) => { const g = w.inv.groups.find(x => x.name === gname); return sum(g.items.map(t => t.t[i])); };
+      const dest = (it, n) => { const d = (it.dest || []).find(x => x[0] === n); return d ? d[1][ci] : 0; };
+      const f1 = (v) => nf(v, 1);
+      const sg = (v) => (v >= 0 ? '+' : '−') + nf(Math.abs(v), 1);
+      const tankLines = (gname) => ci > 0
+        ? [{ op: '', l: '今日库存', v: f1(inv(gname, ci)) }, { op: '−', l: '昨日库存', v: f1(inv(gname, ci - 1)) }, { op: '=', l: '库存变化', v: sg(inv(gname, ci) - inv(gname, ci - 1)) }]
+        : [{ op: '', l: '库存变化（无前日数据）', v: '—' }];
+      const it = (n) => P.items.find(x => x.name === n);
+      const a98 = it('98% 酸'), a93 = it('93% 酸'), arg = it('试剂酸'), afm = it('发烟硫酸');
+      const fmv = afm.v[ci], fm98 = fmv * 105 / 98;
+      cc = { show: true, title: dayLabel(ci) + ' · 折 98% 产量',
+        blocks: [
+          { name: '98% 酸', color: a98.color, result: f1(a98.v[ci]) + ' t', lines: tankLines('98% 酸').concat([{ op: '+', l: '外销', v: f1(dest(a98, '外销')) }]) },
+          { name: '93% 酸', color: a93.color, result: f1(a93.v[ci]) + ' t', lines: [{ op: '', l: '外销', v: f1(dest(a93, '外销')) }, { op: '+', l: '转硫酸镁车间', v: f1(dest(a93, '→ 硫酸镁车间')) }] },
+          { name: '试剂酸', color: arg.color, result: f1(arg.v[ci]) + ' t', lines: tankLines('试剂酸').concat([{ op: '+', l: '外销', v: f1(dest(arg, '外销')) }]) },
+          { name: '发烟硫酸', color: afm.color, result: f1(fmv) + ' t → 折 ' + f1(fm98), lines: tankLines('发烟硫酸').concat([
+              { op: '+', l: '外销', v: f1(dest(afm, '外销')) }, { op: '+', l: '转氨基磺酸车间', v: f1(dest(afm, '→ 氨基磺酸车间')) },
+              { op: '+', l: '转蒽醌车间', v: f1(dest(afm, '→ 蒽醌车间')) }, { op: '×', l: '折算系数 105 / 98', v: '1.0714' }]) },
+        ],
+        total: f1(T[ci]) + ' t',
+        formula: f1(a98.v[ci]) + ' + ' + f1(a93.v[ci]) + ' + ' + f1(arg.v[ci]) + ' + ' + f1(fm98) + ' = ' + f1(T[ci]) + ' · 库存 = Σ 液位 × 罐容 × 密度' };
+    }
+    return {
+      cc, calcOff: () => { if (st.calc !== -1) set({ calc: -1 }); },
+      w: { title: w.title, kpis },
+      tabs: D.map((x, k) => ({ name: x.tab, cls: k === st.ws ? 'on' : '', pick: () => set({ ws: k, hover: -1 }) })),
+      pos: (st.ws + 1) + ' / ' + D.length,
+      prevWs: () => set({ ws: (st.ws + D.length - 1) % D.length, hover: -1 }),
+      nextWs: () => set({ ws: (st.ws + 1) % D.length, hover: -1 }),
+      perMonth: st.per === 'month' ? 'on' : '', perCustom: st.per === 'custom' ? 'on' : '', isMonth: st.per === 'month', isCustom: st.per === 'custom',
+      setMonth: () => set({ per: 'month' }), setCustom: () => set({ per: 'custom' }),
+      spDay: st.sp === 'day' ? 'on' : '', spMonth: st.sp === 'month' ? 'on' : '', setSpDay: () => set({ sp: 'day' }), setSpMonth: () => set({ sp: 'month' }),
+      unhover: () => set({ hover: -1 }),
+      ch, sp, hasInv, iv, tb,
+      tbtabs: tabs.map(v => ({ name: v[1], cls: v[0] === tab ? 'on' : '', pick: () => set({ tab: v[0] }) })),
+    };
+  }
+}
+</script>
+</body>
+</html>
