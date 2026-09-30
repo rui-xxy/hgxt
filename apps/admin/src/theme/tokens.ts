@@ -23,6 +23,8 @@ interface Palette {
   line2: string;
   hover: string;
   active: string;
+  /** 与 hover 等效的不透明色：表格固定列不能透底 */
+  hoverSolid: string;
   brand: string;
   brandSoft: string;
   ok: string;
@@ -42,6 +44,7 @@ const light: Palette = {
   line2: '#DFDFDB',
   hover: 'rgba(20, 20, 18, 0.04)',
   active: 'rgba(20, 20, 18, 0.065)',
+  hoverSolid: '#F5F5F5',
   brand: '#2F55A4',
   brandSoft: '#E7EDF8',
   ok: '#2E6A45',
@@ -61,6 +64,7 @@ const dark: Palette = {
   line2: '#3D3D3A',
   hover: 'rgba(255, 255, 255, 0.04)',
   active: 'rgba(255, 255, 255, 0.075)',
+  hoverSolid: '#252524',
   brand: '#93AFEA',
   brandSoft: 'rgba(147, 175, 234, 0.15)',
   ok: '#8FC6A0',
@@ -176,14 +180,17 @@ function buildTheme(p: Palette, isDark: boolean): ThemeConfig {
         borderRadiusLG: 14,
         paddingLG: 16,
       },
+      Popover: {
+        borderRadiusLG: 12,
+      },
       Modal: {
         borderRadiusLG: 16,
       },
       Table: {
-        headerBg: 'transparent',
+        headerBg: p.bg,
         headerColor: p.ink3,
         headerSplitColor: 'transparent',
-        rowHoverBg: p.hover,
+        rowHoverBg: p.hoverSolid,
         borderColor: p.line,
         cellPaddingBlock: 18,
         cellPaddingInline: 12,

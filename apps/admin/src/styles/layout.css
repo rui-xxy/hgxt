@@ -53,12 +53,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  width: 56px;
-  height: 54px;
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
   color: var(--ink2);
-  font-size: var(--ui-font-size-xs);
   text-decoration: none;
   transition:
     background-color 0.14s,
@@ -119,13 +117,26 @@
   font-weight: 600;
 }
 
-/* ② 模块面板 236px */
+/* ② 模块面板 236px（可收起，240ms 宽度过渡） */
 .hgxt-panel {
   display: flex;
   flex: none;
   flex-direction: column;
   width: 236px;
   padding: 12px 10px 10px 2px;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    width 0.24s var(--ease),
+    padding 0.24s var(--ease),
+    opacity 0.18s;
+}
+
+.hgxt-panel.is-collapsed {
+  width: 0;
+  padding-inline: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .hgxt-panel-head {
@@ -214,8 +225,9 @@
   display: flex;
   flex: none;
   align-items: center;
+  gap: 8px;
   height: 52px;
-  padding: 0 16px;
+  padding: 0 12px 0 10px;
 }
 
 .hgxt-crumb {

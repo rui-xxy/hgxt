@@ -1,5 +1,17 @@
-import { Avatar, Dropdown } from 'antd';
-import { FlaskConical, Home, LogOut, Moon, Settings, Sun, Users, type LucideIcon } from 'lucide-react';
+import { useState } from 'react';
+import { Avatar, Dropdown, Tooltip } from 'antd';
+import {
+  FlaskConical,
+  Home,
+  LogOut,
+  Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Settings,
+  Sun,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { Role } from '@hgxt/shared';
@@ -61,6 +73,16 @@ const MODULES: ModuleDef[] = [
   },
 ];
 
+const PANEL_KEY = 'hgxt:panel-collapsed';
+
+function readCollapsed(): boolean {
+  try {
+    return localStorage.getItem(PANEL_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 /** 顶部路径栏的页面名 */
 function pageName(pathname: string): string {
   if (pathname === '/') return '概览';
@@ -80,6 +102,16 @@ export function AdminLayout() {
   const me = useMe();
   const { mode, toggleMode } = useThemeMode();
   const isAdmin = me.data?.role === Role.SUPER_ADMIN;
+  const [collapsed, setCollapsed] = useState(readCollapsed);
+  const togglePanel = () =>
+    setCollapsed((value) => {
+      try {
+        localStorage.setItem(PANEL_KEY, value ? '0' : '1');
+      } catch {
+        /* 存储不可用时仅本次生效 */
+      }
+      return !value;
+    });
 
   const modules = MODULES.filter((m) => !m.adminOnly || isAdmin);
   const current = MODULES.find((m) => m.match(location.pathname)) ?? MODULES[0];
@@ -120,14 +152,15 @@ export function AdminLayout() {
           化
         </Link>
         {modules.map((m) => (
-          <Link
-            key={m.key}
-            to={m.path}
-            className={`hgxt-rail-link${m.key === current.key ? ' is-on' : ''}`}
-          >
-            <m.icon size={20} strokeWidth={1.6} />
-            <span>{m.label}</span>
-          </Link>
+          <Tooltip key={m.key} title={m.label} placement="right">
+            <Link
+              to={m.path}
+              aria-label={m.label}
+              className={`hgxt-rail-link${m.key === current.key ? ' is-on' : ''}`}
+            >
+              <m.icon size={20} strokeWidth={1.6} />
+            </Link>
+          </Tooltip>
         ))}
         <div className="hgxt-rail-foot">
           <button
@@ -135,7 +168,10 @@ export function AdminLayout() {
             className="hgxt-iconbtn"
             aria-label={themeLabel}
             title={themeLabel}
-            onClick={toggleMode}
+            onClick={(event) => {
+              const rect = event.currentTarget.getBoundingClientRect();
+              toggleMode({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+            }}
           >
             <ThemeIcon size={18} strokeWidth={1.6} />
           </button>
@@ -149,7 +185,7 @@ export function AdminLayout() {
         </div>
       </nav>
 
-      <aside className="hgxt-panel">
+      <aside className={`hgxt-panel${collapsed ? ' is-collapsed' : ''}`} aria-hidden={collapsed}>
         <div className="hgxt-panel-head">
           <span className="hgxt-panel-title">{current.title}</span>
         </div>
@@ -173,6 +209,19 @@ export function AdminLayout() {
 
       <div className="hgxt-canvas">
         <header className="hgxt-bar">
+          <button
+            type="button"
+            className="hgxt-iconbtn"
+            aria-label={collapsed ? '展开菜单' : '收起菜单'}
+            title={collapsed ? '展开菜单' : '收起菜单'}
+            onClick={togglePanel}
+          >
+            {collapsed ? (
+              <PanelLeftOpen size={18} strokeWidth={1.6} />
+            ) : (
+              <PanelLeftClose size={18} strokeWidth={1.6} />
+            )}
+          </button>
           <div className="hgxt-crumb">
             <span>{current.title}</span>
             <span className="hgxt-crumb-sep">/</span>

@@ -103,3 +103,69 @@ body {
     transition: none !important;
   }
 }
+
+/* 主题切换：以点击处为圆心圆形扩散（View Transitions API，不支持时直接切换） */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: hgxt-reveal 0.5s var(--ease) both;
+}
+
+@keyframes hgxt-reveal {
+  from {
+    clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 50%));
+  }
+  to {
+    clip-path: circle(150vmax at var(--vt-x, 50%) var(--vt-y, 50%));
+  }
+}
+
+/* 平时的主题相关表面也做柔和过渡 */
+body,
+.hgxt-canvas,
+.hgxt-shell {
+  transition: background-color 0.24s var(--ease);
+}
+
+/* ---------- 确认气泡（Popconfirm）：容器 12、内边距 16、按钮右对齐 ---------- */
+.ant-popover.ant-popconfirm {
+  max-width: 320px;
+}
+
+.ant-popconfirm .ant-popover-inner {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pop);
+}
+
+.ant-popconfirm .ant-popconfirm-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ant-popconfirm .ant-popconfirm-title {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.ant-popconfirm .ant-popconfirm-description {
+  margin-top: 6px;
+  color: var(--ink2);
+  font-size: var(--ui-font-size-sm);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.ant-popconfirm .ant-popconfirm-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}

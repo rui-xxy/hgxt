@@ -1,3 +1,4 @@
+import { flushSync } from 'react-dom';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { App as AntdApp, ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
@@ -11,7 +12,7 @@ const STORAGE_KEY = 'hgxt:theme-mode';
 interface ThemeModeContextValue {
   mode: ThemeMode;
   /** 单击切换浅色 / 深色，并持久化选择 */
-  toggleMode: () => void;
+  toggleMode: (origin?: { x: number; y: number }) => void;
 }
 
 const ThemeModeContext = createContext<ThemeModeContextValue | null>(null);
@@ -27,12 +28,23 @@ function getInitialMode(): ThemeMode {
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<ThemeMode>(getInitialMode);
 
-  const toggleMode = useCallback(() => {
-    setMode((current) => {
-      const next: ThemeMode = current === 'dark' ? 'light' : 'dark';
-      localStorage.setItem(STORAGE_KEY, next);
-      return next;
-    });
+  const toggleMode = useCallback((origin?: { x: number; y: number }) => {
+    const next: ThemeMode = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem(STORAGE_KEY, next);
+    const apply = () => {
+      document.documentElement.dataset.theme = next;
+      flushSync(() => setMode(next));
+    };
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || reduced) {
+      apply();
+      return;
+    }
+    // 从点击处圆形扩散切换（样式见 styles/global.css）
+    const root = document.documentElement;
+    root.style.setProperty('--vt-x', `${origin?.x ?? window.innerWidth / 2}px`);
+    root.style.setProperty('--vt-y', `${origin?.y ?? window.innerHeight / 2}px`);
+    document.startViewTransition(apply);
   }, []);
 
   // 自定义 CSS 的配色变量（styles/global.css）随 data-theme 切换
@@ -44,7 +56,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <ThemeModeContext.Provider value={{ mode, toggleMode }}>
-      <ConfigProvider locale={zhCN} theme={themeConfig}>
+      <ConfigProvider locale={zhCN} theme={themeConfig} button={{ autoInsertSpace: false }}>
         <AntdApp>{children}</AntdApp>
       </ConfigProvider>
     </ThemeModeContext.Provider>
