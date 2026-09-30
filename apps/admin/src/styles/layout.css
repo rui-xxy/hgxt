@@ -122,10 +122,11 @@
 .hgxt-flyout {
   position: absolute;
   z-index: 30;
+  /* 紧贴图标轨右缘，上下与内容画布（margin 8）等高对齐 */
   top: 8px;
-  left: 60px;
+  bottom: 8px;
+  left: 68px;
   width: 236px;
-  max-height: calc(100vh - 16px);
   padding: 12px 8px 8px;
   overflow-y: auto;
   border: 1px solid var(--line);
