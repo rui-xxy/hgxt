@@ -44,5 +44,12 @@ jobs:
       - name: 安装依赖
         run: pnpm install --frozen-lockfile
 
+      # 干净检出里没有 shared 的 dist 与 Prisma Client（均被 gitignore），
+      # 而 typecheck 在 build 之前执行，所以先生成它们
+      - name: 构建 shared 契约 + 生成 Prisma Client
+        run: |
+          pnpm --filter @hgxt/shared build
+          pnpm --filter @hgxt/api db:generate
+
       - name: pnpm check（lint + typecheck + test + build）
         run: pnpm check
