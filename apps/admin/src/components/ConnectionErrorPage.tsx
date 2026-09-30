@@ -1,5 +1,6 @@
-import { Button, Result } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
+import { RefreshIcon, WifiOffIcon } from './icons';
+import { StatusView } from './StatusView';
 
 /**
  * D1：网络/服务器错误页。后端未启动、断网、5xx 都不是「登录失效」，
@@ -7,12 +8,14 @@ import { ReloadOutlined } from '@ant-design/icons';
  */
 export function ConnectionErrorPage({ message }: { message: string }) {
   return (
-    <Result
-      status="warning"
+    <StatusView
+      fullscreen
+      tone="danger"
+      icon={<WifiOffIcon />}
       title="无法连接服务器"
-      subTitle={message}
-      extra={
-        <Button type="primary" icon={<ReloadOutlined />} onClick={() => window.location.reload()}>
+      description={message}
+      actions={
+        <Button type="primary" icon={<RefreshIcon />} onClick={() => window.location.reload()}>
           重新加载
         </Button>
       }

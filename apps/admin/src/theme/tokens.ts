@@ -1,130 +1,365 @@
 /**
- * DESIGN.md（ZCode 原版设计系统）→ AntD Design Token 映射
- * （构图规范——壳层/页面模板——见 docs/ui-mapping.md，本文件只管 token 值）
+ * HGXT 视觉系统 · 唯一的原始色值 / 尺寸来源（docs/ui-mapping.md 约定）
  *
- * DESIGN.md 是 Tailwind 语法的设计系统，本项目不引入 Tailwind，
- * 而是把它的 token 值映射到 AntD 主题上：
- *   - --ui-font-size: 14px  → fontSize: 14（AntD 默认值正好一致）
- *   - rounded-xl(12) 卡片   → borderRadiusLG: 12
- *   - rounded-lg(8)  控件   → borderRadius: 8
- *   - rounded-md(6)  嵌套件 → borderRadiusSM: 6
- *   - 对话框 rounded-2xl(16)→ Modal.borderRadiusLG: 16
- *   - 控件高度 h-8(32px)    → controlHeight: 32
+ * 语言：中性单色 + 一抹靛紫强调色（Linear / Vercel 一类的当代工作台审美）
+ *   - 画布（canvas）承载侧栏，主内容是一块浮起的圆角面板（panel）
+ *   - 主按钮用「墨色」（浅色=近黑 / 深色=近白），强调色只用于焦点、选中、链接与品牌
+ *   - 层次靠背景明度 + 发丝线边框，阴影只给浮层
  *
- * 约束（DESIGN.md「最高优先级」章节的等价物）：
- *   - 业务代码禁止出现任意 px 字号/圆角/颜色，统一走主题 token 或 CSS 变量
- *   - 语义色（success/warning/error）只用于真实语义状态，不做装饰
- *   - 品牌色克制使用：主按钮、链接、选中态；绝不做整面填充
- *
- * 原始色值只允许出现在本文件（docs/ui-mapping.md 约定）。
+ * 同一份 palette 同时产出：
+ *   1. AntD ThemeConfig（组件 token）
+ *   2. `--hg-*` CSS 变量（ThemeProvider 写到 <html>，自定义样式只引用变量）
  */
 import { theme, type ThemeConfig } from 'antd';
 
-/** 克制的极客蓝品牌色 */
-export const brandPrimary = '#2f54eb';
+export type ThemeMode = 'light' | 'dark';
 
-const baseToken = {
-  colorPrimary: brandPrimary,
-  colorInfo: brandPrimary,
-  colorLink: brandPrimary,
+export interface Palette {
+  /** 画布：侧栏与面板外的底色 */
+  canvas: string;
+  /** 主面板 / 卡片表面 */
+  panel: string;
+  /** 面板内的弱分区（表头、工具条底） */
+  subtle: string;
+  /** 浮层（下拉、弹窗、气泡） */
+  elevated: string;
+  /** 交互填充：悬停 / 选中 / 输入底 */
+  fill: string;
+  fillHover: string;
+  fillStrong: string;
+  /** 边框：border 用于控件，hairline 用于结构分隔 */
+  border: string;
+  borderHover: string;
+  hairline: string;
+  /** 文本三级 + 占位 */
+  text: string;
+  text2: string;
+  text3: string;
+  text4: string;
+  /** 墨色主按钮 */
+  ink: string;
+  inkHover: string;
+  inkActive: string;
+  onInk: string;
+  /** 强调色（焦点、选中、链接、品牌） */
+  accent: string;
+  accentHover: string;
+  accentSoft: string;
+  accentText: string;
+  /** 语义色：只表达真实状态 */
+  success: string;
+  successSoft: string;
+  warning: string;
+  warningSoft: string;
+  danger: string;
+  dangerSoft: string;
+  /** 阴影：xs 用于选中胶囊 / 面板，overlay 用于浮层 */
+  shadowXs: string;
+  shadowPanel: string;
+  shadowOverlay: string;
+  /** 焦点环 */
+  focusRing: string;
+  /** 品牌标识渐变（仅品牌图形使用） */
+  brandFrom: string;
+  brandTo: string;
+  onBrand: string;
+}
 
-  // 字号刻度：--ui-font-size 默认 14px
-  fontSize: 14,
-  fontSizeHeading1: 24,
-  fontSizeHeading2: 20,
-  fontSizeHeading3: 18,
-  fontSizeHeading4: 16,
-  fontSizeHeading5: 14,
-
-  // 圆角层级：容器 12 → 控件 8 → 嵌套 6
-  borderRadius: 8,
-  borderRadiusLG: 12,
-  borderRadiusSM: 6,
-
-  // 密度：h-8 为默认控件高度
-  controlHeight: 32,
-
-  // 动效：快而克制（DESIGN.md Motion）
-  motionDurationFast: '0.1s',
-  motionDurationMid: '0.15s',
-  motionDurationSlow: '0.2s',
+export const palettes: Record<ThemeMode, Palette> = {
+  light: {
+    canvas: '#f4f4f5',
+    panel: '#ffffff',
+    subtle: '#fafafa',
+    elevated: '#ffffff',
+    fill: '#f4f4f5',
+    fillHover: '#ececee',
+    fillStrong: '#e4e4e7',
+    border: '#e4e4e7',
+    borderHover: '#d4d4d8',
+    hairline: '#ececef',
+    text: '#09090b',
+    text2: '#52525b',
+    text3: '#8e8e96',
+    text4: '#b4b4bb',
+    ink: '#18181b',
+    inkHover: '#303036',
+    inkActive: '#000000',
+    onInk: '#fafafa',
+    accent: '#5b5bd6',
+    accentHover: '#4c4cc4',
+    accentSoft: 'rgba(91, 91, 214, 0.09)',
+    accentText: '#4a4ac2',
+    success: '#16a34a',
+    successSoft: 'rgba(22, 163, 74, 0.10)',
+    warning: '#d97706',
+    warningSoft: 'rgba(217, 119, 6, 0.10)',
+    danger: '#e5484d',
+    dangerSoft: 'rgba(229, 72, 77, 0.09)',
+    shadowXs: '0 1px 2px rgba(9, 9, 11, 0.05), 0 0 0 1px rgba(9, 9, 11, 0.04)',
+    shadowPanel: '0 1px 2px rgba(9, 9, 11, 0.04), 0 0 0 1px rgba(9, 9, 11, 0.05)',
+    shadowOverlay:
+      '0 0 0 1px rgba(9, 9, 11, 0.06), 0 12px 32px -8px rgba(9, 9, 11, 0.16), 0 4px 8px -4px rgba(9, 9, 11, 0.06)',
+    focusRing: '0 0 0 3px rgba(91, 91, 214, 0.18)',
+    brandFrom: '#6d6de8',
+    brandTo: '#2a2a8f',
+    onBrand: '#ffffff',
+  },
+  dark: {
+    canvas: '#09090b',
+    panel: '#111113',
+    subtle: '#141416',
+    elevated: '#18181b',
+    fill: '#1c1c1f',
+    fillHover: '#232327',
+    fillStrong: '#2a2a2f',
+    border: '#2a2a2f',
+    borderHover: '#3a3a40',
+    hairline: '#1f1f23',
+    text: '#fafafa',
+    text2: '#a1a1aa',
+    text3: '#71717a',
+    text4: '#52525b',
+    ink: '#f4f4f5',
+    inkHover: '#ffffff',
+    inkActive: '#d4d4d8',
+    onInk: '#09090b',
+    accent: '#8e8ef5',
+    accentHover: '#a3a3f8',
+    accentSoft: 'rgba(142, 142, 245, 0.13)',
+    accentText: '#b4b4fa',
+    success: '#3dd68c',
+    successSoft: 'rgba(61, 214, 140, 0.12)',
+    warning: '#f5a524',
+    warningSoft: 'rgba(245, 165, 36, 0.12)',
+    danger: '#ff6369',
+    dangerSoft: 'rgba(255, 99, 105, 0.12)',
+    shadowXs: '0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06)',
+    shadowPanel: '0 0 0 1px rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.5)',
+    shadowOverlay:
+      '0 0 0 1px rgba(255, 255, 255, 0.08), 0 16px 40px -8px rgba(0, 0, 0, 0.7), 0 4px 12px -4px rgba(0, 0, 0, 0.5)',
+    focusRing: '0 0 0 3px rgba(142, 142, 245, 0.25)',
+    brandFrom: '#9d9df8',
+    brandTo: '#4b4bc8',
+    onBrand: '#ffffff',
+  },
 };
 
-/** 浮层用轻阴影（Overlay 级）；卡片等普通表面靠背景对比 + 边框，不用大阴影 */
-const overlayShadow = '0 4px 16px rgba(0, 0, 0, 0.08)';
+const fontSans =
+  "'Geist Variable', 'Geist', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'HarmonyOS Sans SC', 'MiSans', 'Microsoft YaHei UI', 'Microsoft YaHei', 'Noto Sans SC', sans-serif";
+const fontMono =
+  "'Geist Mono Variable', 'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace";
 
-const sharedComponents = {
-  Card: {
-    paddingLG: 20,
-  },
-  Modal: {
-    // 对话框 rounded-2xl(16)
-    borderRadiusLG: 16,
-  },
-  Table: {
-    headerSplitColor: 'transparent',
-    cellPaddingBlock: 12,
-    cellPaddingInline: 12,
-  },
-};
+/** palette → `--hg-*` CSS 变量（驼峰转短横线），由 ThemeProvider 挂到 <html> */
+export function paletteCssVars(p: Palette): Record<string, string> {
+  const vars: Record<string, string> = {
+    '--hg-font-sans': fontSans,
+    '--hg-font-mono': fontMono,
+  };
+  for (const [key, value] of Object.entries(p)) {
+    vars[`--hg-${key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`] = value;
+  }
+  return vars;
+}
 
-/** 菜单选中态：弱背景 + 文字品牌强调（不用大面积蓝色胶囊），左缘品牌条见 layout.css */
-const menuTokens = (selectedBg: string, selectedColor: string) => ({
-  itemHeight: 38,
-  itemMarginInline: 10,
-  itemMarginBlock: 3,
-  itemBorderRadius: 6,
-  itemSelectedBg: selectedBg,
-  itemSelectedColor: selectedColor,
-  activeBarBorderWidth: 0,
-  subMenuItemBg: 'transparent',
-});
+function buildTheme(mode: ThemeMode): ThemeConfig {
+  const p = palettes[mode];
+  return {
+    cssVar: { key: 'hgxt' },
+    algorithm: mode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
+    token: {
+      // 品牌 / 强调
+      colorPrimary: p.accent,
+      colorInfo: p.accent,
+      colorLink: p.accentText,
+      colorLinkHover: p.accent,
+      colorSuccess: p.success,
+      colorWarning: p.warning,
+      colorError: p.danger,
 
-export const lightTheme: ThemeConfig = {
-  cssVar: { key: 'hgxt' },
-  algorithm: theme.defaultAlgorithm,
-  token: {
-    ...baseToken,
-    boxShadowSecondary: overlayShadow,
-  },
-  components: {
-    ...sharedComponents,
-    Layout: {
-      headerHeight: 52,
-      headerPadding: '0 24px',
-      // 结构表面用中性色 + 边框分隔，而不是深色整面（DESIGN.md: 结构表面仅用于布局）
-      headerBg: '#ffffff',
-      siderBg: '#ffffff',
-      bodyBg: '#f5f6f8',
-    },
-    Menu: menuTokens('rgba(47, 84, 235, 0.08)', brandPrimary),
-    Table: {
-      ...sharedComponents.Table,
-      headerBg: '#fafafa',
-    },
-  },
-};
+      // 表面分层
+      colorBgLayout: p.canvas,
+      colorBgContainer: p.panel,
+      colorBgElevated: p.elevated,
+      colorBgSpotlight: mode === 'dark' ? p.fillStrong : p.ink,
+      colorBgMask: mode === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(9, 9, 11, 0.32)',
+      colorFillQuaternary: p.subtle,
+      colorFillTertiary: p.fill,
+      colorFillSecondary: p.fillHover,
+      colorFill: p.fillStrong,
+      colorBgTextHover: p.fill,
+      colorBgTextActive: p.fillHover,
+      controlItemBgHover: p.fill,
+      controlItemBgActive: p.accentSoft,
+      controlItemBgActiveHover: p.accentSoft,
 
-export const darkTheme: ThemeConfig = {
-  cssVar: { key: 'hgxt' },
-  algorithm: theme.darkAlgorithm,
-  token: {
-    ...baseToken,
-    boxShadowSecondary: '0 4px 16px rgba(0, 0, 0, 0.4)',
-  },
-  components: {
-    ...sharedComponents,
-    Layout: {
-      headerHeight: 52,
-      headerPadding: '0 24px',
-      headerBg: '#141414',
-      siderBg: '#141414',
-      bodyBg: '#0a0a0a',
+      // 边框与文本
+      colorBorder: p.border,
+      colorBorderSecondary: p.hairline,
+      colorSplit: p.hairline,
+      colorText: p.text,
+      colorTextHeading: p.text,
+      colorTextSecondary: p.text2,
+      colorTextTertiary: p.text3,
+      colorTextQuaternary: p.text4,
+      colorTextPlaceholder: p.text4,
+      colorTextDescription: p.text3,
+
+      // 字体与字号（--ui-font-size 默认 14）
+      fontFamily: fontSans,
+      fontFamilyCode: fontMono,
+      fontSize: 14,
+      fontSizeSM: 12,
+      fontSizeLG: 16,
+      fontSizeHeading1: 24,
+      fontSizeHeading2: 20,
+      fontSizeHeading3: 18,
+      fontSizeHeading4: 16,
+      fontSizeHeading5: 14,
+
+      // 圆角层级：面板/卡片 12 → 控件 8 → 嵌套 6
+      borderRadius: 8,
+      borderRadiusLG: 12,
+      borderRadiusSM: 6,
+      borderRadiusXS: 4,
+
+      controlHeight: 32,
+      controlHeightSM: 28,
+      controlHeightLG: 40,
+      controlOutline: p.accentSoft,
+      controlOutlineWidth: 3,
+      lineWidthFocus: 2,
+
+      boxShadow: p.shadowOverlay,
+      boxShadowSecondary: p.shadowOverlay,
+      boxShadowTertiary: p.shadowXs,
+
+      motionDurationFast: '0.1s',
+      motionDurationMid: '0.16s',
+      motionDurationSlow: '0.22s',
+      motionEaseInOut: 'cubic-bezier(0.32, 0.72, 0, 1)',
+      motionEaseOut: 'cubic-bezier(0.16, 1, 0.3, 1)',
     },
-    Menu: menuTokens('rgba(255, 255, 255, 0.09)', '#ffffff'),
-    Table: {
-      ...sharedComponents.Table,
-      headerBg: '#1d1d1d',
+    components: {
+      Layout: {
+        bodyBg: p.canvas,
+        siderBg: 'transparent',
+        headerBg: 'transparent',
+        headerHeight: 52,
+        headerPadding: '0 20px',
+      },
+      Button: {
+        // 主按钮 = 墨色（强调色留给焦点/选中/链接）
+        colorPrimary: p.ink,
+        colorPrimaryHover: p.inkHover,
+        colorPrimaryActive: p.inkActive,
+        primaryColor: p.onInk,
+        primaryShadow: 'none',
+        defaultShadow: 'none',
+        dangerShadow: 'none',
+        defaultBorderColor: p.border,
+        defaultHoverBorderColor: p.borderHover,
+        defaultHoverColor: p.text,
+        defaultHoverBg: p.subtle,
+        defaultActiveBorderColor: p.borderHover,
+        defaultActiveColor: p.text,
+        textHoverBg: p.fill,
+        fontWeight: 500,
+        paddingInline: 14,
+      },
+      Input: {
+        activeBorderColor: p.accent,
+        hoverBorderColor: p.borderHover,
+        activeShadow: p.focusRing,
+        paddingInline: 10,
+      },
+      InputNumber: {
+        activeBorderColor: p.accent,
+        hoverBorderColor: p.borderHover,
+        activeShadow: p.focusRing,
+      },
+      Select: {
+        activeBorderColor: p.accent,
+        hoverBorderColor: p.borderHover,
+        activeOutlineColor: p.accentSoft,
+        optionSelectedBg: p.fill,
+        optionSelectedFontWeight: 500,
+        optionActiveBg: p.fill,
+      },
+      Form: {
+        itemMarginBottom: 18,
+        verticalLabelPadding: '0 0 6px',
+        labelColor: p.text2,
+      },
+      Card: {
+        paddingLG: 20,
+        colorBorderSecondary: p.hairline,
+      },
+      Table: {
+        headerBg: p.subtle,
+        headerColor: p.text3,
+        headerSplitColor: 'transparent',
+        headerBorderRadius: 0,
+        borderColor: p.hairline,
+        rowHoverBg: p.subtle,
+        cellPaddingBlock: 13,
+        cellPaddingInline: 16,
+        footerBg: 'transparent',
+      },
+      Menu: {
+        itemBg: 'transparent',
+        subMenuItemBg: 'transparent',
+        itemHeight: 34,
+        itemMarginInline: 0,
+        itemMarginBlock: 2,
+        itemPaddingInline: 10,
+        itemBorderRadius: 8,
+        itemColor: p.text2,
+        itemHoverColor: p.text,
+        itemHoverBg: p.fillHover,
+        itemActiveBg: p.fillStrong,
+        itemSelectedBg: p.panel,
+        itemSelectedColor: p.text,
+        groupTitleColor: p.text3,
+        groupTitleFontSize: 12,
+        iconSize: 16,
+        iconMarginInlineEnd: 10,
+        activeBarBorderWidth: 0,
+        activeBarWidth: 0,
+      },
+      Dropdown: {
+        paddingBlock: 6,
+        controlItemBgHover: p.fill,
+      },
+      Modal: {
+        borderRadiusLG: 16,
+        contentBg: p.elevated,
+        headerBg: p.elevated,
+        titleFontSize: 16,
+      },
+      Popover: {
+        borderRadiusLG: 12,
+      },
+      Tag: {
+        defaultBg: p.fill,
+        defaultColor: p.text2,
+      },
+      Pagination: {
+        itemActiveBg: p.fill,
+        itemBg: 'transparent',
+      },
+      Tooltip: {
+        colorTextLightSolid: mode === 'dark' ? p.text : p.onInk,
+      },
+      Message: {
+        contentPadding: '8px 14px',
+      },
+      Segmented: {
+        itemSelectedBg: p.panel,
+        trackBg: p.fill,
+      },
     },
-  },
-};
+  };
+}
+
+export const lightTheme = buildTheme('light');
+export const darkTheme = buildTheme('dark');

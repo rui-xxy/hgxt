@@ -1,109 +1,623 @@
-.forms-list-toolbar,
-.forms-sheet-toolbar {
+/**
+ * 表单系统：数据表（DataSheet）、停车记录、移动端填报页。
+ * 约束同 layout.css：颜色只用 --hg-*，字号只用 --ui-font-size-*，圆角只用 --hg-radius-*。
+ */
+
+/* ================= 数据表 ================= */
+
+.forms-sheet-notice {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--hg-hairline);
+  background: var(--hg-subtle);
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-sm);
+}
+
+.forms-sheet-scroll {
+  overflow: auto;
+  max-height: calc(100vh - 236px);
+  min-height: 240px;
+}
+
+.forms-sheet-table {
+  width: 100%;
+  table-layout: fixed;
+  border-spacing: 0;
+  color: var(--hg-text);
+}
+
+.forms-sheet-table th,
+.forms-sheet-table td {
+  box-sizing: border-box;
+  overflow: hidden;
+  border-right: 1px solid var(--hg-hairline);
+  border-bottom: 1px solid var(--hg-hairline);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 表头：两行（分组 / 字段），弱底色 + 小号字，吸顶 */
+.forms-sheet-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 0 8px;
+  background: var(--hg-subtle);
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-sm);
+  font-weight: 500;
+}
+
+.forms-sheet-table thead tr:first-child th {
+  height: 28px;
+}
+
+.forms-sheet-table thead tr:nth-child(2) th {
+  top: 28px;
+  height: 40px;
+  color: var(--hg-text2);
+}
+
+.forms-sheet-table thead th[rowspan] {
+  height: 68px;
+}
+
+/* 分组色带：相邻分组交替，用于在宽表里分辨字段归属（两套主题都只用中性色） */
+.forms-sheet-table thead .forms-sheet-tone-1 {
+  background: var(--hg-fill);
+}
+
+.forms-sheet-table tbody .forms-sheet-tone-1 {
+  background: var(--hg-subtle);
+}
+
+.forms-sheet-group {
+  color: var(--hg-text2) !important;
+  letter-spacing: 0.02em;
+}
+
+.forms-sheet-field small {
+  margin-left: 3px;
+  color: var(--hg-text4);
+  font-size: var(--ui-font-size-xs);
+  font-weight: 400;
+}
+
+/* 冻结列：序号 / 停车记录 / 操作 / 主日期 */
+.forms-sheet-table .forms-sheet-sticky {
+  position: sticky;
+  z-index: 10;
+  background: var(--hg-panel);
+}
+
+.forms-sheet-table thead .forms-sheet-sticky {
+  z-index: 30;
+  background: var(--hg-subtle);
+}
+
+.forms-sheet-table .forms-sheet-sticky-0 {
+  left: 0;
+}
+
+.forms-sheet-table .forms-sheet-date.forms-sheet-sticky {
+  z-index: 12;
+  box-shadow: 1px 0 0 var(--hg-border);
+}
+
+.forms-sheet-table thead .forms-sheet-date.forms-sheet-sticky {
+  z-index: 31;
+}
+
+.forms-sheet-table tbody td {
+  height: 40px;
+  font-size: var(--ui-font-size-base);
+}
+
+.forms-sheet-table tbody tr:hover td {
+  background: var(--hg-fill);
+}
+
+.forms-sheet-rowno {
+  color: var(--hg-text4);
+  font-family: var(--hg-font-mono);
+  font-size: var(--ui-font-size-sm) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.forms-sheet-cell {
+  padding: 0 10px;
+  cursor: text;
+  font-variant-numeric: tabular-nums;
+}
+
+.forms-sheet-cell.forms-sheet-changed,
+.forms-sheet-table tbody tr:hover td.forms-sheet-changed {
+  background: var(--hg-warning-soft);
+  color: var(--hg-warning);
+  font-weight: 500;
+}
+
+/* 活动单元格：2px 强调色内描边 + 面板底，像电子表格的选区 */
+.forms-sheet-table tbody td.forms-sheet-active,
+.forms-sheet-table tbody tr:hover td.forms-sheet-active {
+  background: var(--hg-panel);
+  box-shadow: inset 0 0 0 2px var(--hg-accent);
+}
+
+.forms-sheet-cell input,
+.forms-sheet-cell select {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 38px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--hg-text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.forms-sheet-cell input::selection {
+  background: var(--hg-accent-soft);
+  color: var(--hg-text);
+}
+
+.forms-sheet-parking-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--hg-border);
+  border-radius: var(--hg-radius-sm);
+  background: transparent;
+  color: var(--hg-text3);
+  font: inherit;
+  font-size: var(--ui-font-size-sm);
+  cursor: pointer;
+  transition: border-color 0.16s var(--hg-ease), color 0.16s var(--hg-ease);
+}
+
+.forms-sheet-parking-btn:hover:not(:disabled) {
+  border-color: var(--hg-border-hover);
+  color: var(--hg-text);
+}
+
+.forms-sheet-parking-btn.has-records {
+  border-color: transparent;
+  background: var(--hg-accent-soft);
+  color: var(--hg-accent-text);
+}
+
+.forms-sheet-parking-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.forms-sheet-delete.ant-btn {
+  color: var(--hg-text4);
+}
+
+.forms-sheet-delete.ant-btn:not(:disabled):hover {
+  background: var(--hg-danger-soft) !important;
+  color: var(--hg-danger) !important;
+}
+
+.forms-sheet-confirm-icon {
+  margin-top: 2px;
+  margin-inline-end: 8px;
+  color: var(--hg-danger);
+}
+
+/* 空态放在表格之后、吸附在可视区域左侧，宽表横向滚动时也居中于可见范围 */
+.forms-sheet-empty {
+  position: sticky;
+  left: 0;
+}
+
+/* ================= 停车记录卡片（弹窗与填报页共用） ================= */
+
+.forms-parking-editor {
+  display: grid;
+  gap: 12px;
+  max-height: 65vh;
+  overflow: auto;
+  padding: 8px 0 4px;
+}
+
+.forms-parking-card {
+  padding: 12px 14px 14px;
+  border: 1px solid var(--hg-hairline);
+  border-radius: var(--hg-radius-lg);
+  background: var(--hg-subtle);
+}
+
+.forms-parking-card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.forms-parking-card-head strong {
+  font-size: var(--ui-font-size-caption);
+  font-weight: 600;
+}
+
+.forms-parking-card label {
+  display: grid;
+  gap: 4px;
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-sm);
+}
+
+.forms-parking-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* ================= 移动端填报页 ================= */
+
+.forms-fill-shell {
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--hg-canvas);
+}
+
+.forms-fill-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 520px);
+  height: 100vh;
+  height: 100dvh;
+  background: var(--hg-panel);
+  box-shadow: var(--hg-shadow-panel);
+}
+
+.forms-fill-loading {
+  padding: 24px 20px;
+}
+
+/* 头部：返回 + 标题/日期 + 必填计数，底部一条进度细线 */
+.forms-fill-header {
+  flex: none;
+  position: relative;
+  padding: 12px 16px 12px 10px;
+  border-bottom: 1px solid var(--hg-hairline);
+}
+
+.forms-fill-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.forms-fill-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.forms-fill-heading h1 {
+  margin: 0;
+  overflow: hidden;
+  color: var(--hg-text);
+  font-size: var(--ui-font-size-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.forms-fill-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-sm);
+}
+
+.forms-fill-count {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--hg-fill);
+  color: var(--hg-text2);
+  font-size: var(--ui-font-size-sm);
+  font-weight: 600;
+  transition: background-color 0.2s var(--hg-ease), color 0.2s var(--hg-ease);
+}
+
+.forms-fill-count.is-complete {
+  background: var(--hg-success-soft);
+  color: var(--hg-success);
+}
+
+.forms-fill-progress {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  overflow: hidden;
+}
+
+.forms-fill-progress span {
+  display: block;
+  height: 100%;
+  background: var(--hg-accent);
+  transform-origin: left center;
+  transition: transform 0.4s var(--hg-ease);
+}
+
+/* 分组 tab：分段控件 */
+.forms-fill-tabs {
+  flex: none;
+  padding: 10px 16px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--hg-hairline);
+  scrollbar-width: none;
+}
+
+.forms-fill-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.forms-fill-tabs-inner {
+  display: flex;
+  gap: 2px;
+  width: max-content;
+  min-width: 100%;
+  box-sizing: border-box;
+  padding: 3px;
+  border-radius: var(--hg-radius-md);
+  background: var(--hg-fill);
+}
+
+.forms-fill-tabs button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--hg-radius-sm);
+  background: transparent;
+  color: var(--hg-text2);
+  font: inherit;
+  font-size: var(--ui-font-size-caption);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.16s var(--hg-ease), color 0.16s var(--hg-ease), box-shadow 0.16s var(--hg-ease);
+}
+
+.forms-fill-tabs button:hover {
+  color: var(--hg-text);
+}
+
+.forms-fill-tabs button.active {
+  background: var(--hg-panel);
+  box-shadow: var(--hg-shadow-xs);
+  color: var(--hg-text);
+}
+
+.forms-fill-tabs button b {
+  min-width: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--hg-fill-strong);
+  color: var(--hg-text2);
+  font-size: var(--ui-font-size-xs);
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.forms-fill-tabs button.active b {
+  background: var(--hg-ink);
+  color: var(--hg-on-ink);
+}
+
+.forms-fill-tab-done {
+  color: var(--hg-success);
+}
+
+.forms-fill-tab-icon {
+  color: var(--hg-text3);
+}
+
+/* 字段行：左标签（含上次值），右输入 */
+.forms-fill-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.forms-fill-row {
+  display: flex;
+  align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--ant-color-border-secondary);
+  min-height: 68px;
+  box-sizing: border-box;
+  padding: 10px 16px 10px 20px;
+  border-bottom: 1px solid var(--hg-hairline);
+  transition: background-color 0.16s var(--hg-ease);
 }
-.forms-muted { color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); }
-.forms-list-title { color: var(--ant-color-text); font-weight: 500; }
-.forms-date-value { color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); }
-.forms-back { display: inline-flex; margin-right: 12px; color: var(--ant-color-text-secondary); }
-.forms-back:hover { color: var(--ant-color-text); }
-.forms-unsaved { color: var(--ant-color-warning); font-size: var(--ui-font-size-sm); }
-.forms-saved { color: var(--ant-color-success); font-size: var(--ui-font-size-sm); }
-.forms-sheet-notice { padding: 8px 16px; color: var(--ant-color-text-secondary); border-bottom: 1px solid var(--ant-color-border-secondary); font-size: var(--ui-font-size-sm); }
-.forms-sheet-scroll { overflow: auto; max-height: calc(100vh - 300px); }
-.forms-sheet-table { border-spacing: 0; table-layout: fixed; width: 100%; color: var(--ant-color-text); }
-.forms-sheet-table th,
-.forms-sheet-table td { box-sizing: border-box; border-right: 1px solid var(--ant-color-border-secondary); border-bottom: 1px solid var(--ant-color-border-secondary); text-align: center; white-space: nowrap; overflow: hidden; }
-.forms-sheet-table thead th { position: sticky; top: 0; z-index: 20; background: var(--ant-color-bg-container); color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); font-weight: 600; }
-.forms-sheet-table thead tr:first-child th { height: 24px; }
-.forms-sheet-table thead tr:nth-child(2) th { top: 24px; height: 44px; }
-.forms-sheet-table thead th[rowspan] { height: 68px; }
-.forms-sheet-table .forms-sheet-sticky { position: sticky; z-index: 10; background: var(--ant-color-bg-container); }
-.forms-sheet-table thead .forms-sheet-sticky { z-index: 30; background: var(--ant-color-bg-container); }
-.forms-sheet-table .forms-sheet-sticky-0 { left: 0; }
-.forms-sheet-table .forms-sheet-date.forms-sheet-sticky { z-index: 12; background: var(--ant-color-bg-container); }
-.forms-sheet-table thead .forms-sheet-date.forms-sheet-sticky { z-index: 31; background: var(--ant-color-bg-container); }
-.forms-sheet-table .forms-sheet-tone-0 { background: var(--ant-color-bg-container); }
-.forms-sheet-table .forms-sheet-tone-1 { background: var(--ant-color-bg-container); }
-.forms-sheet-table thead .forms-sheet-tone-0 { background: var(--ant-color-bg-container); }
-.forms-sheet-table thead .forms-sheet-tone-1 { background: var(--ant-color-bg-layout); }
-.forms-sheet-group { font-size: var(--ui-font-size-sm) !important; font-weight: 500 !important; }
-.forms-sheet-field small { margin-left: 3px; color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-xs); font-weight: 400; }
-.forms-sheet-table tbody td { height: 44px; font-size: var(--ui-font-size-base); }
-.forms-sheet-table tbody tr:hover td:not(.forms-sheet-sticky) { background: var(--ant-color-fill-quaternary); }
-.forms-sheet-rowno { color: var(--ant-color-text-tertiary); font-variant-numeric: tabular-nums; }
-.forms-sheet-cell { cursor: text; padding: 0 8px; font-variant-numeric: tabular-nums; }
-.forms-sheet-cell.forms-sheet-changed { color: var(--ant-color-warning); background: var(--ant-color-warning-bg); }
-.forms-sheet-table tbody tr:hover td.forms-sheet-changed { background: var(--ant-color-warning-bg); }
-.forms-sheet-cell.forms-sheet-active { outline: 1px solid var(--ant-color-primary); outline-offset: -1px; }
-.forms-sheet-cell input,
-.forms-sheet-cell select { box-sizing: border-box; display: block; width: 100%; height: 100%; min-height: 42px; padding: 0; border: 0; outline: 0; box-shadow: none; background: transparent; color: var(--ant-color-text); text-align: center; font: inherit; font-variant-numeric: tabular-nums; }
-.forms-sheet-cell input::selection { background: var(--ant-color-fill-secondary); color: var(--ant-color-text); }
-.forms-sheet-empty { padding: 24px 16px; color: var(--ant-color-text-tertiary); }
-.forms-sheet-empty .ant-empty { margin-block: 12px; }
 
-.forms-parking-editor { display: grid; gap: 12px; max-height: 65vh; overflow: auto; padding: 12px 0; }
-.forms-parking-card { padding: 12px; border: 1px solid var(--ant-color-border-secondary); border-radius: var(--ant-border-radius-sm); background: var(--ant-color-fill-quaternary); }
-.forms-parking-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.forms-parking-card label { display: grid; gap: 4px; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); }
-.forms-parking-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 8px; }
+.forms-fill-row:focus-within {
+  background: var(--hg-subtle);
+}
 
-.forms-fill-shell,
-.forms-fill-success { min-height: 100vh; display: flex; justify-content: center; background: var(--ant-color-bg-layout); }
-.forms-fill-panel { width: min(100%, 480px); height: 100vh; display: flex; flex-direction: column; background: var(--ant-color-bg-container); }
-.forms-fill-header { flex: none; padding: 12px 20px; border-bottom: 1px solid var(--ant-color-border-secondary); }
-.forms-fill-header h1 { margin: 0 0 2px; font-size: var(--ui-font-size-lg); font-weight: 600; line-height: 1.3; }
-.forms-fill-header span { color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); }
-.forms-fill-tabs { flex: none; padding: 10px 16px; overflow-x: auto; border-bottom: 1px solid var(--ant-color-border-secondary); scrollbar-width: none; }
-.forms-fill-tabs::-webkit-scrollbar { display: none; }
-.forms-fill-tabs-inner { display: flex; gap: 4px; width: max-content; min-width: 100%; padding: 4px; border-radius: var(--ant-border-radius-sm); background: var(--ant-color-fill-quaternary); }
-.forms-fill-tabs button { flex: none; height: 32px; padding: 0 12px; border: 1px solid transparent; border-radius: var(--ant-border-radius-sm); background: transparent; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-caption); font-weight: 500; cursor: pointer; white-space: nowrap; }
-.forms-fill-tabs button.active { border-color: var(--ant-color-border-secondary); background: var(--ant-color-bg-container); color: var(--ant-color-text); }
-.forms-fill-tabs button b { display: inline-block; min-width: 15px; margin-left: 6px; padding: 1px 4px; border-radius: var(--ant-border-radius-sm); background: var(--ant-color-fill-secondary); color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-xs); }
-.forms-fill-tabs button.active b { background: var(--ant-color-text); color: var(--ant-color-bg-container); }
-.forms-fill-content { flex: 1; min-height: 0; overflow-y: auto; }
-.forms-fill-row { box-sizing: border-box; min-height: 64px; display: flex; align-items: center; gap: 12px; padding: 8px 20px; border-bottom: 1px solid var(--ant-color-border-secondary); }
-.forms-fill-label { flex: 1; min-width: 0; display: grid; gap: 2px; }
-.forms-fill-label strong { font-size: var(--ui-font-size-base); font-weight: 500; }
-.forms-fill-label em { margin-left: 4px; color: var(--ant-color-error); font-style: normal; }
-.forms-fill-label small { color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); overflow: hidden; text-overflow: ellipsis; }
-.forms-fill-last { flex: none; width: 76px; display: grid; justify-items: end; gap: 2px; font-variant-numeric: tabular-nums; min-width: 0; }
-.forms-fill-last small { color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-xs); }
-.forms-fill-last strong { max-width: 100%; overflow: hidden; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-caption); text-overflow: ellipsis; white-space: nowrap; }
-.forms-fill-entry { flex: none; display: flex; align-items: center; gap: 4px; }
+.forms-fill-label {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+  min-width: 0;
+}
+
+.forms-fill-label strong {
+  color: var(--hg-text);
+  font-size: var(--ui-font-size-base);
+  font-weight: 500;
+}
+
+.forms-fill-label em {
+  margin-left: 3px;
+  color: var(--hg-danger);
+  font-style: normal;
+}
+
+.forms-fill-label small {
+  overflow: hidden;
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-sm);
+  text-overflow: ellipsis;
+}
+
+.forms-fill-last {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  color: var(--hg-text4);
+  font-size: var(--ui-font-size-sm);
+}
+
+.forms-fill-last-value {
+  overflow: hidden;
+  color: var(--hg-text2);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 输入：单位嵌在输入框内（焦点环作用于整个壳） */
+.forms-fill-entry {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: 36px;
+  box-sizing: border-box;
+  border: 1px solid var(--hg-border);
+  border-radius: var(--hg-radius-md);
+  background: var(--hg-panel);
+  transition: border-color 0.16s var(--hg-ease), box-shadow 0.16s var(--hg-ease);
+}
+
+.forms-fill-entry:hover {
+  border-color: var(--hg-border-hover);
+}
+
+.forms-fill-entry:focus-within {
+  border-color: var(--hg-accent);
+  box-shadow: var(--hg-focus-ring);
+}
+
+.forms-fill-row.filled .forms-fill-entry {
+  background: var(--hg-subtle);
+}
+
 .forms-fill-entry input,
-.forms-fill-entry select { box-sizing: border-box; height: 32px; padding: 0 8px; border: 1px solid var(--ant-color-border); border-radius: var(--ant-border-radius); background: var(--ant-color-bg-container); color: var(--ant-color-text); font-size: var(--ui-font-size-base); font-weight: 400; outline: none; font-variant-numeric: tabular-nums; }
-.forms-fill-entry-number input { width: 96px; text-align: right; font-weight: 500; }
-.forms-fill-entry-text input { width: 160px; text-align: left; }
-.forms-fill-entry-date input { width: 140px; text-align: left; }
-.forms-fill-entry-select select { width: 140px; text-align: left; }
-.forms-fill-entry input::placeholder { color: var(--ant-color-text-tertiary); }
-.forms-fill-entry input:hover,
-.forms-fill-entry select:hover { border-color: var(--ant-color-border); }
-.forms-fill-entry input:focus,
-.forms-fill-entry select:focus { border-color: var(--ant-color-primary); }
-.forms-fill-entry span { min-width: 20px; color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); font-weight: 600; }
-.forms-fill-parking { padding: 16px 20px; display: grid; gap: 10px; }
-.forms-fill-parking > strong { font-size: var(--ui-font-size-sm); }
-.forms-fill-parking > p { margin: 0; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); }
-.forms-fill-footer { flex: none; padding: 12px 20px; border-top: 1px solid var(--ant-color-border-secondary); background: var(--ant-color-bg-container); }
-.forms-fill-success { align-items: center; padding: 24px; }
-.forms-fill-success-card { width: min(100%, 400px); padding: 32px; border: 1px solid var(--ant-color-border-secondary); border-radius: var(--ant-border-radius-lg); background: var(--ant-color-bg-container); text-align: center; }
-.forms-fill-success-icon { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; background: var(--ant-color-success-bg); color: var(--ant-color-success); font-size: var(--ui-font-size-xl); }
-.forms-fill-success-card h1 { margin: 0 0 4px; font-size: var(--ui-font-size-xl); }
-.forms-fill-success-card p { margin: 0 0 24px; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); }
-@media (max-width: 480px) {
-  .forms-fill-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; padding-left: 16px; padding-right: 16px; gap: 6px 12px; }
-  .forms-fill-last { width: auto; max-width: 92px; }
-  .forms-fill-entry { grid-column: 1 / -1; width: 100%; }
-  .forms-fill-entry-text input,
-  .forms-fill-entry-date input,
-  .forms-fill-entry-select select { width: 100%; }
-  .forms-fill-entry-number input { width: 120px; }
+.forms-fill-entry select {
+  box-sizing: border-box;
+  height: 100%;
+  min-width: 0;
+  padding: 0 10px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--hg-text);
+  font: inherit;
+  font-size: var(--ui-font-size-base);
 }
 
+.forms-fill-entry input::placeholder {
+  color: var(--hg-text4);
+}
+
+.forms-fill-entry-number input {
+  width: 96px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.forms-fill-entry-text input {
+  width: 168px;
+}
+
+.forms-fill-entry-date input,
+.forms-fill-entry-select select {
+  width: 148px;
+}
+
+.forms-fill-suffix {
+  min-width: 18px;
+  padding-inline-end: 10px;
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-sm);
+  font-weight: 500;
+}
+
+.forms-fill-parking {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.forms-fill-parking-intro strong {
+  font-size: var(--ui-font-size-caption);
+}
+
+.forms-fill-parking-intro p {
+  margin: 4px 0 0;
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-sm);
+}
+
+.forms-fill-footer {
+  flex: none;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--hg-hairline);
+  background: var(--hg-panel);
+}
+
+.forms-fill-footer .ant-btn {
+  height: 44px;
+  border-radius: var(--hg-radius-lg);
+}
+
+@media (max-width: 480px) {
+  .forms-fill-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding-inline: 16px;
+  }
+
+  .forms-fill-entry {
+    width: 100%;
+    height: 40px;
+  }
+
+  .forms-fill-entry input,
+  .forms-fill-entry select {
+    flex: 1;
+    width: auto;
+    /* 移动端输入 ≥16px，防 iOS 聚焦缩放（DESIGN.md text-mobile-input-safe） */
+    font-size: var(--ui-font-size-mobile-input);
+  }
+
+  .forms-fill-entry-number input {
+    text-align: left;
+  }
+}

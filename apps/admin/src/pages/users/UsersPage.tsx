@@ -1,12 +1,22 @@
 import { useState } from 'react';
-import { App, Badge, Button, Card, Input, Popconfirm, Space, Table, Tag } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { App, Button, Dropdown, Input, Table, type MenuProps, type TableColumnsType } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Role, UserStatus, type UserDTO } from '@hgxt/shared';
 import { useMe, useUsers } from '../../api/hooks';
 import { createUserApi, deleteUserApi, resetPasswordApi, updateUserApi, updateUserStatusApi } from '../../api/users';
 import { PageHeader } from '../../components/PageHeader';
+import {
+  BanIcon,
+  KeyIcon,
+  MoreIcon,
+  PencilIcon,
+  PlusIcon,
+  SearchIcon,
+  ShieldIcon,
+  TrashIcon,
+  UserCheckIcon,
+} from '../../components/icons';
 import { UserFormModal, type UserFormValues } from './UserFormModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
 
@@ -17,10 +27,11 @@ const roleText: Record<string, string> = {
 
 /**
  * 用户管理：HGXT 数据工作区模板（规范见 docs/ui-mapping.md「页面模板」）——
- * PageHeader（标题 + 说明 + 主操作）→ 同一表面内的 Toolbar（搜索 + 计数）与 Table。
+ * PageHeader（标题 + 计数 + 主操作）→ 同一表面内的 Toolbar（搜索 + 计数）与 Table。
+ * 低频 / 危险操作（禁用、启用、删除）收进行尾「更多」菜单，均需二次确认。
  */
 export function UsersPage() {
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const me = useMe();
   const queryClient = useQueryClient();
 
@@ -117,34 +128,88 @@ export function UsersPage() {
     }
   };
 
-  const columns = [
+  const confirmStatusChange = (record: UserDTO) => {
+    const active = record.status === UserStatus.ACTIVE;
+    modal.confirm({
+      title: active ? `禁用 ${record.name}？` : `启用 ${record.name}？`,
+      content: active ? '禁用后该用户将立即退出登录且无法再登录。' : '启用后该用户可以重新登录。',
+      icon: <span className={`hg-confirm-icon ${active ? 'hg-confirm-icon-danger' : ''}`}>{active ? <BanIcon /> : <UserCheckIcon />}</span>,
+      okText: active ? '禁用' : '启用',
+      okButtonProps: active ? { danger: true } : undefined,
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await statusMutation.mutateAsync({
+            id: record.id,
+            status: active ? UserStatus.DISABLED : UserStatus.ACTIVE,
+          });
+        } catch {
+          // 失败提示已由 onError 的 message 呈现
+        }
+      },
+    });
+  };
+
+  const confirmDelete = (record: UserDTO) => {
+    modal.confirm({
+      title: `删除 ${record.name}（${record.username}）？`,
+      content: '删除后不可恢复。该用户的表单提交记录会保留（提交人显示为空），但账号和登录会话将被彻底移除。',
+      icon: <span className="hg-confirm-icon hg-confirm-icon-danger"><TrashIcon /></span>,
+      okText: '删除',
+      okButtonProps: { danger: true },
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await deleteMutation.mutateAsync(record.id);
+        } catch {
+          // 失败提示已由 onError 的 message 呈现
+        }
+      },
+    });
+  };
+
+  const columns: TableColumnsType<UserDTO> = [
     {
-      title: '用户名',
+      title: '用户',
       dataIndex: 'username',
-      width: 150,
-      render: (username: string) => <span className="mono">{username}</span>,
+      width: 220,
+      render: (_: string, record) => (
+        <div className="hg-cell-user">
+          <span className="hg-avatar">{record.name.charAt(0)}</span>
+          <div className="hg-cell-stack">
+            <span className="hg-cell-primary">
+              {record.name}
+              {record.id === me.data?.id ? <span className="hg-cell-self">你</span> : null}
+            </span>
+            <span className="hg-cell-secondary mono">{record.username}</span>
+          </div>
+        </div>
+      ),
     },
-    { title: '姓名', dataIndex: 'name', width: 120 },
     {
       title: '角色',
       dataIndex: 'role',
-      width: 100,
+      width: 120,
       render: (role: UserDTO['role']) =>
         role === Role.SUPER_ADMIN ? (
-          <Tag color="gold">{roleText[role]}</Tag>
+          <span className="hg-pill hg-pill-accent">
+            <ShieldIcon />
+            {roleText[role]}
+          </span>
         ) : (
-          <Tag>{roleText[role]}</Tag>
+          <span className="hg-pill">{roleText[role]}</span>
         ),
     },
     {
       title: '状态',
       dataIndex: 'status',
-      width: 90,
+      width: 100,
+      // 状态语义：颜色 + 文字双重表达
       render: (status: UserDTO['status']) =>
         status === UserStatus.ACTIVE ? (
-          <Badge status="success" text="正常" />
+          <span className="hg-status-dot hg-status-dot-success">正常</span>
         ) : (
-          <Badge status="default" text="已禁用" />
+          <span className="hg-status-dot">已禁用</span>
         ),
     },
     {
@@ -152,33 +217,52 @@ export function UsersPage() {
       title: '邮箱',
       dataIndex: 'email',
       ellipsis: true,
-      render: (email: string | null) => email ?? <span style={{ color: 'var(--ant-color-text-tertiary)' }}>—</span>,
+      render: (email: string | null) =>
+        email ? <span className="hg-cell-muted">{email}</span> : <span className="hg-cell-empty">—</span>,
     },
     {
       title: '手机号',
       dataIndex: 'phone',
-      width: 130,
-      render: (phone: string | null) => phone ?? <span style={{ color: 'var(--ant-color-text-tertiary)' }}>—</span>,
+      width: 140,
+      render: (phone: string | null) =>
+        phone ? <span className="mono hg-cell-muted">{phone}</span> : <span className="hg-cell-empty">—</span>,
     },
     {
       title: '创建时间',
       dataIndex: 'createdAt',
-      width: 150,
-      render: (createdAt: string) => dayjs(createdAt).format('YYYY-MM-DD HH:mm'),
+      width: 160,
+      render: (createdAt: string) => (
+        <span className="mono hg-cell-muted">{dayjs(createdAt).format('YYYY-MM-DD HH:mm')}</span>
+      ),
     },
     {
-      title: '操作',
+      title: <span className="hg-sr-only">操作</span>,
       key: 'actions',
       fixed: 'right' as const,
-      width: 260,
+      width: 200,
       render: (_: unknown, record: UserDTO) => {
         const active = record.status === UserStatus.ACTIVE;
         const isSelf = record.id === me.data?.id;
+        const busy =
+          (statusMutation.isPending && statusMutation.variables?.id === record.id) ||
+          (deleteMutation.isPending && deleteMutation.variables === record.id);
+        const moreItems: MenuProps['items'] = [
+          active
+            ? { key: 'disable', label: '禁用账号', icon: <BanIcon />, danger: true }
+            : { key: 'enable', label: '启用账号', icon: <UserCheckIcon /> },
+          ...(isSelf
+            ? []
+            : [
+                { type: 'divider' as const },
+                { key: 'delete', label: '删除用户', icon: <TrashIcon />, danger: true },
+              ]),
+        ];
         return (
-          <Space size={0}>
+          <div className="hg-row-actions">
             <Button
-              type="link"
+              type="text"
               size="small"
+              icon={<PencilIcon />}
               onClick={() => {
                 setEditingUser(record);
                 setFormOpen(true);
@@ -186,59 +270,23 @@ export function UsersPage() {
             >
               编辑
             </Button>
-            <Button
-              type="link"
-              size="small"
-              onClick={() => {
-                setResettingUser(record);
-              }}
-            >
+            <Button type="text" size="small" icon={<KeyIcon />} onClick={() => setResettingUser(record)}>
               重置密码
             </Button>
-            <Popconfirm
-              title={active ? `确定禁用 ${record.name}？` : `确定启用 ${record.name}？`}
-              description={active ? '禁用后该用户将立即退出登录且无法再登录。' : undefined}
-              okText={active ? '禁用' : '启用'}
-              okButtonProps={active ? { danger: true } : undefined}
-              cancelText="取消"
-              disabled={statusMutation.isPending}
-              onConfirm={() =>
-                statusMutation.mutate({
-                  id: record.id,
-                  status: active ? UserStatus.DISABLED : UserStatus.ACTIVE,
-                })
-              }
+            <Dropdown
+              trigger={['click']}
+              placement="bottomRight"
+              menu={{
+                items: moreItems,
+                onClick: ({ key }) => {
+                  if (key === 'delete') confirmDelete(record);
+                  else confirmStatusChange(record);
+                },
+              }}
             >
-              <Button
-                type="link"
-                size="small"
-                danger={active}
-                loading={statusMutation.isPending && statusMutation.variables?.id === record.id}
-              >
-                {active ? '禁用' : '启用'}
-              </Button>
-            </Popconfirm>
-            {!isSelf && (
-              <Popconfirm
-                title={`确定删除 ${record.name}（${record.username}）？`}
-                description="删除后不可恢复。该用户的表单提交记录会保留（提交人显示为空），但账号和登录会话将被彻底移除。"
-                okText="删除"
-                okButtonProps={{ danger: true }}
-                cancelText="取消"
-                disabled={deleteMutation.isPending}
-                onConfirm={() => deleteMutation.mutate(record.id)}
-              >
-                <Button
-                  type="link"
-                  size="small"
-                  danger
-                  loading={deleteMutation.isPending && deleteMutation.variables === record.id}
-                >
-                  删除
-                </Button>
-              </Popconfirm>
-            )}
-          </Space>
+              <Button type="text" size="small" icon={<MoreIcon />} loading={busy} aria-label={`${record.name} 的更多操作`} />
+            </Dropdown>
+          </div>
         );
       },
     },
@@ -248,10 +296,11 @@ export function UsersPage() {
     <div>
       <PageHeader
         title="用户管理"
+        meta={usersQuery.data ? usersQuery.data.total : undefined}
         extra={
           <Button
             type="primary"
-            icon={<PlusOutlined />}
+            icon={<PlusIcon />}
             onClick={() => {
               setEditingUser(null);
               setFormOpen(true);
@@ -261,20 +310,29 @@ export function UsersPage() {
           </Button>
         }
       />
-      <Card styles={{ body: { padding: 0 } }}>
-        <div className="hgxt-toolbar">
-          <Input.Search
+      <div className="hg-surface">
+        <div className="hg-toolbar">
+          <Input
             allowClear
-            placeholder="搜索：用户名 / 姓名 / 手机 / 邮箱"
-            style={{ width: 300 }}
+            variant="filled"
+            className="hg-search"
+            prefix={<SearchIcon />}
+            placeholder="搜索用户名、姓名、手机或邮箱"
             value={keywordInput}
-            onChange={(event) => setKeywordInput(event.target.value)}
-            onSearch={(value) => {
-              setKeyword(value);
+            onChange={(event) => {
+              setKeywordInput(event.target.value);
+              // 清空即恢复全部
+              if (!event.target.value) {
+                setKeyword('');
+                setPage(1);
+              }
+            }}
+            onPressEnter={() => {
+              setKeyword(keywordInput.trim());
               setPage(1);
             }}
           />
-          <span className="hgxt-toolbar-meta">共 {usersQuery.data?.total ?? 0} 条</span>
+          <span className="hg-toolbar-meta">共 {usersQuery.data?.total ?? 0} 条</span>
         </div>
         <Table<UserDTO>
           rowKey="id"
@@ -287,13 +345,14 @@ export function UsersPage() {
             pageSize,
             total: usersQuery.data?.total ?? 0,
             showSizeChanger: true,
+            size: 'small',
             onChange: (nextPage, nextPageSize) => {
               setPage(nextPage);
               setPageSize(nextPageSize);
             },
           }}
         />
-      </Card>
+      </div>
 
       <UserFormModal
         open={formOpen}

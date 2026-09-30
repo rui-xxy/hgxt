@@ -1,0 +1,115 @@
+/* 登录页：点阵画布 + 顶部柔光（仅背景装饰）+ 居中浮起卡片 */
+
+.hg-login {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: var(--hg-canvas);
+}
+
+.hg-login-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(var(--hg-border-hover) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse 60% 55% at 50% 42%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 55% at 50% 42%, #000 20%, transparent 75%);
+  opacity: 0.7;
+}
+
+.hg-login-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: -20% 15% auto;
+  height: 70%;
+  background: radial-gradient(closest-side, var(--hg-accent-soft), transparent);
+  filter: blur(24px);
+}
+
+.hg-login-corner {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1;
+}
+
+.hg-login-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 380px;
+  box-sizing: border-box;
+  padding: 32px 32px 28px;
+  border-radius: var(--hg-radius-xl);
+  background: var(--hg-panel);
+  box-shadow: var(--hg-shadow-overlay);
+  animation: hg-rise 0.5s var(--hg-ease) both;
+}
+
+.hg-login-title {
+  margin: 20px 0 4px;
+  color: var(--hg-text);
+  font-size: var(--ui-font-size-xl);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.hg-login-sub {
+  margin: 0 0 24px;
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-caption);
+}
+
+.hg-login-form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.hg-login-form .ant-form-item-label > label {
+  color: var(--hg-text2);
+  font-size: var(--ui-font-size-caption);
+  font-weight: 500;
+}
+
+.hg-login-field-icon {
+  margin-inline-end: 4px;
+  color: var(--hg-text3);
+}
+
+.hg-login-submit {
+  margin-top: 8px;
+}
+
+.hg-login-submit-arrow {
+  margin-inline-start: 2px;
+  transition: transform 0.2s var(--hg-ease);
+}
+
+.hg-login-submit:hover .hg-login-submit-arrow {
+  transform: translateX(3px);
+}
+
+.hg-login-footer {
+  position: relative;
+  z-index: 1;
+  margin-top: 24px;
+  color: var(--hg-text4);
+  font-size: var(--ui-font-size-sm);
+}
+
+@keyframes hg-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

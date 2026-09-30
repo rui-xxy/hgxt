@@ -1,7 +1,10 @@
-# UI 规范：DESIGN.md → Ant Design 6 映射
+# UI 规范：HGXT 视觉系统（DESIGN.md → Ant Design 6 落地）
 
-根目录 `DESIGN.md` 是 **ZCode 原版设计系统**（Tailwind 语法，用户指定作为本项目 UI 最高规范，从 github.com/zai-org/ZCode 同步）。
-本项目用 Ant Design 6，**不引入 Tailwind**，通过「CSS 变量 + AntD Design Token」落地同一套约束：ZCode 规范中与桌面工作台（Chat/Diff/Terminal/Workflow 等）强绑定的章节按本文件的原则取其精神，后台通用部分（字号刻度、颜色分层、圆角层级、密度、主题、组件）严格映射。
+根目录 `DESIGN.md` 是 **ZCode 原版设计系统**（Tailwind 语法，用户指定作为本项目 UI 规范来源，从 github.com/zai-org/ZCode 同步）。
+本项目用 Ant Design 6，**不引入 Tailwind**，通过「`--hg-*` CSS 变量 + AntD Design Token」落地：字号刻度、圆角层级、密度、表面分层、语义色规则严格继承；与桌面 AI 工作台强绑定的章节（Chat/Diff/Terminal/Workflow）只取其精神。
+
+2026-09 视觉重做（用户要求「以最新最高级的审美来做工作台」，不走传统工业仪表 / 普通 SaaS 模板风）：
+中性单色 + 一抹靛紫强调色、画布上浮起的内缩主面板、墨色主按钮、自研图标集、圆形展开的主题切换。
 本文件是落地映射表，也是后续所有新页面的 UI 验收标准。
 
 ## 布局骨架（壳层，AdminLayout）
@@ -9,109 +12,141 @@
 后续所有页面都渲染在这个壳层内，**禁止绕过或另起结构**：
 
 ```text
-侧栏 240px（固定宽度）
-├ 品牌区 56px：标识（品牌色 28px 圆角方块）+ 名称/副标题，底边框分隔
-├ 一级/二级导航：itemHeight 38，选中态 = 弱背景 + 左缘 2px 品牌条
-│   + 文字品牌色（禁止大面积蓝色胶囊选中态；样式在 styles/layout.css 的 .hgxt-menu）
-│   占满品牌区与账户区之间的剩余高度；内容多时只滚动导航区域
-└ 账户区：固定在侧栏底部，与导航用顶边框分隔
-    （头像 + 姓名 + 用户名；点击账户区弹出菜单，退出登录只放在这里）
-
-主区域
-├ 顶栏 52px：左侧页面上下文（模块路径 12px 三级灰 + 页面名 500 字重），
-│   右侧外观切换（单个太阳/月亮图标按钮；点击立即在浅色/深色之间切换）
-└ 内容区 padding 24px（20-24 区间取上沿，配合超宽屏不显松散）
+画布（--hg-canvas，整屏 100vh，不滚动）
+├ 侧栏 232px，透明坐在画布上（可折叠为 64px 图标栏；手动折叠记忆到 hgxt:sider-collapsed，<992px 自动折叠）
+│ ├ 品牌区：BrandMark 28px + 「HGXT / 数据工作台」
+│ ├ 导航：34px 行、8px 圆角；分组用 Menu group 小标题（「系统管理」），不用可折叠子菜单
+│ │   选中态 = 浮起的面板色胶囊 + 发丝阴影（--hg-shadow-xs）+ 图标转强调色
+│ │   （禁止大面积品牌色胶囊 / 左缘色条）
+│ └ 账户区：固定底部；头像 + 姓名 + 用户名(mono) + 上下箭头；点击弹出菜单，退出登录只放在这里
+│
+└ 主面板（.hg-main）：上/右/下内缩 8px，圆角 12，面板色 + --hg-shadow-panel
+  ├ 顶栏 52px：侧栏开关 │ 面包屑（模块 › 页面）……右侧主题切换（太阳/月亮交替旋转）
+  └ 内容区：独立滚动，padding 24 / 28
 ```
 
 ## 页面模板（每个业务页面按此三层组装）
 
 ```text
 ① PageHeader（components/PageHeader.tsx）
-   左：标题（16px semibold）
-   右：页面级主操作（如「新增用户」，一页至多一个 primary 按钮）
+   左：[返回按钮] + 标题（18px semibold，字距 -0.015em）+ [计量标记（如「2」「6 条记录」）]
+   右：页面级主操作（一页至多一个 primary 按钮）
    —— **不加辅助说明小字**（用户明确要求：页面用途靠标题与内容表达，禁止
-      "管理系统账号：新增、编辑…"这类解释性副文本）
+      "管理系统账号：新增、编辑…"这类解释性副文本；计量标记是数字，不是说明）
 
-② 数据工作区（同一张 Card，body padding 0）
-   ├ Toolbar：padding 12/16，左侧搜索/筛选（宽 300 内），右侧计数（12px 三级灰），底边框
-   └ Table：与 Toolbar 同一表面；关键业务列不设宽度（伸缩 + ellipsis）填充空间，
-      技术值列（时间/号码）定宽，操作列 fixed right；分页贴合表格底部
+② 数据工作区（.hg-surface：发丝线边框 + 圆角 12，不加阴影）
+   ├ Toolbar（.hg-toolbar）：左侧填充式搜索框（.hg-search，SearchIcon 前缀，回车搜索、清空即复位），
+   │   右侧计数（12px 三级灰，等宽数字）
+   └ Table：与 Toolbar 同一表面；表头 12px 三级灰；关键业务列不设宽度（伸缩 + ellipsis），
+      技术值列（时间/号码）定宽 + mono；操作列 fixed right、表头隐藏文字（.hg-sr-only）；
+      分页 size=small 贴底
 
-③ 空态
-   少量数据不填充假内容；无数据显示 AntD Empty，不摆假卡片
+③ 空态 / 状态页（components/StatusView.tsx）
+   图标方块 + 标题 + 说明 + 操作；表格空态由 ConfigProvider.renderEmpty 统一提供。
+   不摆假卡片、不用 AntD Result / Empty 的插画。
 ```
 
 - 列布局原则：**不要让定宽列排完后右侧留大片空白**——至少一个业务列负责伸缩。
-- 页面级反馈用 message（成功/失败）；危险操作（禁用）必须 Popconfirm + danger。
+- 行操作：高频操作用 `type="text" size="small"` + 图标直接露出；低频 / 危险操作（禁用、启用、删除）收进行尾「⋯」菜单。
+- 危险操作必须二次确认 + danger：行内用 `modal.confirm`（图标方块 `.hg-confirm-icon-danger`）或 Popconfirm。
+- 页面级反馈用 message（成功/失败）。
 
-## 核心原则（直接继承 DESIGN.md）
+## 核心原则
 
 - 界面冷静、密集、操作型（calm, dense, operational），不做营销风。
-- 无渐变、无大面积品牌色填充、无夸张圆角与阴影。
-- 靠「背景层次 + 边框 + 文本层级」表达结构，阴影只给浮层。
-- 语义色（success/warning/error）只表达真实语义状态，不做装饰。
-- 亮色 / 深色两套主题都必须正常；顶栏使用单按钮一键切换，不提供三态选择器。
+- 中性色承担 95% 的界面；**强调色（靛紫）只用于焦点、选中、链接、进度与品牌**，主按钮用墨色（浅色近黑 / 深色近白）。
+- 渐变只允许出现在品牌图形（BrandMark）与登录页背景柔光上；普通 UI 不用渐变。
+- 靠「画布 → 面板 → 弱分区」的明度层次 + 发丝线表达结构；阴影只给浮起面板（极轻）和浮层。
+- 语义色（success/warning/danger）只表达真实语义状态，不做装饰；状态用「颜色 + 文字」双重表达。
+- 亮色 / 深色两套主题都必须正常；顶栏单按钮一键切换，不提供三态选择器。
 - 国际化留白：不要用"截断"作为翻译变长的唯一兜底。
+
+## 图标（components/icons.tsx）
+
+- **全站唯一图标来源**，已移除 `@ant-design/icons` 依赖。不要混用其他图标库。
+- 规格：24 网格、1.75 描边、圆头圆角、`currentColor`、尺寸 `1em`（随文字缩放，按钮内自动放大到 1.07em）。
+- 新增图标：用 `createIcon(name, <path …/>)`，保持同网格同描边；装饰性图标默认 `aria-hidden`，需要可访问名称时传 `title`。
+- 纯图标按钮必须有 `aria-label`（并建议配 Tooltip）。
+- 品牌标识：`components/BrandMark.tsx`（渐变圆角方块 + H 字形 + 圆点），颜色来自 `--hg-brand-*`。
 
 ## Token 映射表
 
 ### 字号（DESIGN.md 最高优先级约束）
 
-| DESIGN.md token | 值 | AntD 落地 | 用途 |
+| DESIGN.md token | 值 | 落地 | 用途 |
 | --- | --- | --- | --- |
-| `--ui-font-size` | 14px | `fontSize: 14` | 基准，正好等于 AntD 默认 |
-| `text-ui-xl` | 18px | 页面大标题（Typography Title level=3 → fontSizeHeading3: 18） | 一级标题 |
-| `text-ui-lg` | 16px | Title level=4 → `fontSizeHeading4: 16` | 二级标题 |
+| `--ui-font-size` | 14px | `fontSize: 14` | 基准 |
+| `text-ui-xl` | 18px | `--ui-font-size-xl` | 页面标题、状态页标题 |
+| `text-ui-lg` | 16px | `--ui-font-size-lg` | 弹窗标题、填报页标题 |
 | `text-ui-base` | 14px | 默认 | 正文、按钮、表格、菜单 |
-| `text-ui-sm` | 12px | 辅助文字（`--ui-font-size-sm` 变量） | 次级信息、帮助文本 |
-| `text-ui-xs` | 10px | 仅徽标级元数据 | 一般 UI 从 sm 起步 |
+| `text-ui-caption` | 13px | `--ui-font-size-caption` | 面包屑、表单标签、分段控件 |
+| `text-ui-sm` | 12px | `--ui-font-size-sm` | 表头、次级信息、计数 |
+| `text-ui-xs` | 10px | `--ui-font-size-xs` | 徽标级计数 / 单位 |
+| `text-mobile-input-safe` | 16px | `--ui-font-size-mobile-input` | 仅移动端输入框（防 iOS 缩放） |
 
-**硬性规则**：业务代码禁止出现任意 px 字号、禁止内联 `font-size`。自定义样式只允许引用 `var(--ui-font-size-*)`（定义在 `apps/admin/src/styles/global.css`）。标识符/技术值（用户名、路径、命令）用 `--font-mono`（`.mono` 类）。
+**硬性规则**：业务代码禁止出现任意 px 字号、禁止内联 `font-size`。自定义样式只允许引用 `var(--ui-font-size-*)`（定义在 `apps/admin/src/styles/global.css`）。
+
+### 字体
+
+- UI：Geist Variable（`@fontsource-variable/geist`，本地打包，内网可用）→ 苹方 / HarmonyOS Sans / MiSans / 微软雅黑。
+- 技术值（用户名、日期时间、手机号、序号）：Geist Mono（`.mono`）。数字列加 `.tabular`（等宽数字）。
 
 ### 圆角（按嵌套层级递减）
 
-| DESIGN.md | 值 | AntD 落地 |
+| DESIGN.md | 值 | 落地 |
 | --- | --- | --- |
-| `rounded-xl`（第一层圆角容器/卡片） | 12 | `borderRadiusLG: 12`（Card、登录面板） |
-| `rounded-lg`（基础控件） | 8 | `borderRadius: 8`（按钮、输入框） |
-| `rounded-md`（嵌套小件） | 6 | `borderRadiusSM: 6`（菜单项等） |
-| `rounded-2xl`（对话框） | 16 | `Modal.borderRadiusLG: 16` |
+| `rounded-xl`（主面板 / 第一层容器） | 12 | `--hg-radius-lg` / `borderRadiusLG: 12` |
+| `rounded-lg`（基础控件） | 8 | `--hg-radius-md` / `borderRadius: 8` |
+| `rounded-md`（嵌套小件） | 6 | `--hg-radius-sm` / `borderRadiusSM: 6` |
+| `rounded-2xl`（对话框、登录卡片） | 16 | `--hg-radius-xl` / `Modal.borderRadiusLG: 16` |
+
+`999px` 只用于胶囊标记（`.hg-pill`、计数徽标）。
 
 ### 密度
 
-- 控件高度以 **32px（h-8）** 为默认：`controlHeight: 32`。
-- 菜单行 `itemHeight: 36`、表格 `cellPaddingBlock: 12`——密集、可扫读，不做"通风"的菜单和表格。
+- 控件高度默认 32（sm 28 / lg 40）；导航行 34；表格单元 13/16 内边距；数据表行高 40。
 
-### 颜色分层（绝不混用）
+### 颜色分层（theme/tokens.ts 的 `palettes`，绝不混用）
 
-| DESIGN.md | AntD 变量 | 用途 |
-| --- | --- | --- |
-| background | `--ant-color-bg-layout` | 页面/工作区背景（浅 #f5f6f8 / 深 #0a0a0a） |
-| card / surface | `--ant-color-bg-container` | 卡片、表格、侧栏、顶栏 |
-| popover / menu | `--ant-color-bg-elevated` | 浮层专属，**不得**用作普通内容底色 |
-| 文本三级 | `--ant-color-text` / `-secondary` / `-tertiary` | 正文 / 辅助 / 占位 |
-| 边框 | `--ant-color-border-secondary` | 结构分隔靠边框，不靠阴影 |
-| 品牌色 | `--ant-color-primary`（#2f54eb） | 只用于主按钮、链接、选中态；**绝不做整面填充** |
+| 变量 | 用途 |
+| --- | --- |
+| `--hg-canvas` | 画布：侧栏与面板外的底色（= AntD `colorBgLayout`） |
+| `--hg-panel` | 主面板、卡片、表格（= `colorBgContainer`） |
+| `--hg-subtle` | 面板内弱分区：表头、分组色带、悬停行 |
+| `--hg-elevated` | 浮层专属（= `colorBgElevated`），**不得**用作普通内容底色 |
+| `--hg-fill` / `-hover` / `-strong` | 交互填充：悬停、分段控件轨道、中性标记 |
+| `--hg-border` / `--hg-hairline` | 控件边框 / 结构分隔发丝线 |
+| `--hg-text` / `text2` / `text3` / `text4` | 正文 / 辅助 / 弱信息 / 占位 |
+| `--hg-ink` / `--hg-on-ink` | 墨色主按钮及其文字（AntD `Button.colorPrimary`） |
+| `--hg-accent*` | 强调色：焦点环、选中、链接、进度（= AntD `colorPrimary`） |
+| `--hg-success/warning/danger(-soft)` | 语义状态 |
 
-### 阴影（克制）
+### 阴影
 
-- 普通表面：无阴影，靠背景对比 + 边框。
-- 浮层（下拉/弹窗/通知）：`boxShadowSecondary: 0 4px 16px rgba(0,0,0,0.08)`（深色主题加深）。
+- `--hg-shadow-xs`：导航选中胶囊、分段控件选中项、状态图标方块。
+- `--hg-shadow-panel`：主面板（几乎只是一圈发丝线）。
+- `--hg-shadow-overlay`：下拉、弹窗、消息、登录卡片。普通内容表面不加阴影。
 
 ### 动效
 
-`motionDurationFast/Mid/Slow = 0.1s/0.15s/0.2s`——快而克制，只用于表达状态变化。
+`motionDurationFast/Mid/Slow = 0.1s/0.16s/0.22s`，缓动 `cubic-bezier(0.32, 0.72, 0, 1)`——快而克制。
+`prefers-reduced-motion` 下全局关闭动画。
 
 ## 主题机制
 
-- `apps/admin/src/theme/tokens.ts`：light/dark 两套 `ThemeConfig`（唯一允许出现原始色值/尺寸的地方）。
-- `apps/admin/src/theme/ThemeProvider.tsx`：只保留 light/dark，一键切换并用 localStorage `hgxt:theme-mode` 持久化；旧的 system 值仅在初始化时迁移为当时的系统偏好。AntD 使用 `cssVar: { key: 'hgxt' }` 模式。
-- **`--ant-*` 变量作用域警告**：变量只挂在 antd 组件的作用域类（`.hgxt`）上，`html`/`body` 等组件树之外的元素**引用不到**。因此页面根布局一律用 `minHeight: 100vh` 的 Layout 承担主背景（不要用 `height: 100%`——AntD `<App>` 会包一层无高度的 div 使百分比断链）；body 上只放静态兜底色（浅 #f5f6f8 / 深 #0a0a0a 随系统偏好）。
-- 自定义 CSS（非 AntD 组件部分）引用 `var(--ui-font-size-*)`，不写裸值。
+- `apps/admin/src/theme/tokens.ts`：`palettes.light/dark` 是**唯一允许出现原始色值的地方**；同一份 palette 生成 AntD `ThemeConfig` 与 `--hg-*` CSS 变量。
+- `apps/admin/src/theme/ThemeProvider.tsx`：
+  - 只保留 light/dark，一键切换并用 localStorage `hgxt:theme-mode` 持久化；首次访问读系统偏好。
+  - 把 `--hg-*`、`data-theme`、`color-scheme`、`<meta name="theme-color">` 写到 `<html>`——**body 等组件树外的元素也能用 `--hg-*`**。
+  - 切换动画：View Transitions API 从按钮位置圆形展开；切换期间给 `<html>` 加 `.hg-theme-switching` 关闭所有 CSS 过渡（否则组件背景渐变会被截进快照）。不支持或减少动效时直接切换。
+  - ConfigProvider 统一注入：`button.autoInsertSpace=false`（「取消」不插空格）、弹窗关闭图标、`renderEmpty`。
+- **`--ant-*` 变量作用域警告**：AntD 的 `--ant-*` 只挂在组件自身的作用域类上，自定义 DOM 引用不到。自定义 CSS 一律用 `--hg-*`。
 
 ## 组件约定
 
-- 表格操作列用 `type="link" size="small"`，危险操作（禁用）带 Popconfirm + danger。
-- 角色用 Tag（管理员 gold / 普通用户默认），状态用 Badge（正常 success / 已禁用 default）——状态语义用色 + 文字双重表达，不靠颜色单独传义。
+- 角色用 `.hg-pill`（管理员 `.hg-pill-accent` + ShieldIcon / 普通用户中性）；状态用 `.hg-status-dot`（正常 success 点 / 已禁用灰点）。
+- 用户类单元格：`.hg-cell-user` = 头像（`.hg-avatar`）+ 姓名 + mono 用户名。
 - 表单 `layout="vertical"` + `requiredMark={false}`，弹窗 `destroyOnHidden`。
-- 页面标题统一走 `PageHeader` 组件（16px semibold，见「页面模板」），不用 Typography.Title 直接铺在页面里。
+- 页面标题统一走 `PageHeader`，不用 Typography.Title 直接铺在页面里。
+- 数据表（DataSheet）：分组色带用 `--hg-subtle/--hg-fill` 交替；活动单元格 2px 强调色内描边；未保存修改用 warning 弱底色 + 工具栏「未保存」胶囊。
+- 移动端填报页：顶部进度细线 + 必填计数、分段 tab（缺项数 / 完成勾）、单位嵌在输入框内、底部墨色大按钮（未完成时显示「还差 N 项必填」）。
