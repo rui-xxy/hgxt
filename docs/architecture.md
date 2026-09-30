@@ -13,7 +13,7 @@
 | 项目组织 | pnpm Workspace Monorepo | pnpm 10 | 前后端一个仓库 |
 | 语言 | TypeScript | 5.9 | 前后端统一 |
 | 后台前端 | React + Vite | React 19 / Vite 8 | |
-| UI 组件 | Ant Design | 6.6.x | 按 DESIGN.md 规范映射主题（见 docs/ui-mapping.md） |
+| UI 组件 | Ant Design | 6.6.x | 主题映射在 apps/admin/src/theme/tokens.ts |
 | 路由 | React Router | 8 | |
 | 请求 | TanStack Query | 5 | |
 | 后端 | NestJS | 12 | |

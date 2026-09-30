@@ -2,7 +2,7 @@ import { useId } from 'react';
 
 /**
  * HGXT 品牌标识：圆角方形渐变底 + 字母 H 的几何单线字形（右竖截短，顶端一枚圆点，像数据被点亮）。
- * 渐变只允许出现在品牌图形上（docs/ui-mapping.md），普通 UI 不用渐变。
+ * 渐变只允许出现在品牌图形上，普通 UI 不用渐变。
  * 颜色全部来自 `--hg-brand-*` 变量（原始值在 theme/tokens.ts）。
  */
 export function BrandMark({ size = 28 }: { size?: number }) {
