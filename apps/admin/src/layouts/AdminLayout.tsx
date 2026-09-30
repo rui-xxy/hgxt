@@ -201,6 +201,7 @@ export function AdminLayout() {
           onBlur={scheduleClose}
         >
           <div className="hgxt-flyout-title">{flyout.title}</div>
+          <div className="hgxt-flyout-label">页面</div>
           <div className="hgxt-flyout-nav">
             {flyout.items.map((item) => (
               <Link
