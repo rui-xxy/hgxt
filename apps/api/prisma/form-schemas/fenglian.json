@@ -3,541 +3,537 @@
     "id": "field_date",
     "title": "日 期",
     "type": "date",
-    "group": "三车间产成品",
+    "group": "丰联车间产成品（一）",
     "hidden": true,
     "required": true,
-    "description": "数据归属日期"
+    "placeholder": "请选择日期"
   },
   {
-    "id": "field_001",
-    "title": "焦磷酸哌嗪（湿料）生产",
+    "id": "field_201",
+    "title": "磷酸哌嗪湿料产量",
     "type": "number",
-    "group": "三车间产成品",
-    "precision": 2
+    "group": "丰联车间产成品（一）",
+    "step": 0.001,
+    "precision": 3
   },
   {
-    "id": "field_002",
-    "title": "焦磷酸哌嗪（湿料）出库",
+    "id": "field_202",
+    "title": "磷酸哌嗪湿料销量",
     "type": "number",
-    "group": "三车间产成品",
-    "precision": 2
+    "group": "丰联车间产成品（一）",
+    "step": 0.001,
+    "precision": 3
   },
   {
-    "id": "field_003",
-    "title": "焦磷酸哌嗪（湿料）库存",
+    "id": "field_203",
+    "title": "磷酸哌嗪湿料库存",
     "type": "number",
-    "group": "三车间产成品",
-    "precision": 2
+    "group": "丰联车间产成品（一）",
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_004",
     "title": "85%磷酸购入",
     "type": "number",
     "group": "三车间原辅料",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_005",
     "title": "85%磷酸耗用",
     "type": "number",
     "group": "三车间原辅料",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_006",
     "title": "85%磷酸库存",
     "type": "number",
     "group": "三车间原辅料",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_007",
     "title": "68哌嗪购入",
     "type": "number",
     "group": "三车间原辅料",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_008",
     "title": "68哌嗪耗用",
     "type": "number",
     "group": "三车间原辅料",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_009",
     "title": "68哌嗪库存",
     "type": "number",
     "group": "三车间原辅料",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_010",
     "title": "椰壳活性炭购入",
     "type": "number",
     "group": "三车间原辅料",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_011",
     "title": "椰壳活性炭耗用",
     "type": "number",
     "group": "三车间原辅料",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_012",
     "title": "椰壳活性炭库存",
     "type": "number",
     "group": "三车间原辅料",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
-    "id": "field_013",
-    "title": "焦磷酸哌嗪（干料）生产",
+    "id": "field_204",
+    "title": "焦磷酸哌嗪产量",
     "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
+    "group": "丰联车间产成品（二）",
+    "step": 0.001,
+    "precision": 3
   },
   {
-    "id": "field_014",
-    "title": "焦磷酸哌嗪（干料）销售",
+    "id": "field_205",
+    "title": "焦磷酸哌嗪销量",
     "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
+    "group": "丰联车间产成品（二）",
+    "step": 0.001,
+    "precision": 3
   },
   {
-    "id": "field_015",
-    "title": "焦磷酸哌嗪（干料）自耗",
+    "id": "field_206",
+    "title": "焦磷酸哌嗪库存",
     "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
+    "group": "丰联车间产成品（二）",
+    "step": 0.001,
+    "precision": 3
   },
   {
-    "id": "field_017",
-    "title": "焦磷酸哌嗪（干料）退货",
+    "id": "field_207",
+    "title": "阻燃母粒产量",
     "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
+    "group": "丰联车间产成品（二）",
+    "step": 0.001,
+    "precision": 3
   },
   {
-    "id": "field_016",
-    "title": "焦磷酸哌嗪（干料）库存",
+    "id": "field_208",
+    "title": "阻燃母粒销量",
     "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
+    "group": "丰联车间产成品（二）",
+    "step": 0.001,
+    "precision": 3
   },
   {
-    "id": "field_018",
-    "title": "3500阻燃母粒生产",
+    "id": "field_209",
+    "title": "阻燃母粒库存",
     "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
+    "group": "丰联车间产成品（二）",
+    "step": 0.001,
+    "precision": 3
   },
   {
-    "id": "field_019",
-    "title": "3500阻燃母粒销售",
+    "id": "field_210",
+    "title": "无卤阻燃剂产量",
     "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
+    "group": "丰联车间产成品（二）",
+    "step": 0.001,
+    "precision": 3
   },
   {
-    "id": "field_020",
-    "title": "3500阻燃母粒库存",
+    "id": "field_211",
+    "title": "无卤阻燃剂销量",
     "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
+    "group": "丰联车间产成品（二）",
+    "step": 0.001,
+    "precision": 3
   },
   {
-    "id": "field_021",
-    "title": "4000阻燃母粒生产",
+    "id": "field_212",
+    "title": "无卤阻燃剂库存",
     "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
-  },
-  {
-    "id": "field_022",
-    "title": "4000阻燃母粒销售",
-    "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
-  },
-  {
-    "id": "field_023",
-    "title": "4000阻燃母粒库存",
-    "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
-  },
-  {
-    "id": "field_024",
-    "title": "FR3500无卤阻燃剂生产",
-    "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
-  },
-  {
-    "id": "field_025",
-    "title": "FR3500无卤阻燃剂销售",
-    "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
-  },
-  {
-    "id": "field_026",
-    "title": "FR3500无卤阻燃剂自耗",
-    "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
-  },
-  {
-    "id": "field_027",
-    "title": "FR3500无卤阻燃剂库存",
-    "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
-  },
-  {
-    "id": "field_028",
-    "title": "3000无卤阻燃剂生产",
-    "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
-  },
-  {
-    "id": "field_029",
-    "title": "3000无卤阻燃剂销售",
-    "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
-  },
-  {
-    "id": "field_030",
-    "title": "3000无卤阻燃剂库存",
-    "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
-  },
-  {
-    "id": "field_031",
-    "title": "4000无卤阻燃剂",
-    "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
-  },
-  {
-    "id": "field_032",
-    "title": "4000无卤阻燃剂销售",
-    "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
-  },
-  {
-    "id": "field_033",
-    "title": "4000无卤阻燃剂自耗",
-    "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
-  },
-  {
-    "id": "field_034",
-    "title": "4000无卤阻燃剂库存",
-    "type": "number",
-    "group": "标准厂房产品",
-    "precision": 2
+    "group": "丰联车间产成品（二）",
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_035",
     "title": "焦磷酸哌嗪（湿料）入库",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_036",
     "title": "焦磷酸哌嗪（湿料）耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_037",
     "title": "焦磷酸哌嗪（湿料）库存（2）",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_038",
     "title": "MPP母粒级购入",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_039",
     "title": "MPP母粒级耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_040",
     "title": "MPP母粒级库存",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_041",
     "title": "MPP普通级购入",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_042",
     "title": "MPP普通级耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_043",
     "title": "MPP普通级库存",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_044",
     "title": "MPP国标级购入",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_045",
     "title": "MPP国标级耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_046",
     "title": "MPP国标级库存",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_047",
     "title": "P450粉购入",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_048",
     "title": "P450粉耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_049",
     "title": "P450粉库存",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_053",
     "title": "氧化锌购入",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_054",
     "title": "氧化锌耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_055",
     "title": "氧化锌库存",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_056",
     "title": "2乙基次磷酸铝购入",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_057",
     "title": "2乙基次磷酸铝耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_058",
     "title": "2乙基次磷酸铝库存",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_059",
     "title": "三聚氰胺氰尿酸盐MCA购入",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_060",
     "title": "三聚氰胺氰尿酸盐MCA耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_061",
     "title": "三聚氰胺氰尿酸盐MCA库存",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_062",
     "title": "PETS季戊四醇硬脂酸脂购入",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_063",
     "title": "PETS季戊四醇硬脂酸脂耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_064",
     "title": "PETS季戊四醇硬脂酸脂库存",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_065",
     "title": "抗氧化剂168购入",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_066",
     "title": "抗氧化剂168耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_067",
     "title": "抗氧化剂168库存",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_068",
     "title": "抗氧化剂1010购入",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_069",
     "title": "抗氧化剂1010耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_070",
     "title": "抗氧化剂1010库存",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_071",
     "title": "气相二氧化硅购入",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_072",
     "title": "气相二氧化硅耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_073",
     "title": "气相二氧化硅库存",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_074",
     "title": "助剂C购入",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_075",
     "title": "助剂C耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_076",
     "title": "助剂C库存",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_080",
     "title": "化学试剂助剂（改制剂）购入",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_081",
     "title": "化学试剂助剂（改制剂）耗用",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
   },
   {
     "id": "field_082",
     "title": "化学试剂助剂（改制剂）库存",
     "type": "number",
     "group": "标准厂房原料消耗",
-    "precision": 2
+    "step": 0.001,
+    "precision": 3
+  },
+  {
+    "id": "field_120",
+    "title": "3-氨丙基三乙氧基硅烷购入",
+    "type": "number",
+    "group": "标准厂房原料消耗",
+    "step": 0.001,
+    "precision": 3
+  },
+  {
+    "id": "field_121",
+    "title": "3-氨丙基三乙氧基硅烷耗用",
+    "type": "number",
+    "group": "标准厂房原料消耗",
+    "step": 0.001,
+    "precision": 3
+  },
+  {
+    "id": "field_122",
+    "title": "3-氨丙基三乙氧基硅烷库存",
+    "type": "number",
+    "group": "标准厂房原料消耗",
+    "step": 0.001,
+    "precision": 3
   }
 ]

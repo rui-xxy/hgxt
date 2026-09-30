@@ -1,0 +1,267 @@
+[
+  {
+    "username": "18674754531",
+    "name": "杨旭",
+    "role": "USER"
+  },
+  {
+    "username": "18073476985",
+    "name": "段胡文",
+    "role": "USER"
+  },
+  {
+    "username": "18073405039",
+    "name": "谭建生",
+    "role": "USER"
+  },
+  {
+    "username": "18188936005",
+    "name": "秦诗瑶",
+    "role": "USER"
+  },
+  {
+    "username": "15096206685",
+    "name": "李启明",
+    "role": "USER"
+  },
+  {
+    "username": "13973403097",
+    "name": "廖毓灵",
+    "role": "USER"
+  },
+  {
+    "username": "18973419860",
+    "name": "吴新雄",
+    "role": "USER"
+  },
+  {
+    "username": "17775618838",
+    "name": "周明潮",
+    "role": "USER"
+  },
+  {
+    "username": "13638441001",
+    "name": "胡义强",
+    "role": "USER"
+  },
+  {
+    "username": "18373457125",
+    "name": "杨如",
+    "role": "USER"
+  },
+  {
+    "username": "15675496850",
+    "name": "刘巧栾",
+    "role": "USER"
+  },
+  {
+    "username": "18975431168",
+    "name": "肖东成",
+    "role": "USER"
+  },
+  {
+    "username": "13762453228",
+    "name": "黄荣华",
+    "role": "USER"
+  },
+  {
+    "username": "18229246205",
+    "name": "宋知庆",
+    "role": "USER"
+  },
+  {
+    "username": "13787709866",
+    "name": "刘佳",
+    "role": "USER"
+  },
+  {
+    "username": "15773429818",
+    "name": "谭霆钧",
+    "role": "USER"
+  },
+  {
+    "username": "15200717583",
+    "name": "彭英琪",
+    "role": "USER"
+  },
+  {
+    "username": "18974784848",
+    "name": "唐铭浩",
+    "role": "USER"
+  },
+  {
+    "username": "18907349536",
+    "name": "欧阳苏苏",
+    "role": "USER"
+  },
+  {
+    "username": "16673469401",
+    "name": "梁燕",
+    "role": "USER"
+  },
+  {
+    "username": "18107479841",
+    "name": "刘鹏",
+    "role": "USER"
+  },
+  {
+    "username": "18711493613",
+    "name": "李雯",
+    "role": "USER"
+  },
+  {
+    "username": "15386080833",
+    "name": "阳英",
+    "role": "USER"
+  },
+  {
+    "username": "17775647405",
+    "name": "欧乘风",
+    "role": "USER"
+  },
+  {
+    "username": "18373478280",
+    "name": "阳馨格",
+    "role": "USER"
+  },
+  {
+    "username": "13928200877",
+    "name": "戴石华",
+    "role": "USER"
+  },
+  {
+    "username": "13975461367",
+    "name": "肖天琪",
+    "role": "USER"
+  },
+  {
+    "username": "19373458191",
+    "name": "崔学雨",
+    "role": "USER"
+  },
+  {
+    "username": "18773465453",
+    "name": "张宇",
+    "role": "USER"
+  },
+  {
+    "username": "13007467568",
+    "name": "陈欢",
+    "role": "USER"
+  },
+  {
+    "username": "15367055843",
+    "name": "谭泽涛",
+    "role": "USER"
+  },
+  {
+    "username": "13575243072",
+    "name": "王继雄",
+    "role": "USER"
+  },
+  {
+    "username": "15116869600",
+    "name": "陈朝拜",
+    "role": "USER"
+  },
+  {
+    "username": "13307476645",
+    "name": "狄崇花",
+    "role": "USER"
+  },
+  {
+    "username": "18975447040",
+    "name": "周凯",
+    "role": "USER"
+  },
+  {
+    "username": "15973454433",
+    "name": "陈庆昕",
+    "role": "USER"
+  },
+  {
+    "username": "13272348352",
+    "name": "陈建国",
+    "role": "USER"
+  },
+  {
+    "username": "13005836523",
+    "name": "陈耀辉",
+    "role": "USER"
+  },
+  {
+    "username": "13548501766",
+    "name": "李红艳",
+    "role": "USER"
+  },
+  {
+    "username": "19173480315",
+    "name": "谭艳春",
+    "role": "USER"
+  },
+  {
+    "username": "19118731230",
+    "name": "唐学海",
+    "role": "USER"
+  },
+  {
+    "username": "18173425734",
+    "name": "华倩",
+    "role": "USER"
+  },
+  {
+    "username": "18973444672",
+    "name": "周凯",
+    "role": "USER"
+  },
+  {
+    "username": "15576727587",
+    "name": "李红艳",
+    "role": "USER"
+  },
+  {
+    "username": "18973419906",
+    "name": "黄婷",
+    "role": "USER"
+  },
+  {
+    "username": "19973457366",
+    "name": "彭艳娥",
+    "role": "USER"
+  },
+  {
+    "username": "18607347385",
+    "name": "张玉拥",
+    "role": "SUPER_ADMIN"
+  },
+  {
+    "username": "18873403047",
+    "name": "华倩",
+    "role": "USER"
+  },
+  {
+    "username": "13974723021",
+    "name": "陈建国总",
+    "role": "USER"
+  },
+  {
+    "username": "15211462754",
+    "name": "15211462754",
+    "role": "USER"
+  },
+  {
+    "username": "17680276032",
+    "name": "17680276032",
+    "role": "USER"
+  },
+  {
+    "username": "18188974715",
+    "name": "18188974715",
+    "role": "USER"
+  },
+  {
+    "username": "15616072993",
+    "name": "15616072993",
+    "role": "USER"
+  }
+]

@@ -3,136 +3,62 @@
     "id": "field_date",
     "title": "日期",
     "type": "date",
-    "group": "基础",
+    "group": "产量及原辅料消耗",
     "hidden": true,
-    "required": true,
-    "placeholder": "请选择日期",
-    "description": "数据归属日期"
+    "required": true
   },
   {
     "id": "field_mgso4_production",
     "title": "硫酸镁产量",
     "type": "number",
-    "group": "产量及原辅料消耗",
-    "precision": 2,
-    "unit": "t",
-    "suffix": "吨",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入产量",
-    "description": "单位：吨(t)",
-    "width": 108
+    "group": "产量及原辅料消耗"
   },
   {
     "id": "field_mgo_consumption",
     "title": "氧化镁消耗",
     "type": "number",
-    "group": "产量及原辅料消耗",
-    "precision": 2,
-    "unit": "t",
-    "suffix": "吨",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入氧化镁消耗",
-    "description": "单位：吨(t)",
-    "width": 108
+    "group": "产量及原辅料消耗"
   },
   {
     "id": "field_amino_dilute_acid",
     "title": "氨基磺酸稀酸",
     "type": "number",
-    "group": "产量及原辅料消耗",
-    "precision": 2,
-    "unit": "m³",
-    "suffix": "m³",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入氨基磺酸稀酸",
-    "description": "单位：立方米(m³)",
-    "width": 112
+    "group": "产量及原辅料消耗"
   },
   {
     "id": "field_sulfuric_93",
     "title": "硫酸车间93酸",
     "type": "number",
-    "group": "产量及原辅料消耗",
-    "precision": 2,
-    "unit": "m³",
-    "suffix": "m³",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入 93 酸消耗",
-    "description": "单位：立方米(m³)",
-    "width": 112
+    "group": "产量及原辅料消耗"
   },
   {
     "id": "field_anthraquinone_dilute_acid",
     "title": "蒽醌车间稀酸",
     "type": "number",
-    "group": "产量及原辅料消耗",
-    "precision": 2,
-    "unit": "m³",
-    "suffix": "m³",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入蒽醌车间稀酸",
-    "description": "单位：立方米(m³)",
-    "width": 116
+    "group": "产量及原辅料消耗"
   },
   {
     "id": "field_steam_flow",
     "title": "蒸汽流量表",
     "type": "number",
-    "group": "仪表读数",
-    "precision": 2,
-    "unit": "t",
-    "suffix": "吨",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入蒸汽流量表",
-    "description": "单位：吨(t)，填入表码读数",
-    "width": 108
+    "group": "仪表读数"
   },
   {
     "id": "field_water_meter",
     "title": "硫酸镁水表",
     "type": "number",
-    "group": "仪表读数",
-    "precision": 2,
-    "unit": "t",
-    "suffix": "吨",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入水表读数",
-    "description": "单位：吨(t)，填入水表读数",
-    "width": 108
+    "group": "仪表读数"
   },
   {
     "id": "field_electricity_phase1",
     "title": "硫酸镁1期电表",
     "type": "number",
-    "group": "仪表读数",
-    "precision": 2,
-    "unit": "kWh",
-    "suffix": "kWh",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入 1 期电表",
-    "description": "单位：千瓦时(kW·h)",
-    "width": 118
+    "group": "仪表读数"
   },
   {
     "id": "field_electricity_phase2",
     "title": "硫酸镁2期电表",
     "type": "number",
-    "group": "仪表读数",
-    "precision": 2,
-    "unit": "kWh",
-    "suffix": "kWh",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入 2 期电表",
-    "description": "单位：千瓦时(kW·h)",
-    "width": 118
+    "group": "仪表读数"
   }
 ]

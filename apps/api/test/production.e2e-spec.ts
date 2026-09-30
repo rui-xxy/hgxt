@@ -15,10 +15,10 @@ describe('production 硫酸生产指标', () => {
 
   const schema = [
     { id: 'field_date', title: '日期', type: 'date', hidden: true, required: true },
-    { id: 'acid98_tank_2', title: '98酸 2#罐', type: 'number', group: '98%硫酸' },
-    { id: 'fuming_acid_tank_1', title: '发烟酸 1#罐', type: 'number', group: '发烟硫酸' },
-    { id: 'reagent_acid_tank_1', title: '试剂酸 1#罐', type: 'number', group: '试剂酸' },
-    { id: 'power_meter_motor_1', title: '1#电机', type: 'number', group: '仪表读数' },
+    { id: 'tank_98-1', title: '98酸 2#罐', type: 'number', group: '98%硫酸' },
+    { id: 'tank_fy-1', title: '发烟酸 1#罐', type: 'number', group: '发烟硫酸' },
+    { id: 'tank_jp-1', title: '试剂酸 1#罐', type: 'number', group: '试剂酸' },
+    { id: 'meter_3', title: '1#电机', type: 'number', group: '仪表读数' },
   ];
 
   const salesSchema = [
@@ -61,31 +61,31 @@ describe('production 硫酸生产指标', () => {
 
     // Tank 带 formCode 归属；额外加一个别的车间的罐验证过滤
     await prisma.tank.createMany({ data: [
-      { fieldId: 'acid98_tank_2', name: '98酸2#', material: '98酸', capacity: 100, density: 1.84, formCode: 'sulfuric_daily' },
-      { fieldId: 'fuming_acid_tank_1', name: '发烟1#', material: '发烟硫酸', capacity: 200, density: 1.92, formCode: 'sulfuric_daily' },
-      { fieldId: 'reagent_acid_tank_1', name: '试剂1#', material: '试剂酸', capacity: 50, density: 1.84, formCode: 'sulfuric_daily' },
+      { fieldId: 'tank_98-1', name: '98酸2#', material: '98酸', capacity: 100, density: 1.84, formCode: 'sulfuric_daily' },
+      { fieldId: 'tank_fy-1', name: '发烟1#', material: '发烟硫酸', capacity: 200, density: 1.92, formCode: 'sulfuric_daily' },
+      { fieldId: 'tank_jp-1', name: '试剂1#', material: '试剂酸', capacity: 50, density: 1.84, formCode: 'sulfuric_daily' },
       // 其他车间的罐——不应影响硫酸计算
       { fieldId: 'mgso4_tank', name: '硫酸镁罐', material: '硫酸镁', capacity: 999, density: 1.5, formCode: 'magnesium_daily' },
     ] });
     await prisma.meter.createMany({ data: [
-      { fieldId: 'power_meter_motor_1', name: '1#电机', multiplier: 10, formCode: 'sulfuric_daily' },
+      { fieldId: 'meter_3', name: '1#电机', multiplier: 10, formCode: 'sulfuric_daily' },
     ] });
 
     // D1: 09-01 完整
-    await submit(sulfuricFormId, { field_date: '2026-09-01', acid98_tank_2: 50, fuming_acid_tank_1: 50, reagent_acid_tank_1: 20, power_meter_motor_1: 1000 });
+    await submit(sulfuricFormId, { field_date: '2026-09-01', 'tank_98-1': 50, 'tank_fy-1': 50, 'tank_jp-1': 20, 'meter_3': 1000 });
     // D2: 09-02 完整 + 销售流出
     await submit(salesFormId, { field_date: '2026-09-02', field_acid98_sales: 10, field_acid93_sales: 0, field_reagent_acid_sales: 0, field_fuming_acid_sales: 0 });
-    await submit(sulfuricFormId, { field_date: '2026-09-02', acid98_tank_2: 60, fuming_acid_tank_1: 40, reagent_acid_tank_1: 20, power_meter_motor_1: 1500 });
+    await submit(sulfuricFormId, { field_date: '2026-09-02', 'tank_98-1': 60, 'tank_fy-1': 40, 'tank_jp-1': 20, 'meter_3': 1500 });
     // 断天 09-03：这天没有硫酸库存，但有销售 15 吨（应累计到 09-04 的产量）
     await submit(salesFormId, { field_date: '2026-09-03', field_acid98_sales: 15, field_acid93_sales: 0, field_reagent_acid_sales: 0, field_fuming_acid_sales: 0 });
     // D3: 09-04 完整（gapDays=2）——电表回退测回零
-    await submit(sulfuricFormId, { field_date: '2026-09-04', acid98_tank_2: 70, fuming_acid_tank_1: 30, reagent_acid_tank_1: 25, power_meter_motor_1: 1400 });
+    await submit(sulfuricFormId, { field_date: '2026-09-04', 'tank_98-1': 70, 'tank_fy-1': 30, 'tank_jp-1': 25, 'meter_3': 1400 });
     // D4: 09-05 完整（gapDays=1）
-    await submit(sulfuricFormId, { field_date: '2026-09-05', acid98_tank_2: 65, fuming_acid_tank_1: 35, reagent_acid_tank_1: 25, power_meter_motor_1: 1600 });
+    await submit(sulfuricFormId, { field_date: '2026-09-05', 'tank_98-1': 65, 'tank_fy-1': 35, 'tank_jp-1': 25, 'meter_3': 1600 });
     // D5: 09-07 完整（09-05→09-07 断 09-06，gapDays=2）
-    await submit(sulfuricFormId, { field_date: '2026-09-07', acid98_tank_2: 75, fuming_acid_tank_1: 25, reagent_acid_tank_1: 30, power_meter_motor_1: 2000 });
+    await submit(sulfuricFormId, { field_date: '2026-09-07', 'tank_98-1': 75, 'tank_fy-1': 25, 'tank_jp-1': 30, 'meter_3': 2000 });
     // D6: 09-08 缺试剂罐（最后一天缺罐 → 不影响其他日的产量计算）
-    await submit(sulfuricFormId, { field_date: '2026-09-08', acid98_tank_2: 70, fuming_acid_tank_1: 20, power_meter_motor_1: 2100 });
+    await submit(sulfuricFormId, { field_date: '2026-09-08', 'tank_98-1': 70, 'tank_fy-1': 20, 'meter_3': 2100 });
   });
   afterAll(async () => { await app.close(); });
 
@@ -157,7 +157,7 @@ describe('production 硫酸生产指标', () => {
   });
 
   it('同日多次提交取最新一条', async () => {
-    await submit(sulfuricFormId, { field_date: '2026-09-07', acid98_tank_2: 80, fuming_acid_tank_1: 25, reagent_acid_tank_1: 30, power_meter_motor_1: 2000 });
+    await submit(sulfuricFormId, { field_date: '2026-09-07', 'tank_98-1': 80, 'tank_fy-1': 25, 'tank_jp-1': 30, 'meter_3': 2000 });
     const res = await http(app).get('/api/production/sulfuric').set('Authorization', `Bearer ${token}`).expect(200);
     const day7 = res.body.days.find((d: { date: string }) => d.date === '2026-09-07');
     expect(day7.inventory.acid98).toBe(147.2);

@@ -8,35 +8,35 @@
   },
   {
     "file": "aminosulfonic.json",
-    "title": "氨基磺酸车间生产日报",
+    "title": "氨基磺酸车间生产日报（单日汇总）",
     "parkingEnabled": false,
     "code": "aminosulfonic_daily",
     "description": "单日汇总录入"
   },
   {
     "file": "magnesium.json",
-    "title": "硫酸镁车间生产日报",
+    "title": "硫酸镁车间生产日报（单日汇总）",
     "parkingEnabled": false,
     "code": "magnesium_daily",
     "description": "单日汇总录入"
   },
   {
     "file": "hydrotalcite.json",
-    "title": "水滑石车间报表",
+    "title": "水滑石车间报表（单日汇总）",
     "parkingEnabled": false,
     "code": "hydrotalcite_daily",
     "description": "单日汇总录入"
   },
   {
     "file": "anthraquinone.json",
-    "title": "二乙基蒽醌报表",
+    "title": "二乙基蒽醌报表（单日汇总）",
     "parkingEnabled": false,
     "code": "anthraquinone_daily",
     "description": "单日汇总录入"
   },
   {
     "file": "thermal.json",
-    "title": "热电车间报表",
+    "title": "热电车间报表（单日汇总）",
     "parkingEnabled": false,
     "code": "thermal_daily",
     "description": "单日汇总录入（水/电/蒸汽）"

@@ -100,33 +100,33 @@ async function main(): Promise<void> {
     }
   }
 
-  // 储罐与电表档案（产盘指标换算参数）。
+  // 储罐与电表档案（产盘指标换算参数）。fieldId 与旧系统（hengguang_chemical）表单字段一致。
   // 密度沿用 b2 口径（98/93/试剂 1.84、发烟 1.92）；罐容是占位值——需要按真实设备参数修正！
   const TANKS = [
-    ['acid98_tank_2', '98酸 2#罐', '98酸', 100, 1.84],
-    ['acid98_tank_3', '98酸 3#罐', '98酸', 100, 1.84],
-    ['acid98_tank_4', '98酸 4#罐', '98酸', 100, 1.84],
-    ['acid98_transfer_tank', '98酸拨酸槽', '98酸', 50, 1.84],
-    ['fuming_acid_tank_1', '发烟酸 1#罐', '发烟硫酸', 100, 1.92],
-    ['fuming_acid_tank_5', '发烟酸 5#罐', '发烟硫酸', 100, 1.92],
-    ['fuming_acid_transfer_tank', '烟酸拨酸槽', '发烟硫酸', 50, 1.92],
-    ['amino_transfer_tank', '氨基磺酸转运槽', '发烟硫酸', 50, 1.92],
-    ['reagent_acid_tank_1', '试剂酸 1#罐', '试剂酸', 60, 1.84],
-    ['reagent_acid_tank_2', '试剂酸 2#罐', '试剂酸', 60, 1.84],
-    ['reagent_acid_tank_3', '试剂酸 3#罐', '试剂酸', 60, 1.84],
-    ['reagent_acid_tank_4', '试剂酸 4#罐', '试剂酸', 60, 1.84],
-    ['hydrogen_peroxide_tank', '双氧水储罐', '双氧水', 80, 1.11],
+    ['tank_98-1', '98酸 2#罐', '98酸', 100, 1.84],
+    ['tank_98-2', '98酸 3#罐', '98酸', 100, 1.84],
+    ['tank_98-3', '98酸 4#罐', '98酸', 100, 1.84],
+    ['tank_98-4', '98酸拨酸槽', '98酸', 50, 1.84],
+    ['tank_fy-1', '发烟酸 1#罐', '发烟硫酸', 100, 1.92],
+    ['tank_fy-2', '发烟酸 5#罐', '发烟硫酸', 100, 1.92],
+    ['tank_fy-3', '烟酸拨酸槽', '发烟硫酸', 50, 1.92],
+    ['tank_fy-4', '氨基磺酸转运槽', '发烟硫酸', 50, 1.92],
+    ['tank_jp-1', '试剂酸 1#罐', '试剂酸', 60, 1.84],
+    ['tank_jp-2', '试剂酸 2#罐', '试剂酸', 60, 1.84],
+    ['tank_jp-3', '试剂酸 3#罐', '试剂酸', 60, 1.84],
+    ['tank_jp-4', '试剂酸 4#罐', '试剂酸', 60, 1.84],
+    ['tank_syc-1', '双氧水储罐', '双氧水', 80, 1.11],
   ] as const;
   for (const [fieldId, name, material, capacity, density] of TANKS) {
     await prisma.tank.upsert({ where: { fieldId }, create: { fieldId, name, material, capacity, density }, update: { name, material, capacity, density } });
   }
   const METERS = [
-    ['power_meter_motor_1', '1#电机', 1],
-    ['power_meter_motor_2', '2#电机', 1],
-    ['power_meter_furnace_1', '1#电炉', 1],
-    ['power_meter_furnace_2', '2#电炉', 1],
-    ['power_meter_mgso4_phase2', '硫酸镁二期电表', 1],
-    ['power_meter_amino', '氨基磺酸电表', 3000],
+    ['meter_3', '1#电机', 1],
+    ['meter_4', '2#电机', 1],
+    ['meter_5', '1#电炉', 1],
+    ['meter_6', '2#电炉', 1],
+    ['meter_mgso4_phase2', '硫酸镁二期电表', 1],
+    ['meter_amino', '氨基磺酸电表', 3000],
   ] as const;
   for (const [fieldId, name, multiplier] of METERS) {
     await prisma.meter.upsert({ where: { fieldId }, create: { fieldId, name, multiplier }, update: { name, multiplier } });

@@ -5,126 +5,108 @@
     "type": "date",
     "group": "蒸汽流量计",
     "hidden": true,
-    "required": true,
-    "description": "数据归属日期"
+    "required": true
   },
   {
     "id": "field_jianheng_steam",
     "title": "建衡蒸汽流量计",
     "type": "number",
-    "group": "蒸汽流量计",
-    "precision": 2
+    "group": "蒸汽流量计"
   },
   {
     "id": "field_xuguang_steam",
     "title": "旭光蒸汽流量计",
     "type": "number",
-    "group": "蒸汽流量计",
-    "precision": 2
+    "group": "蒸汽流量计"
   },
   {
     "id": "field_xinkesi_steam",
     "title": "鑫科思蒸汽流量计",
     "type": "number",
-    "group": "蒸汽流量计",
-    "precision": 2
+    "group": "蒸汽流量计"
   },
   {
     "id": "field_lihong_steam",
     "title": "力泓蒸汽流量计",
     "type": "number",
-    "group": "蒸汽流量计",
-    "precision": 2
+    "group": "蒸汽流量计"
   },
   {
     "id": "field_xiangshuo_steam",
     "title": "湘硕蒸汽流量计",
     "type": "number",
-    "group": "蒸汽流量计",
-    "precision": 2
+    "group": "蒸汽流量计"
   },
   {
     "id": "field_amino_steam",
     "title": "氨基磺酸蒸汽流量计",
     "type": "number",
-    "group": "蒸汽流量计",
-    "precision": 2
+    "group": "蒸汽流量计"
   },
   {
     "id": "field_mgso4_steam",
     "title": "硫酸镁蒸汽流量计",
     "type": "number",
-    "group": "蒸汽流量计",
-    "precision": 2
+    "group": "蒸汽流量计"
   },
   {
     "id": "field_hydrotalcite_steam",
     "title": "水滑石蒸汽流量计",
     "type": "number",
-    "group": "蒸汽流量计",
-    "precision": 2
+    "group": "蒸汽流量计"
   },
   {
     "id": "field_fenglian_steam",
     "title": "丰联蒸汽流量计",
     "type": "number",
-    "group": "蒸汽流量计",
-    "precision": 2
+    "group": "蒸汽流量计"
   },
   {
     "id": "field_deaq_steam",
     "title": "2乙基蒽醌蒸汽流量计",
     "type": "number",
-    "group": "蒸汽流量计",
-    "precision": 2
+    "group": "蒸汽流量计"
   },
   {
     "id": "field_line2_active",
     "title": "2#进线正向有功表",
     "type": "number",
-    "group": "其他表码",
-    "precision": 2
+    "group": "其他表码"
   },
   {
     "id": "field_condenser_gen_active",
     "title": "1#冷凝机发电有功表",
     "type": "number",
-    "group": "其他表码",
-    "precision": 2
+    "group": "其他表码"
   },
   {
     "id": "field_transformer1",
     "title": "1#变压器",
     "type": "number",
-    "group": "其他表码",
-    "precision": 2
+    "group": "其他表码"
   },
   {
     "id": "field_transformer2",
     "title": "2#变压器",
     "type": "number",
-    "group": "其他表码",
-    "precision": 2
+    "group": "其他表码"
   },
   {
     "id": "field_transformer3",
     "title": "3#变压器",
     "type": "number",
-    "group": "其他表码",
-    "precision": 2
+    "group": "其他表码"
   },
   {
     "id": "field_water_meter",
     "title": "水表",
     "type": "number",
-    "group": "其他表码",
-    "precision": 2
+    "group": "其他表码"
   },
   {
     "id": "field_steam_meter",
     "title": "蒸汽表",
     "type": "number",
-    "group": "其他表码",
-    "precision": 2
+    "group": "其他表码"
   }
 ]

@@ -6,34 +6,62 @@
     "group": "数据录入",
     "hidden": true,
     "required": true,
-    "description": "数据归属日期"
+    "placeholder": "请选择日期",
+    "description": "选择业务日期"
   },
   {
     "id": "field_reagent_acid_sales",
     "title": "试剂酸销售量",
     "type": "number",
     "group": "数据录入",
-    "precision": 2
+    "placeholder": "请输入试剂酸销售量",
+    "min": 0,
+    "step": 0.01,
+    "precision": 2,
+    "description": "单位：吨(t)"
   },
   {
     "id": "field_acid98_sales",
     "title": "98酸销售量",
     "type": "number",
     "group": "数据录入",
-    "precision": 2
+    "placeholder": "请输入98酸销售量",
+    "min": 0,
+    "step": 0.01,
+    "precision": 2,
+    "description": "单位：吨(t)"
   },
   {
     "id": "field_acid93_sales",
     "title": "93酸销售量",
     "type": "number",
     "group": "数据录入",
-    "precision": 2
+    "placeholder": "请输入93酸销售量",
+    "min": 0,
+    "step": 0.01,
+    "precision": 2,
+    "description": "单位：吨(t)"
   },
   {
     "id": "field_fuming_acid_sales",
     "title": "发烟硫酸销售量",
     "type": "number",
     "group": "数据录入",
-    "precision": 2
+    "placeholder": "请输入发烟硫酸销售量",
+    "min": 0,
+    "step": 0.01,
+    "precision": 2,
+    "description": "单位：吨(t)"
+  },
+  {
+    "id": "field_peroxide_purchase",
+    "title": "双氧水购入量",
+    "type": "number",
+    "group": "数据录入",
+    "placeholder": "请输入双氧水购入量",
+    "min": 0,
+    "step": 0.01,
+    "precision": 2,
+    "description": "单位：吨(t)"
   }
 ]

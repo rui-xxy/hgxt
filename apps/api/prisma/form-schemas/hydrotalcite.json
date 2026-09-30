@@ -3,136 +3,62 @@
     "id": "field_date",
     "title": "日期",
     "type": "date",
-    "group": "基础",
+    "group": "产品产量",
     "hidden": true,
-    "required": true,
-    "placeholder": "请选择日期",
-    "description": "数据归属日期"
+    "required": true
   },
   {
     "id": "field_hg200_output",
     "title": "HG-200产量",
     "type": "number",
-    "group": "产品产量",
-    "precision": 2,
-    "unit": "t",
-    "suffix": "吨",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入 HG-200 产量",
-    "description": "单位：吨(t)",
-    "width": 112
+    "group": "产品产量"
   },
   {
     "id": "field_hg201_output",
     "title": "HG-201产量",
     "type": "number",
-    "group": "产品产量",
-    "precision": 2,
-    "unit": "t",
-    "suffix": "吨",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入 HG-201 产量",
-    "description": "单位：吨(t)",
-    "width": 112
+    "group": "产品产量"
   },
   {
     "id": "field_hg300_output",
     "title": "HG-300产量",
     "type": "number",
-    "group": "产品产量",
-    "precision": 2,
-    "unit": "t",
-    "suffix": "吨",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入 HG-300 产量",
-    "description": "单位：吨(t)",
-    "width": 112
+    "group": "产品产量"
   },
   {
     "id": "field_hg205_output",
     "title": "HG-205产量",
     "type": "number",
-    "group": "产品产量",
-    "precision": 2,
-    "unit": "t",
-    "suffix": "吨",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入 HG-205 产量",
-    "description": "单位：吨(t)",
-    "width": 112
+    "group": "产品产量"
   },
   {
     "id": "field_mgo",
     "title": "氧化镁",
     "type": "number",
-    "group": "原辅料消耗",
-    "precision": 2,
-    "unit": "t",
-    "suffix": "吨",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入氧化镁消耗",
-    "description": "单位：吨(t)",
-    "width": 100
+    "group": "原辅料消耗"
   },
   {
     "id": "field_aluminum_hydroxide",
     "title": "氢氧化铝",
     "type": "number",
-    "group": "原辅料消耗",
-    "precision": 2,
-    "unit": "t",
-    "suffix": "吨",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入氢氧化铝消耗",
-    "description": "单位：吨(t)",
-    "width": 108
+    "group": "原辅料消耗"
   },
   {
     "id": "field_soda_ash",
     "title": "纯碱",
     "type": "number",
-    "group": "原辅料消耗",
-    "precision": 2,
-    "unit": "t",
-    "suffix": "吨",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入纯碱消耗",
-    "description": "单位：吨(t)",
-    "width": 96
+    "group": "原辅料消耗"
   },
   {
     "id": "field_medium_pressure_steam",
     "title": "中压蒸汽",
     "type": "number",
-    "group": "蒸汽",
-    "precision": 2,
-    "unit": "t",
-    "suffix": "吨",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入中压蒸汽",
-    "description": "单位：吨(t)",
-    "width": 108
+    "group": "蒸汽"
   },
   {
     "id": "field_low_pressure_steam",
     "title": "低压蒸汽",
     "type": "number",
-    "group": "蒸汽",
-    "precision": 2,
-    "unit": "t",
-    "suffix": "吨",
-    "min": 0,
-    "step": 0.01,
-    "placeholder": "请输入低压蒸汽",
-    "description": "单位：吨(t)",
-    "width": 108
+    "group": "蒸汽"
   }
 ]
