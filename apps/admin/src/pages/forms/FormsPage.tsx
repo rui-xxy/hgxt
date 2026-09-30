@@ -6,7 +6,7 @@ import { Role, type FormDTO } from '@hgxt/shared';
 import { listForms } from '../../api/forms';
 import { useMe } from '../../api/hooks';
 import { PageHeader } from '../../components/PageHeader';
-import { FormsIcon, PenLineIcon, SearchIcon, TableIcon } from '../../components/icons';
+import { SearchIcon } from '../../components/icons';
 import './forms.css';
 
 export function FormsPage() {
@@ -26,7 +26,7 @@ export function FormsPage() {
 
   return <>
     <PageHeader title="表单系统" meta={query.data ? query.data.total : undefined} />
-    <div className="hg-surface">
+    <div className="hg-list">
       <div className="hg-toolbar">
         <Input
           allowClear
@@ -41,7 +41,6 @@ export function FormsPage() {
           }}
           onPressEnter={() => { setPage(1); setKeyword(search.trim()); }}
         />
-        <span className="hg-toolbar-meta">共 {query.data?.total ?? 0} 个表单</span>
       </div>
       <Table<FormDTO>
         rowKey="id"
@@ -53,9 +52,9 @@ export function FormsPage() {
             dataIndex: 'title',
             key: 'title',
             ellipsis: true,
-            render: (title: string) => <div className="hg-cell-user">
-              <span className="hg-cell-tile"><FormsIcon /></span>
+            render: (title: string, form: FormDTO) => <div className="hg-cell-stack">
               <span className="hg-cell-primary">{title}</span>
+              <span className="hg-cell-secondary tabular">{form.schema.filter((field) => !field.hidden).length} 个字段 · {form.submissionCount} 条记录</span>
             </div>,
           },
           {
@@ -64,17 +63,17 @@ export function FormsPage() {
             key: 'latestEntryDate',
             width: 168,
             render: (date: string | null) => date
-              ? <span className="mono hg-cell-muted">{date}</span>
-              : <span className="hg-pill">暂无填写</span>,
+              ? <span className="tabular hg-cell-muted">{date}</span>
+              : <span className="hg-cell-empty">尚未填写</span>,
           },
           {
             title: <span className="hg-sr-only">操作</span>,
             key: 'actions',
-            width: isAdmin ? 176 : 96,
+            width: isAdmin ? 132 : 80,
             fixed: 'right',
             render: (_: unknown, form: FormDTO) => <div className="hg-row-actions">
-              {isAdmin && <Button type="text" size="small" icon={<TableIcon />} onClick={() => navigate(`/forms/${form.id}`)}>数据</Button>}
-              <Button size="small" icon={<PenLineIcon />} onClick={() => navigate(`/form-fill/${form.id}`)}>填写</Button>
+              {isAdmin && <Button type="text" size="small" onClick={() => navigate(`/forms/${form.id}`)}>数据</Button>}
+              <Button type="text" size="small" onClick={() => navigate(`/form-fill/${form.id}`)}>填写</Button>
             </div>,
           },
         ]}

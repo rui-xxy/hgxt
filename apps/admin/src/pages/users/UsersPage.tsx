@@ -8,12 +8,9 @@ import { createUserApi, deleteUserApi, resetPasswordApi, updateUserApi, updateUs
 import { PageHeader } from '../../components/PageHeader';
 import {
   BanIcon,
-  KeyIcon,
   MoreIcon,
-  PencilIcon,
   PlusIcon,
   SearchIcon,
-  ShieldIcon,
   TrashIcon,
   UserCheckIcon,
 } from '../../components/icons';
@@ -191,14 +188,7 @@ export function UsersPage() {
       dataIndex: 'role',
       width: 120,
       render: (role: UserDTO['role']) =>
-        role === Role.SUPER_ADMIN ? (
-          <span className="hg-pill hg-pill-accent">
-            <ShieldIcon />
-            {roleText[role]}
-          </span>
-        ) : (
-          <span className="hg-pill">{roleText[role]}</span>
-        ),
+        <span className={role === Role.SUPER_ADMIN ? 'hg-badge hg-badge-strong' : 'hg-badge'}>{roleText[role]}</span>,
     },
     {
       title: '状态',
@@ -225,14 +215,14 @@ export function UsersPage() {
       dataIndex: 'phone',
       width: 140,
       render: (phone: string | null) =>
-        phone ? <span className="mono hg-cell-muted">{phone}</span> : <span className="hg-cell-empty">—</span>,
+        phone ? <span className="tabular hg-cell-muted">{phone}</span> : <span className="hg-cell-empty">—</span>,
     },
     {
       title: '创建时间',
       dataIndex: 'createdAt',
       width: 160,
       render: (createdAt: string) => (
-        <span className="mono hg-cell-muted">{dayjs(createdAt).format('YYYY-MM-DD HH:mm')}</span>
+        <span className="tabular hg-cell-muted">{dayjs(createdAt).format('YYYY-MM-DD HH:mm')}</span>
       ),
     },
     {
@@ -262,7 +252,6 @@ export function UsersPage() {
             <Button
               type="text"
               size="small"
-              icon={<PencilIcon />}
               onClick={() => {
                 setEditingUser(record);
                 setFormOpen(true);
@@ -270,7 +259,7 @@ export function UsersPage() {
             >
               编辑
             </Button>
-            <Button type="text" size="small" icon={<KeyIcon />} onClick={() => setResettingUser(record)}>
+            <Button type="text" size="small" onClick={() => setResettingUser(record)}>
               重置密码
             </Button>
             <Dropdown
@@ -310,7 +299,7 @@ export function UsersPage() {
           </Button>
         }
       />
-      <div className="hg-surface">
+      <div className="hg-list">
         <div className="hg-toolbar">
           <Input
             allowClear
@@ -332,7 +321,6 @@ export function UsersPage() {
               setPage(1);
             }}
           />
-          <span className="hg-toolbar-meta">共 {usersQuery.data?.total ?? 0} 条</span>
         </div>
         <Table<UserDTO>
           rowKey="id"

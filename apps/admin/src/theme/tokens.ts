@@ -59,7 +59,7 @@ export interface Palette {
   shadowOverlay: string;
   /** 焦点环 */
   focusRing: string;
-  /** 品牌标识渐变（仅品牌图形使用） */
+  /** 品牌标识：墨色微渐变（仅品牌图形使用，保持单色克制） */
   brandFrom: string;
   brandTo: string;
   onBrand: string;
@@ -100,8 +100,8 @@ export const palettes: Record<ThemeMode, Palette> = {
     shadowOverlay:
       '0 0 0 1px rgba(9, 9, 11, 0.06), 0 12px 32px -8px rgba(9, 9, 11, 0.16), 0 4px 8px -4px rgba(9, 9, 11, 0.06)',
     focusRing: '0 0 0 3px rgba(91, 91, 214, 0.18)',
-    brandFrom: '#6d6de8',
-    brandTo: '#2a2a8f',
+    brandFrom: '#3f3f46',
+    brandTo: '#09090b',
     onBrand: '#ffffff',
   },
   dark: {
@@ -138,8 +138,8 @@ export const palettes: Record<ThemeMode, Palette> = {
     shadowOverlay:
       '0 0 0 1px rgba(255, 255, 255, 0.08), 0 16px 40px -8px rgba(0, 0, 0, 0.7), 0 4px 12px -4px rgba(0, 0, 0, 0.5)',
     focusRing: '0 0 0 3px rgba(142, 142, 245, 0.25)',
-    brandFrom: '#9d9df8',
-    brandTo: '#4b4bc8',
+    brandFrom: '#52525b',
+    brandTo: '#1c1c1f',
     onBrand: '#ffffff',
   },
 };
@@ -295,13 +295,14 @@ function buildTheme(mode: ThemeMode): ThemeConfig {
         colorBorderSecondary: p.hairline,
       },
       Table: {
-        headerBg: p.subtle,
+        headerBg: 'transparent',
         headerColor: p.text3,
         headerSplitColor: 'transparent',
         headerBorderRadius: 0,
         borderColor: p.hairline,
         rowHoverBg: p.subtle,
-        cellPaddingBlock: 13,
+        rowSelectedBg: p.subtle,
+        cellPaddingBlock: 14,
         cellPaddingInline: 16,
         footerBg: 'transparent',
       },

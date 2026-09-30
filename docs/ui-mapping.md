@@ -29,17 +29,19 @@
 
 ```text
 ① PageHeader（components/PageHeader.tsx）
-   左：[返回按钮] + 标题（18px semibold，字距 -0.015em）+ [计量标记（如「2」「6 条记录」）]
+   左：[返回按钮] + 标题（18px semibold，字距 -0.015em）+ [计量：三级灰纯数字，不加底色]
    右：页面级主操作（一页至多一个 primary 按钮）
    —— **不加辅助说明小字**（用户明确要求：页面用途靠标题与内容表达，禁止
       "管理系统账号：新增、编辑…"这类解释性副文本；计量标记是数字，不是说明）
 
-② 数据工作区（.hg-surface：发丝线边框 + 圆角 12，不加阴影）
-   ├ Toolbar（.hg-toolbar）：左侧填充式搜索框（.hg-search，SearchIcon 前缀，回车搜索、清空即复位），
-   │   右侧计数（12px 三级灰，等宽数字）
-   └ Table：与 Toolbar 同一表面；表头 12px 三级灰；关键业务列不设宽度（伸缩 + ellipsis），
-      技术值列（时间/号码）定宽 + mono；操作列 fixed right、表头隐藏文字（.hg-sr-only）；
-      分页 size=small 贴底
+② 数据工作区
+   列表页（.hg-list）：**无外框**，表格直接落在面板上（少一层盒子才显得克制）
+   ├ Toolbar：左侧填充式搜索框（.hg-search，SearchIcon 前缀，回车搜索、清空即复位）；
+   │   总数只在 PageHeader 显示一次，不重复
+   └ Table：表头无底色、12px 三级灰、上下发丝线；首列与工具栏左缘对齐；
+      关键业务列不设宽度（伸缩 + ellipsis），时间/号码定宽 + `.tabular`（不用等宽字体）；
+      操作列 fixed right、表头隐藏文字（.hg-sr-only）、**悬停/聚焦行时才浮现**（触屏常显）
+   宽表 / 编辑型工作区（DataSheet）用 .hg-surface：发丝线边框 + 圆角 12，不加阴影
 
 ③ 空态 / 状态页（components/StatusView.tsx）
    图标方块 + 标题 + 说明 + 操作；表格空态由 ConfigProvider.renderEmpty 统一提供。
@@ -47,7 +49,8 @@
 ```
 
 - 列布局原则：**不要让定宽列排完后右侧留大片空白**——至少一个业务列负责伸缩。
-- 行操作：高频操作用 `type="text" size="small"` + 图标直接露出；低频 / 危险操作（禁用、启用、删除）收进行尾「⋯」菜单。
+- 行操作：高频操作用无图标的 `type="text" size="small"` 文字按钮；低频 / 危险操作（禁用、启用、删除）收进行尾「⋯」菜单。
+- **不做装饰性图标方块**：列表行首不放图标 tile，用「标题 + 三级灰元信息行」表达（如「19 个字段 · 10 条记录」）。
 - 危险操作必须二次确认 + danger：行内用 `modal.confirm`（图标方块 `.hg-confirm-icon-danger`）或 Popconfirm。
 - 页面级反馈用 message（成功/失败）。
 
@@ -55,7 +58,8 @@
 
 - 界面冷静、密集、操作型（calm, dense, operational），不做营销风。
 - 中性色承担 95% 的界面；**强调色（靛紫）只用于焦点、选中、链接、进度与品牌**，主按钮用墨色（浅色近黑 / 深色近白）。
-- 渐变只允许出现在品牌图形（BrandMark）与登录页背景柔光上；普通 UI 不用渐变。
+- 品牌标识保持墨色单色（仅极轻的明度渐变）；登录页背景柔光是唯一的装饰。普通 UI 不用渐变、不用彩色填充块。
+- 头像、角色徽标一律中性：头像 = 浅填充 + 发丝描边 + 二级灰字；角色 = 描边徽标（`.hg-badge`，管理员 `.hg-badge-strong`）。
 - 靠「画布 → 面板 → 弱分区」的明度层次 + 发丝线表达结构；阴影只给浮起面板（极轻）和浮层。
 - 语义色（success/warning/danger）只表达真实语义状态，不做装饰；状态用「颜色 + 文字」双重表达。
 - 亮色 / 深色两套主题都必须正常；顶栏单按钮一键切换，不提供三态选择器。
@@ -67,7 +71,7 @@
 - 规格：24 网格、1.75 描边、圆头圆角、`currentColor`、尺寸 `1em`（随文字缩放，按钮内自动放大到 1.07em）。
 - 新增图标：用 `createIcon(name, <path …/>)`，保持同网格同描边；装饰性图标默认 `aria-hidden`，需要可访问名称时传 `title`。
 - 纯图标按钮必须有 `aria-label`（并建议配 Tooltip）。
-- 品牌标识：`components/BrandMark.tsx`（渐变圆角方块 + H 字形 + 圆点），颜色来自 `--hg-brand-*`。
+- 品牌标识：`components/BrandMark.tsx`（墨色圆角方块 + H 字形 + 圆点），颜色来自 `--hg-brand-*`。
 
 ## Token 映射表
 
@@ -89,7 +93,7 @@
 ### 字体
 
 - UI：Geist Variable（`@fontsource-variable/geist`，本地打包，内网可用）→ 苹方 / HarmonyOS Sans / MiSans / 微软雅黑。
-- 技术值（用户名、日期时间、手机号、序号）：Geist Mono（`.mono`）。数字列加 `.tabular`（等宽数字）。
+- 等宽字体（`.mono`）只用于真正的标识符（用户名、编码）；日期、手机号、数量用 `.tabular`（等宽数字的正文字体）。
 
 ### 圆角（按嵌套层级递减）
 
@@ -144,7 +148,7 @@
 
 ## 组件约定
 
-- 角色用 `.hg-pill`（管理员 `.hg-pill-accent` + ShieldIcon / 普通用户中性）；状态用 `.hg-status-dot`（正常 success 点 / 已禁用灰点）。
+- 角色用 `.hg-badge`（管理员 `.hg-badge-strong`）；状态用 `.hg-status-dot`（正常 success 点 / 已禁用灰点）。`.hg-pill` 只用于真实状态（未保存 / 已保存）。
 - 用户类单元格：`.hg-cell-user` = 头像（`.hg-avatar`）+ 姓名 + mono 用户名。
 - 表单 `layout="vertical"` + `requiredMark={false}`，弹窗 `destroyOnHidden`。
 - 页面标题统一走 `PageHeader`，不用 Typography.Title 直接铺在页面里。

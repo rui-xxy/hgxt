@@ -202,10 +202,11 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--hg-accent-soft);
-  color: var(--hg-accent-text);
+  background: var(--hg-fill);
+  box-shadow: inset 0 0 0 1px var(--hg-hairline);
+  color: var(--hg-text2);
   font-size: var(--ui-font-size-sm);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
 }
 
@@ -349,12 +350,9 @@
 
 .hg-page-meta {
   flex-shrink: 0;
-  padding: 2px 8px;
-  border-radius: var(--hg-radius-sm);
-  background: var(--hg-fill);
-  color: var(--hg-text2);
-  font-size: var(--ui-font-size-sm);
-  font-weight: 500;
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-base);
+  font-weight: 400;
 }
 
 .hg-page-extra {
@@ -612,4 +610,75 @@
 .hg-confirm-icon-danger {
   background: var(--hg-danger-soft);
   color: var(--hg-danger);
+}
+
+/* ---------- 列表工作区（无外框：表格直接落在面板上） ---------- */
+
+.hg-list .hg-toolbar {
+  padding: 0 0 14px;
+  border-bottom: 0;
+}
+
+.hg-list .ant-table-wrapper .ant-table-thead > tr > th {
+  border-top: 1px solid var(--hg-hairline);
+}
+
+.hg-list .ant-table-wrapper .ant-table-thead > tr > th:first-child,
+.hg-list .ant-table-wrapper .ant-table-tbody > tr > td:first-child {
+  padding-inline-start: 4px;
+}
+
+.hg-list .ant-table-wrapper .ant-table-thead > tr > th {
+  padding-block: 10px;
+  font-size: var(--ui-font-size-sm);
+  font-weight: 500;
+}
+
+.hg-list .ant-table-wrapper .ant-table-pagination.ant-pagination {
+  margin: 16px 0 0;
+}
+
+/* 行操作：静默，悬停 / 键盘聚焦时浮现；触屏设备始终可见 */
+@media (hover: hover) {
+  .hg-list .hg-row-actions {
+    opacity: 0;
+    transition: opacity 0.16s var(--hg-ease);
+  }
+
+  .hg-list .ant-table-row:hover .hg-row-actions,
+  .hg-list .ant-table-row:focus-within .hg-row-actions,
+  .hg-list .hg-row-actions:has([aria-expanded='true']) {
+    opacity: 1;
+  }
+}
+
+/* 中性徽标：只有描边，不做底色填充 */
+.hg-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--hg-border);
+  border-radius: var(--hg-radius-sm);
+  color: var(--hg-text2);
+  font-size: var(--ui-font-size-sm);
+  white-space: nowrap;
+}
+
+.hg-badge-strong {
+  border-color: var(--hg-border-hover);
+  color: var(--hg-text);
+  font-weight: 500;
+}
+
+/* 分页当前页：中性描边 + 实色文字，不用强调色 */
+.ant-pagination .ant-pagination-item-active,
+.ant-pagination .ant-pagination-item-active:hover {
+  border-color: var(--hg-border-hover);
+  background: var(--hg-panel);
+}
+
+.ant-pagination .ant-pagination-item-active a,
+.ant-pagination .ant-pagination-item-active:hover a {
+  color: var(--hg-text);
 }
