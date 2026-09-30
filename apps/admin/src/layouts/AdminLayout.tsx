@@ -1,12 +1,10 @@
-import { useState } from 'react';
-import { Avatar, Dropdown, Tooltip } from 'antd';
+import { useEffect, useRef, useState } from 'react';
+import { Avatar, Dropdown } from 'antd';
 import {
   FlaskConical,
   Home,
   LogOut,
   Moon,
-  PanelLeftClose,
-  PanelLeftOpen,
   Settings,
   Sun,
   Users,
@@ -73,16 +71,6 @@ const MODULES: ModuleDef[] = [
   },
 ];
 
-const PANEL_KEY = 'hgxt:panel-collapsed';
-
-function readCollapsed(): boolean {
-  try {
-    return localStorage.getItem(PANEL_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
 /** 顶部路径栏的页面名 */
 function pageName(pathname: string): string {
   if (pathname === '/') return '概览';
@@ -93,8 +81,8 @@ function pageName(pathname: string): string {
 }
 
 /**
- * 后台壳层（design/00 · 布局架构）：
- * ① 模块轨 68px（一级导航）→ ② 模块面板 236px（二级导航）→ ③ 圆角 14 的白色内容画布。
+ * 后台壳层：左侧 68px 图标轨（一级导航），鼠标移到图标上浮出该模块的二级菜单、
+ * 移开即收起；右侧是圆角 14 的白色内容画布。
  */
 export function AdminLayout() {
   const location = useLocation();
@@ -102,19 +90,24 @@ export function AdminLayout() {
   const me = useMe();
   const { mode, toggleMode } = useThemeMode();
   const isAdmin = me.data?.role === Role.SUPER_ADMIN;
-  const [collapsed, setCollapsed] = useState(readCollapsed);
-  const togglePanel = () =>
-    setCollapsed((value) => {
-      try {
-        localStorage.setItem(PANEL_KEY, value ? '0' : '1');
-      } catch {
-        /* 存储不可用时仅本次生效 */
-      }
-      return !value;
-    });
+  const [hoverKey, setHoverKey] = useState<string | null>(null);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const closeTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(closeTimer.current), []);
+
+  const openFlyout = (key: string) => {
+    window.clearTimeout(closeTimer.current);
+    setHoverKey(key);
+  };
+  const scheduleClose = () => {
+    window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => setHoverKey(null), 140);
+  };
 
   const modules = MODULES.filter((m) => !m.adminOnly || isAdmin);
   const current = MODULES.find((m) => m.match(location.pathname)) ?? MODULES[0];
+  const flyout = modules.find((m) => m.key === hoverKey) ?? null;
   const itemActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
@@ -128,54 +121,69 @@ export function AdminLayout() {
     },
   });
 
-  const accountMenu = {
-    items: [
-      {
-        key: 'logout',
-        label: '退出登录',
-        icon: <LogOut size={16} strokeWidth={1.6} />,
-        danger: true,
-      },
-    ],
-    onClick: ({ key }: { key: string }) => {
-      if (key === 'logout') logoutMutation.mutate();
-    },
-  };
-
-  const themeLabel = mode === 'dark' ? '切换为浅色主题' : '切换为深色主题';
+  const themeLabel = mode === 'dark' ? '浅色模式' : '深色模式';
   const ThemeIcon = mode === 'dark' ? Sun : Moon;
+
+  const accountPanel = (
+    <div className="hgxt-acct-menu">
+      <div className="hgxt-acct-head">
+        <div className="hgxt-acct-name">{me.data?.name ?? '...'}</div>
+        <div className="hgxt-acct-meta">
+          <span className="mono">{me.data?.username ?? ''}</span>
+          {me.data ? ` · ${me.data.role === Role.SUPER_ADMIN ? '管理员' : '普通用户'}` : ''}
+        </div>
+      </div>
+      <hr />
+      <button
+        type="button"
+        onClick={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect();
+          setAccountOpen(false);
+          toggleMode({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+        }}
+      >
+        <ThemeIcon size={16} strokeWidth={1.6} />
+        {themeLabel}
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setAccountOpen(false);
+          logoutMutation.mutate();
+        }}
+      >
+        <LogOut size={16} strokeWidth={1.6} />
+        退出登录
+      </button>
+    </div>
+  );
 
   return (
     <div className="hgxt-shell">
-      <nav className="hgxt-rail" aria-label="模块">
+      <nav className="hgxt-rail" aria-label="模块" onMouseLeave={scheduleClose}>
         <Link to="/" className="hgxt-mark" aria-label="HGXT 首页">
           化
         </Link>
         {modules.map((m) => (
-          <Tooltip key={m.key} title={m.label} placement="right">
-            <Link
-              to={m.path}
-              aria-label={m.label}
-              className={`hgxt-rail-link${m.key === current.key ? ' is-on' : ''}`}
-            >
-              <m.icon size={20} strokeWidth={1.6} />
-            </Link>
-          </Tooltip>
+          <Link
+            key={m.key}
+            to={m.path}
+            aria-label={m.label}
+            className={`hgxt-rail-link${m.key === current.key ? ' is-on' : ''}`}
+            onMouseEnter={() => openFlyout(m.key)}
+            onFocus={() => openFlyout(m.key)}
+          >
+            <m.icon size={20} strokeWidth={1.6} />
+          </Link>
         ))}
         <div className="hgxt-rail-foot">
-          <button
-            type="button"
-            className="hgxt-iconbtn"
-            aria-label={themeLabel}
-            title={themeLabel}
-            onClick={(event) => {
-              const rect = event.currentTarget.getBoundingClientRect();
-              toggleMode({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
-            }}
+          <Dropdown
+            open={accountOpen}
+            onOpenChange={setAccountOpen}
+            placement="topLeft"
+            trigger={['click']}
+            popupRender={() => accountPanel}
           >
-            <ThemeIcon size={18} strokeWidth={1.6} />
-          </button>
-          <Dropdown menu={accountMenu} placement="topRight" trigger={['click']}>
             <button type="button" className="hgxt-iconbtn hgxt-account" aria-label="账号菜单">
               <Avatar size={30} className="hgxt-avatar">
                 {me.data?.name?.charAt(0) ?? '?'}
@@ -185,43 +193,32 @@ export function AdminLayout() {
         </div>
       </nav>
 
-      <aside className={`hgxt-panel${collapsed ? ' is-collapsed' : ''}`} aria-hidden={collapsed}>
-        <div className="hgxt-panel-head">
-          <span className="hgxt-panel-title">{current.title}</span>
-        </div>
-        <div className="hgxt-panel-nav">
-          {current.items.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`hgxt-panel-link${itemActive(item.path) ? ' is-on' : ''}`}
-            >
-              <item.icon size={18} strokeWidth={1.6} />
-              <span>{item.label}</span>
-            </Link>
-          ))}
-        </div>
-        <div className="hgxt-panel-user">
-          <div className="hgxt-panel-user-name">{me.data?.name ?? '...'}</div>
-          <div className="hgxt-panel-user-meta mono">{me.data?.username ?? ''}</div>
-        </div>
-      </aside>
+      {flyout ? (
+        <aside
+          className="hgxt-flyout"
+          onMouseEnter={() => openFlyout(flyout.key)}
+          onMouseLeave={scheduleClose}
+          onBlur={scheduleClose}
+        >
+          <div className="hgxt-flyout-title">{flyout.title}</div>
+          <div className="hgxt-flyout-nav">
+            {flyout.items.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setHoverKey(null)}
+                className={`hgxt-flyout-link${itemActive(item.path) ? ' is-on' : ''}`}
+              >
+                <item.icon size={18} strokeWidth={1.6} />
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </div>
+        </aside>
+      ) : null}
 
       <div className="hgxt-canvas">
         <header className="hgxt-bar">
-          <button
-            type="button"
-            className="hgxt-iconbtn"
-            aria-label={collapsed ? '展开菜单' : '收起菜单'}
-            title={collapsed ? '展开菜单' : '收起菜单'}
-            onClick={togglePanel}
-          >
-            {collapsed ? (
-              <PanelLeftOpen size={18} strokeWidth={1.6} />
-            ) : (
-              <PanelLeftClose size={18} strokeWidth={1.6} />
-            )}
-          </button>
           <div className="hgxt-crumb">
             <span>{current.title}</span>
             <span className="hgxt-crumb-sep">/</span>
