@@ -295,3 +295,26 @@ export interface MaterialsResult {
   finishedProducts: FinishedProductItem[];
   internalFlows: InternalFlowItem[];
 }
+
+/** 车间版面·库存卡片：按物料分组的最新罐液位 */
+export interface TankLevelItem {
+  fieldId: string;
+  name: string;
+  /** 液位 %；未填为 null */
+  levelPercent: number | null;
+  /** 折算吨 = 液位% × 罐容 × 密度；液位缺失为 null */
+  tons: number | null;
+  capacity: number;
+  density: number;
+}
+
+export interface TankMaterialGroup {
+  material: string;
+  totalTons: number;
+  tanks: TankLevelItem[];
+}
+
+export interface TankLevelsResult {
+  date: string;
+  groups: TankMaterialGroup[];
+}

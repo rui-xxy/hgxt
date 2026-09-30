@@ -7,6 +7,9 @@ import type {
   InternalFlowItem,
   MaterialsResult,
   RawMaterialStockItem,
+  TankLevelItem,
+  TankLevelsResult,
+  TankMaterialGroup,
   WorkshopOverviewResult,
   WorkshopSeries,
 } from '@hgxt/shared';
@@ -421,5 +424,40 @@ export class OverviewService {
 
     const date = warehouseLatest?.date ?? finishedLatest?.date ?? sulfuricToday?.date ?? '';
     return { date, rawMaterials, finishedProducts, internalFlows };
+  }
+
+// ── 车间版面·库存卡片 ─────────────────────────────────────
+
+  /** 硫酸系统最新一日的分罐液位（按物料分组，折算吨） */
+  async tankLevels(): Promise<TankLevelsResult> {
+    const [sulfuric, tanks] = await Promise.all([
+      this.byDate(CODE.sulfuric),
+      this.prisma.tank.findMany({ where: { formCode: CODE.sulfuric }, orderBy: { fieldId: 'asc' } }),
+    ]);
+    const dates = [...sulfuric.keys()].sort();
+    const date = dates[dates.length - 1] ?? '';
+    const data = date ? sulfuric.get(date)! : undefined;
+
+    const byMaterial = new Map<string, TankLevelItem[]>();
+    for (const tank of tanks) {
+      const level = data ? OverviewService.toNum(data[tank.fieldId]) : null;
+      const item: TankLevelItem = {
+        fieldId: tank.fieldId,
+        name: tank.name,
+        levelPercent: level,
+        tons: level === null ? null : +((level / 100) * tank.capacity * tank.density).toFixed(1),
+        capacity: tank.capacity,
+        density: tank.density,
+      };
+      const list = byMaterial.get(tank.material) ?? [];
+      list.push(item);
+      byMaterial.set(tank.material, list);
+    }
+    const groups: TankMaterialGroup[] = [...byMaterial.entries()].map(([material, list]) => ({
+      material,
+      totalTons: +list.reduce((s, t) => s + (t.tons ?? 0), 0).toFixed(1),
+      tanks: list,
+    }));
+    return { date, groups };
   }
 }

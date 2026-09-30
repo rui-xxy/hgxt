@@ -52,4 +52,10 @@ export class ProductionController {
   materials() {
     return this.overview.materials();
   }
+
+  @Get('tanks')
+  @ApiOperation({ summary: '车间版面：硫酸系统最新分罐液位（按物料分组，折算吨）' })
+  tanks() {
+    return this.overview.tankLevels();
+  }
 }
