@@ -64,6 +64,8 @@ model RefreshToken {
 model Form {
   id          String           @id @default(uuid())
   title       String
+  /// 稳定业务标识（如 sulfuric_daily / sales_daily），代码用此字段找表
+  code           String?          @unique
   description String?
   schema      Json
   status      String           @default("published")
@@ -87,4 +89,26 @@ model FormSubmission {
   updatedAt   DateTime @default(now()) @updatedAt
 
   @@index([formId, createdAt])
+}
+// 储罐与电表档案：产盘指标的换算参数（液位%→吨、读数差→度）
+// fieldId 对应表单的字段 id；罐容为占位值，需按真实设备参数修正
+
+model Tank {
+  id       String  @id @default(uuid())
+  fieldId  String  @unique
+  name     String
+  material String // 98酸 / 发烟硫酸 / 试剂酸 / 双氧水
+  capacity Float // 罐容（m³）
+  density  Float // 密度（t/m³）：98/93/试剂≈1.84，发烟≈1.92
+  /// 归属表单 code（如 sulfuric_daily）——算硫酸只查硫酸的罐，其他车间的罐互不干扰
+  formCode String @default("sulfuric_daily")
+}
+
+model Meter {
+  id         String @id @default(uuid())
+  fieldId    String @unique
+  name       String
+  multiplier Float @default(1) // 倍率
+  /// 归属表单 code
+  formCode   String @default("sulfuric_daily")
 }

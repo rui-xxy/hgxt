@@ -1,6 +1,0 @@
-[
-  { "id": "device_name", "title": "设备名称", "type": "text", "group": "巡检信息", "required": true, "placeholder": "如 1#反应釜", "width": 140 },
-  { "id": "status", "title": "运行状态", "type": "select", "group": "巡检信息", "required": true, "options": [{ "label": "正常", "value": "ok" }, { "label": "异常", "value": "fault" }, { "label": "停机", "value": "stopped" }], "width": 100 },
-  { "id": "temperature", "title": "温度", "type": "number", "group": "运行参数", "precision": 1, "suffix": "℃", "min": -20, "max": 300, "width": 90 },
-  { "id": "remark", "title": "备注", "type": "text", "group": "运行参数", "placeholder": "异常情况说明（选填）", "width": 220 }
-]

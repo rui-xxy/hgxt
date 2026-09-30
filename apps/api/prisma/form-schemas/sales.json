@@ -1,0 +1,39 @@
+[
+  {
+    "id": "field_date",
+    "title": "日期",
+    "type": "date",
+    "group": "数据录入",
+    "hidden": true,
+    "required": true,
+    "description": "数据归属日期"
+  },
+  {
+    "id": "field_reagent_acid_sales",
+    "title": "试剂酸销售量",
+    "type": "number",
+    "group": "数据录入",
+    "precision": 2
+  },
+  {
+    "id": "field_acid98_sales",
+    "title": "98酸销售量",
+    "type": "number",
+    "group": "数据录入",
+    "precision": 2
+  },
+  {
+    "id": "field_acid93_sales",
+    "title": "93酸销售量",
+    "type": "number",
+    "group": "数据录入",
+    "precision": 2
+  },
+  {
+    "id": "field_fuming_acid_sales",
+    "title": "发烟硫酸销售量",
+    "type": "number",
+    "group": "数据录入",
+    "precision": 2
+  }
+]

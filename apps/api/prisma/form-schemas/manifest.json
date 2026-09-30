@@ -1,0 +1,72 @@
+[
+  {
+    "file": "sulfuric.json",
+    "title": "硫酸车间报表",
+    "parkingEnabled": true,
+    "code": "sulfuric_daily",
+    "description": "每日生产数据填报"
+  },
+  {
+    "file": "aminosulfonic.json",
+    "title": "氨基磺酸车间生产日报",
+    "parkingEnabled": false,
+    "code": "aminosulfonic_daily",
+    "description": "单日汇总录入"
+  },
+  {
+    "file": "magnesium.json",
+    "title": "硫酸镁车间生产日报",
+    "parkingEnabled": false,
+    "code": "magnesium_daily",
+    "description": "单日汇总录入"
+  },
+  {
+    "file": "hydrotalcite.json",
+    "title": "水滑石车间报表",
+    "parkingEnabled": false,
+    "code": "hydrotalcite_daily",
+    "description": "单日汇总录入"
+  },
+  {
+    "file": "anthraquinone.json",
+    "title": "二乙基蒽醌报表",
+    "parkingEnabled": false,
+    "code": "anthraquinone_daily",
+    "description": "单日汇总录入"
+  },
+  {
+    "file": "thermal.json",
+    "title": "热电车间报表",
+    "parkingEnabled": false,
+    "code": "thermal_daily",
+    "description": "单日汇总录入（水/电/蒸汽）"
+  },
+  {
+    "file": "sales.json",
+    "title": "销售表",
+    "parkingEnabled": false,
+    "code": "sales_daily",
+    "description": "各产品日销售量"
+  },
+  {
+    "file": "fenglian.json",
+    "title": "丰联报表",
+    "parkingEnabled": false,
+    "code": "fenglian_daily",
+    "description": "单日汇总录入"
+  },
+  {
+    "file": "warehouse.json",
+    "title": "仓库原辅料报表",
+    "parkingEnabled": false,
+    "code": "warehouse_daily",
+    "description": "原辅料出入库与库存"
+  },
+  {
+    "file": "finished-products.json",
+    "title": "产成品物料报表",
+    "parkingEnabled": false,
+    "code": "finished_products_daily",
+    "description": "各车间产成品产销存"
+  }
+]
