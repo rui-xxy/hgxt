@@ -107,12 +107,31 @@ async function importSubmissions(idByCode: Map<string, string>): Promise<number>
   const formIds = [...idByCode.values()];
   const removed = await prisma.formSubmission.deleteMany({ where: { formId: { in: formIds } } });
 
+  // 旧库把数字存成字符串（"9.05"）；入库前按 schema 的 number 字段规范化成真数字
+  const numberFields = new Map<string, Set<string>>();
+  for (const entry of manifest) {
+    const schema = (SCHEMAS as Record<string, Array<{ id: string; type: string }>>)[entry.code] ?? [];
+    numberFields.set(entry.code, new Set(schema.filter((f) => f.type === 'number').map((f) => f.id)));
+  }
+
   const rows = (submissions as LegacySubmission[]).map((s) => {
     const data = { ...s.data };
     // 旧系统 parkingRecords 是 jsonb 数组；本系统存字符串（空数组直接丢弃）
     if (Array.isArray(data.parkingRecords)) {
       if (data.parkingRecords.length > 0) data.parkingRecords = JSON.stringify(data.parkingRecords);
       else delete data.parkingRecords;
+    }
+    const nums = numberFields.get(s.code);
+    if (nums) {
+      for (const key of Object.keys(data)) {
+        if (!nums.has(key)) continue;
+        const v = data[key];
+        if (typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v))) {
+          data[key] = Number(v);
+        } else if (typeof v === 'string') {
+          data[key] = null;
+        }
+      }
     }
     return {
       formId: idByCode.get(s.code)!,
