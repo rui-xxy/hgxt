@@ -171,7 +171,7 @@ function niceMax(raw: number): number {
 }
 
 /**
- * 设计稿的月柱状图：横向网格 + y 轴刻度 + 柱顶数值 + 月均虚线 + 悬停构成 tooltip +
+ * 设计稿的月柱状图：横向网格 + y 轴刻度 + 柱顶数值 + 月均虚线 + 图下构成图例 +
  * 点击选中（品牌色，其余为浅品牌色）。宽度自适应容器。
  */
 export function MonthBars({
@@ -219,7 +219,7 @@ export function MonthBars({
     const v = (max / 4) * i;
     return { v, y: yOf(v), label: Math.round(v).toLocaleString() };
   });
-  const active = hover ?? selected;
+  const active = hover;
   const activeItem = data.find((d) => d.label === active);
   const tipRows = tooltipOf && active ? tooltipOf(active) : null;
   const tipX = active ? padL + data.findIndex((d) => d.label === active) * slot + slot / 2 : 0;
@@ -269,26 +269,24 @@ export function MonthBars({
               className="hit"
               style={{ left: padL + i * slot, top: 0, width: slot, height: padT + plotH }}
               onMouseEnter={() => setHover(d.label)}
+              onMouseLeave={() => setHover(null)}
               onClick={() => onSelect(d.label)}
             />
           </div>
         ))}
-        {hover && activeItem && activeItem.value !== null ? (
-          <div className="tip" style={{ left: Math.min(Math.max(tipX - 85, 4), Math.max(4, width - 190)), top: 0 }}>
-            <div style={{ fontWeight: 600, marginBottom: 2 }}>{hover}</div>
+        {active && activeItem && activeItem.value !== null ? (
+          <div className="tip" style={{ left: Math.min(Math.max(tipX - 85, 4), Math.max(4, width - 220)) }}>
+            <div style={{ fontWeight: 600, marginBottom: 2 }}>{active}</div>
             {tipRows ? (
-              tipRows.map((r) => (
-                <div className="tr" key={r.name}>
-                  <i style={{ width: 8, height: 8, borderRadius: 2, background: r.color, display: 'inline-block' }} />
-                  <span className="muted">{r.name}</span>
-                  <b>{r.value}</b>
+              tipRows.map((row) => (
+                <div className="tr" key={row.name}>
+                  <i style={{ width: 8, height: 8, borderRadius: 2, background: row.color, display: 'inline-block' }} />
+                  <span className="muted">{row.name}</span>
+                  <b>{row.value}</b>
                 </div>
               ))
             ) : (
-              <div className="tr">
-                <span className="muted">{unit}</span>
-                <b>{fmt(activeItem.value, 1)}</b>
-              </div>
+              <div className="tr"><span className="muted">{unit}</span><b>{fmt(activeItem.value, 1)}</b></div>
             )}
           </div>
         ) : null}

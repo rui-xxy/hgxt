@@ -19,6 +19,6 @@ export function energySummary(days = 30): Promise<EnergyResult> {
 export function materialsSummary(): Promise<MaterialsResult> {
   return request('/production/materials');
 }
-export function tankLevels(): Promise<TankLevelsResult> {
-  return request('/production/tanks');
+export function tankLevels(date?: string): Promise<TankLevelsResult> {
+  return request(`/production/tanks${date ? `?date=${encodeURIComponent(date)}` : ''}`);
 }

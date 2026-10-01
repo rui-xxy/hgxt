@@ -19,6 +19,7 @@ describe('production 硫酸生产指标', () => {
     { id: 'tank_fy-1', title: '发烟酸 1#罐', type: 'number', group: '发烟硫酸' },
     { id: 'tank_jp-1', title: '试剂酸 1#罐', type: 'number', group: '试剂酸' },
     { id: 'meter_3', title: '1#电机', type: 'number', group: '仪表读数' },
+    { id: 'meter_amino', title: '氨基磺酸电表', type: 'number', group: '仪表读数' },
   ];
 
   const salesSchema = [
@@ -69,13 +70,14 @@ describe('production 硫酸生产指标', () => {
     ] });
     await prisma.meter.createMany({ data: [
       { fieldId: 'meter_3', name: '1#电机', multiplier: 10, formCode: 'sulfuric_daily' },
+      { fieldId: 'meter_amino', name: '氨基磺酸电表', multiplier: 3000, formCode: 'sulfuric_daily' },
     ] });
 
     // D1: 09-01 完整
-    await submit(sulfuricFormId, { field_date: '2026-09-01', 'tank_98-1': 50, 'tank_fy-1': 50, 'tank_jp-1': 20, 'meter_3': 1000 });
+    await submit(sulfuricFormId, { field_date: '2026-09-01', 'tank_98-1': 50, 'tank_fy-1': 50, 'tank_jp-1': 20, 'meter_3': 1000, meter_amino: 100 });
     // D2: 09-02 完整 + 销售流出
     await submit(salesFormId, { field_date: '2026-09-02', field_acid98_sales: 10, field_acid93_sales: 0, field_reagent_acid_sales: 0, field_fuming_acid_sales: 0 });
-    await submit(sulfuricFormId, { field_date: '2026-09-02', 'tank_98-1': 60, 'tank_fy-1': 40, 'tank_jp-1': 20, 'meter_3': 1500 });
+    await submit(sulfuricFormId, { field_date: '2026-09-02', 'tank_98-1': 60, 'tank_fy-1': 40, 'tank_jp-1': 20, 'meter_3': 1500, meter_amino: 110 });
     // 断天 09-03：这天没有硫酸库存，但有销售 15 吨（应累计到 09-04 的产量）
     await submit(salesFormId, { field_date: '2026-09-03', field_acid98_sales: 15, field_acid93_sales: 0, field_reagent_acid_sales: 0, field_fuming_acid_sales: 0 });
     // D3: 09-04 完整（gapDays=2）——电表回退测回零
@@ -98,6 +100,7 @@ describe('production 硫酸生产指标', () => {
     const res = await http(app).get('/api/production/sulfuric').set('Authorization', `Bearer ${token}`).expect(200);
     const day2 = res.body.days.find((d: { date: string }) => d.date === '2026-09-02');
     expect(day2.inventory).toEqual({ acid98: 110.4, fuming: 153.6, reagent: 18.4, total: 282.4 });
+    expect(day2.levels.find((level: { fieldId: string }) => level.fieldId === 'tank_98-1').levelPercent).toBe(60);
   });
 
   it('差值产量含四酸独立销售流出', async () => {
@@ -109,6 +112,16 @@ describe('production 硫酸生产指标', () => {
     expect(day2.production.flow).toEqual({ acid98: 10, acid93: 0, reagent: 0, fuming: 0 });
     expect(day2.production.total98Equivalent).toBe(-12.743);
     expect(day2.production.gapDays).toBe(0); // 连续日 = 0（不再是 1）
+    expect(day2.production.calculation.previousReportDate).toBe('2026-09-01');
+    const tankCalculation = day2.production.calculation.tanks.find((tank: { fieldId: string }) => tank.fieldId === 'tank_98-1');
+    expect(tankCalculation).toMatchObject({
+      previousLevelPercent: 50, currentLevelPercent: 60, capacity: 100, density: 1.84,
+      previousTons: 92, currentTons: 110.4,
+    });
+    expect(tankCalculation.deltaTons).toBeCloseTo(18.4, 6);
+    expect(day2.production.calculation.sales).toEqual([{
+      date: '2026-09-02', values: { acid98: 10, acid93: 0, reagent: 0, fuming: 0 },
+    }]);
   });
 
   it('缺任一产量罐 → 该日库存和产量均为 null（不把空当 0）', async () => {
@@ -116,6 +129,7 @@ describe('production 硫酸生产指标', () => {
     const day8 = res.body.days.find((d: { date: string }) => d.date === '2026-09-08');
     expect(day8.inventory).toBeNull(); // 缺试剂酸罐
     expect(day8.production).toBeNull();
+    expect(day8.levels.find((level: { fieldId: string }) => level.fieldId === 'tank_jp-1').levelPercent).toBeNull();
   });
 
   it('断天标注 + 销售累计：gap 期间的销售也计入产量流出', async () => {
@@ -124,6 +138,7 @@ describe('production 硫酸生产指标', () => {
     expect(day4.production.gapDays).toBe(1); // 09-02 → 09-04 断了 1 天 = 1（不再是 2）
     expect(day4.production.flow.acid98).toBe(15); // 09-03 销售 15 累计
     expect(day4.production.acid98).toBe(33.4);
+    expect(day4.production.calculation.sales.map((entry: { date: string }) => entry.date)).toEqual(['2026-09-03', '2026-09-04']);
     // 断天日电耗为 null（多天读数差不能拆成日值）
     expect(day4.electricity).toBeNull();
   });
@@ -156,10 +171,79 @@ describe('production 硫酸生产指标', () => {
     expect(day5.electricity.total).toBe(2000);
   });
 
+  it('日用电含热电三台变压器，排除其他车间电表；水耗和双氧水耗用归属填报前一日', async () => {
+    const thermal = await prisma.form.create({ data: {
+      title: '热电车间', code: 'thermal_daily', schema: [
+        { id: 'field_date', title: '日期', type: 'date', required: true },
+        { id: 'field_transformer1', title: '1#变压器', type: 'number' },
+        { id: 'field_transformer2', title: '2#变压器', type: 'number' },
+        { id: 'field_transformer3', title: '3#变压器', type: 'number' },
+        { id: 'field_water_meter', title: '总水表', type: 'number' },
+      ] as never,
+    } });
+    const warehouse = await prisma.form.create({ data: {
+      title: '原辅料', code: 'warehouse_daily', schema: [
+        { id: 'field_date', title: '日期', type: 'date', required: true },
+        { id: 'field_002', title: '双氧水耗用', type: 'number' },
+      ] as never,
+    } });
+    await submit(thermal.id, { field_date: '2026-09-01', field_transformer1: 100, field_transformer2: 200, field_transformer3: 300, field_water_meter: 1000 });
+    await submit(thermal.id, { field_date: '2026-09-02', field_transformer1: 102, field_transformer2: 203, field_transformer3: 304, field_water_meter: 1035 });
+    await submit(warehouse.id, { field_date: '2026-09-02', field_002: 9.6 });
+
+    const res = await http(app).get('/api/production/sulfuric').set('Authorization', `Bearer ${token}`).expect(200);
+    const day = res.body.days.find((d: { date: string }) => d.date === '2026-09-02');
+    expect(day.productionDate).toBe('2026-09-01');
+    expect(day.electricity.total).toBe(23000); // 5000 + (2+3+4)×2000；氨基电表不计入
+    expect(day.electricity.meters.map((m: { name: string }) => m.name)).not.toContain('氨基磺酸电表');
+    expect(day.water).toBe(35);
+    expect(day.peroxide).toBe(9.6);
+    expect(res.body.days.find((d: { date: string }) => d.date === '2026-09-04').electricity).toBeNull();
+
+    const energy = await http(app).get('/api/production/energy?days=0').set('Authorization', `Bearer ${token}`).expect(200);
+    const index = energy.body.dates.indexOf('2026-09-01');
+    expect(energy.body.electricity.workshops.find((item: { name: string }) => item.name === '硫酸').values[index]).toBe(23000);
+  });
+
   it('同日多次提交取最新一条', async () => {
     await submit(sulfuricFormId, { field_date: '2026-09-07', 'tank_98-1': 80, 'tank_fy-1': 25, 'tank_jp-1': 30, 'meter_3': 2000 });
     const res = await http(app).get('/api/production/sulfuric').set('Authorization', `Bearer ${token}`).expect(200);
     const day7 = res.body.days.find((d: { date: string }) => d.date === '2026-09-07');
     expect(day7.inventory.acid98).toBe(147.2);
+  });
+
+  it('次日填报归属前一生产日，发烟酸产量计入两车间内部领用', async () => {
+    const amino = await prisma.form.create({
+      data: { title: '氨基磺酸', code: 'aminosulfonic_daily', schema: [
+        { id: 'field_date', title: '日期', type: 'date', required: true },
+        { id: 'field_nitric_acid', title: '发烟硫酸消耗', type: 'number' },
+      ] as never },
+    });
+    const anthraquinone = await prisma.form.create({
+      data: { title: '蒽醌', code: 'anthraquinone_daily', schema: [
+        { id: 'field_date', title: '日期', type: 'date', required: true },
+        { id: 'field_fuming_sulfuric_flow', title: '发烟硫酸流量计', type: 'number' },
+      ] as never },
+    });
+    await submit(amino.id, { field_date: '2026-09-02', field_nitric_acid: 2 });
+    await submit(anthraquinone.id, { field_date: '2026-09-01', field_fuming_sulfuric_flow: 100 });
+    await submit(anthraquinone.id, { field_date: '2026-09-02', field_fuming_sulfuric_flow: 103 });
+
+    const res = await http(app).get('/api/production/sulfuric?days=0').set('Authorization', `Bearer ${token}`).expect(200);
+    const day = res.body.days.find((d: { date: string }) => d.date === '2026-09-02');
+    expect(day.productionDate).toBe('2026-09-01');
+    expect(res.body.days.find((d: { date: string }) => d.date === '2026-09-01').productionDate).toBe('2026-08-31');
+    expect(day.production.internalFuming).toEqual({ aminosulfonic: 3.84, anthraquinone: 5.76 });
+    expect(day.production.calculation.aminosulfonic).toEqual([{ date: '2026-09-02', volumeM3: 2 }]);
+    expect(day.production.calculation.anthraquinone).toEqual({ previousReadingM3: 100, currentReadingM3: 103, volumeM3: 3 });
+    expect(day.production.fuming).toBe(-28.8);
+    expect(day.production.total98Equivalent).toBe(-2.457);
+
+    const workshops = await http(app).get('/api/production/workshops?days=0').set('Authorization', `Bearer ${token}`).expect(200);
+    const idx = workshops.body.dates.indexOf('2026-09-01');
+    expect(idx).toBeGreaterThanOrEqual(0);
+    expect(workshops.body.workshops.find((w: { code: string }) => w.code === 'sulfuric').values[idx]).toBe(-2.457);
+    const tanks = await http(app).get('/api/production/tanks?date=2026-09-01').set('Authorization', `Bearer ${token}`).expect(200);
+    expect(tanks.body.groups.find((g: { material: string }) => g.material === '98酸').totalTons).toBe(110.4);
   });
 });

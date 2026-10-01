@@ -49,7 +49,7 @@ export class OverviewService {
     private readonly production: ProductionService,
   ) {}
 
-  /** 某表单按归属日聚合的提交（同日多条取最新） */
+  /** 填报日 D 的当日产出/消耗归属 D−1；库存是 D−1 的期末快照。 */
   private async byDate(code: string): Promise<ByDate> {
     const form = await this.prisma.form.findUnique({ where: { code } });
     if (!form) return new Map();
@@ -64,22 +64,23 @@ export class OverviewService {
     for (const s of submissions) {
       const date = (s.data as FormData)[dateField.id];
       if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
-        map.set(date, s.data as FormData);
+        map.set(this.dayBefore(date), s.data as FormData);
       }
     }
     return map;
   }
 
-  /** 全部日期并集取最后 N 天 */
+  /** 全部日期并集取最后 N 天；0 表示全部历史。 */
   private windowOf(sources: Array<Map<string, unknown>>, days: number): string[] {
     const all = new Set<string>();
     for (const s of sources) for (const d of s.keys()) all.add(d);
-    return [...all].sort().slice(-days);
+    const dates = [...all].sort();
+    return days === 0 ? dates : dates.slice(-days);
   }
 
   private dayBefore(date: string): string {
-    const d = new Date(date);
-    d.setDate(d.getDate() - 1);
+    const d = new Date(`${date}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - 1);
     return d.toISOString().slice(0, 10);
   }
 
@@ -148,7 +149,7 @@ export class OverviewService {
     ]);
 
     const sulfuricByDate = new Map<string, unknown>(
-      sulfuric.days.map((d) => [d.date, d.production?.total98Equivalent ?? null]),
+      sulfuric.days.map((d) => [d.productionDate, d.production?.total98Equivalent ?? null]),
     );
     const dates = this.windowOf(
       [sulfuricByDate, amino, magnesium, hydrotalcite, anthraquinone],
@@ -198,18 +199,20 @@ export class OverviewService {
   // ── 能源中心 ─────────────────────────────────────────────
 
   async energy(days = 30): Promise<EnergyResult> {
-    const [sulfuric, amino, magnesium, anthraquinone, thermal, meters] = await Promise.all([
+    const [sulfuric, amino, magnesium, anthraquinone, thermal, meters, sulfuricSummary] = await Promise.all([
       this.byDate(CODE.sulfuric),
       this.byDate(CODE.amino),
       this.byDate(CODE.magnesium),
       this.byDate(CODE.anthraquinone),
       this.byDate(CODE.thermal),
       this.prisma.meter.findMany({ where: { formCode: CODE.sulfuric } }),
+      this.production.sulfuricSummary(days),
     ]);
     const multiplierOf = (fieldId: string): number =>
       meters.find((m) => m.fieldId === fieldId)?.multiplier ?? 1;
 
     const dates = this.windowOf([sulfuric, amino, magnesium, anthraquinone, thermal], days);
+    const sulfuricElectricity = new Map(sulfuricSummary.days.map((day) => [day.productionDate, day.electricity?.total ?? null]));
 
     const aminoPhase1 = this.meterSeries(sulfuric, dates, [
       { field: 'meter_amino', multiplier: multiplierOf('meter_amino') },
@@ -224,7 +227,7 @@ export class OverviewService {
         workshops: [
           {
             name: '硫酸',
-            values: this.meterSeries(sulfuric, dates, ['meter_3', 'meter_4', 'meter_5', 'meter_6'].map((f) => ({ field: f, multiplier: multiplierOf(f) }))),
+            values: dates.map((date) => sulfuricElectricity.get(date) ?? null),
           },
           {
             name: '氨基磺酸',
@@ -416,6 +419,15 @@ export class OverviewService {
     if (aminoLatest) {
       internalFlows.push({ from: '硫酸', to: '氨基磺酸', material: '发烟硫酸', quantity: flowQty(aminoLatest.data, 'field_nitric_acid', 1.92) });
     }
+    if (anthraquinoneLatest) {
+      const current = OverviewService.toNum(anthraquinoneLatest.data.field_fuming_sulfuric_flow);
+      const previous = OverviewService.toNum(anthraquinone.get(this.dayBefore(anthraquinoneLatest.date))?.field_fuming_sulfuric_flow);
+      internalFlows.push({
+        from: '硫酸', to: '蒽醌', material: '发烟硫酸',
+        quantity: current !== null && previous !== null && current >= previous
+          ? +((current - previous) * 1.92).toFixed(3) : null,
+      });
+    }
     if (mgLatest) {
       internalFlows.push({ from: '硫酸', to: '硫酸镁', material: '93%酸', quantity: flowQty(mgLatest.data, 'field_sulfuric_93', 1.84) });
       internalFlows.push({ from: '氨基磺酸', to: '硫酸镁', material: '稀酸', quantity: flowQty(mgLatest.data, 'field_amino_dilute_acid') });
@@ -428,14 +440,14 @@ export class OverviewService {
 
 // ── 车间版面·库存卡片 ─────────────────────────────────────
 
-  /** 硫酸系统最新一日的分罐液位（按物料分组，折算吨） */
-  async tankLevels(): Promise<TankLevelsResult> {
+  /** 硫酸系统指定生产归属日的期末液位；不指定时取最新。 */
+  async tankLevels(requestedDate?: string): Promise<TankLevelsResult> {
     const [sulfuric, tanks] = await Promise.all([
       this.byDate(CODE.sulfuric),
       this.prisma.tank.findMany({ where: { formCode: CODE.sulfuric }, orderBy: { fieldId: 'asc' } }),
     ]);
     const dates = [...sulfuric.keys()].sort();
-    const date = dates[dates.length - 1] ?? '';
+    const date = requestedDate ?? dates[dates.length - 1] ?? '';
     const data = date ? sulfuric.get(date)! : undefined;
 
     const byMaterial = new Map<string, TankLevelItem[]>();

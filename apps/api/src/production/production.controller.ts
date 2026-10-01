@@ -9,11 +9,11 @@ import { OverviewService } from './overview.service';
 import { ProductionService } from './production.service';
 
 class SulfuricSummaryQuery {
-  @ApiPropertyOptional({ description: '返回最近 N 个有数据的归属日（1-120，默认 30）' })
+  @ApiPropertyOptional({ description: '返回最近 N 个有数据的归属日（0=全部历史，默认 30）' })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Min(1)
+  @Min(0)
   @Max(120)
   days?: number = 30;
 }
@@ -54,8 +54,8 @@ export class ProductionController {
   }
 
   @Get('tanks')
-  @ApiOperation({ summary: '车间版面：硫酸系统最新分罐液位（按物料分组，折算吨）' })
-  tanks() {
-    return this.overview.tankLevels();
+  @ApiOperation({ summary: '车间版面：硫酸系统指定归属日期的期末分罐液位' })
+  tanks(@Query('date') date?: string) {
+    return this.overview.tankLevels(date);
   }
 }

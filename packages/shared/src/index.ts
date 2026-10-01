@@ -153,7 +153,7 @@ export interface FormLastValuesResult {
 
 // ═══════════════════════════════════════════════════════════
 // 生产指标（硫酸，差值法）—— 口径参照 b2 production.service
-// 产量(D) = 库存(D) − 库存(D−1) + 流出(D)；流出读销售表按四酸独立计算
+// 生产归属日 D = 填报日 − 1；产量(D) = 两次填报的库存差 + 同期外销及内部领用
 // ═══════════════════════════════════════════════════════════
 
 /** 单日库存（吨）：按物料分组的快照 */
@@ -164,7 +164,7 @@ export interface SulfuricInventory {
   total: number;
 }
 
-/** 四酸各自的日流出量（吨），来自销售表 */
+/** 四酸各自的外销量（吨），来自销售表 */
 export interface SulfuricFlow {
   acid98: number;
   acid93: number;
@@ -172,7 +172,35 @@ export interface SulfuricFlow {
   fuming: number;
 }
 
-/** 单日产量（吨，差值法）；93 酸罐不在硫酸表，恒为 0（字段占位） */
+/** 逐罐液位差计算；吨数保留计算原始精度，展示时才四舍五入。 */
+export interface SulfuricTankCalculation {
+  fieldId: string;
+  name: string;
+  material: string;
+  capacity: number;
+  density: number;
+  previousLevelPercent: number;
+  currentLevelPercent: number;
+  previousTons: number;
+  currentTons: number;
+  deltaTons: number;
+}
+
+/** 一次产量计算使用的原始读数和逐日流出；日期均为填报日。 */
+export interface SulfuricProductionCalculation {
+  previousReportDate: string;
+  tanks: SulfuricTankCalculation[];
+  sales: Array<{ date: string; values: Record<keyof SulfuricFlow, number | null> }>;
+  aminosulfonic: Array<{ date: string; volumeM3: number | null }>;
+  anthraquinone: {
+    previousReadingM3: number | null;
+    currentReadingM3: number | null;
+    volumeM3: number | null;
+  };
+  fumingDensity: number;
+}
+
+/** 单日产量（吨，差值法）；93 酸无独立罐，仅计流出量 */
 export interface SulfuricProduction {
   acid98: number;
   acid93: number;
@@ -182,8 +210,11 @@ export interface SulfuricProduction {
   total98Equivalent: number;
   /** 四酸各自的销售流出量 */
   flow: SulfuricFlow;
+  /** 发烟硫酸内部领用（吨）；null 表示源报表缺少可用读数 */
+  internalFuming: { aminosulfonic: number | null; anthraquinone: number | null };
   /** 前后两个归属日之间的断天天数：0=连续日报；1=断了1天（产量是多天累计差值+多天累计销售） */
   gapDays: number;
+  calculation: SulfuricProductionCalculation;
 }
 
 /** 单个电表读数差换算的当日用电（千瓦时） */
@@ -193,15 +224,31 @@ export interface MeterUsage {
   usage: number;
 }
 
+/** 填报日的期末罐液位原值，供历史液位明细使用 */
+export interface SulfuricTankLevel {
+  fieldId: string;
+  name: string;
+  material: string;
+  levelPercent: number | null;
+}
+
 export interface SulfuricDaySummary {
-  /** 数据归属日（主日期字段值） */
+  /** 填报日（主日期字段值）；库存快照截至该日填报时 */
   date: string;
-  /** 当日库存快照；该日罐液位数据不完整为 null */
+  /** 生产、销售、内部领用和电耗的实际归属日：填报日前一天 */
+  productionDate: string;
+  /** 生产归属日的期末库存；填报日罐液位数据不完整为 null */
   inventory: SulfuricInventory | null;
-  /** 差值产量；当日或前日液位数据不完整为 null（不把缺罐当 0%） */
+  /** 同一填报日的每个罐期末液位（%），缺测保留 null */
+  levels: SulfuricTankLevel[];
+  /** 对应 productionDate 的差值产量；两次液位数据不完整为 null */
   production: SulfuricProduction | null;
-  /** 分表电耗 + 合计；同上 */
+  /** 对应 productionDate 的分表电耗 + 合计 */
   electricity: { meters: MeterUsage[]; total: number } | null;
+  /** 对应 productionDate 的双氧水耗用（仓库日报，吨） */
+  peroxide: number | null;
+  /** 对应 productionDate 的热电车间总水表差值（m³） */
+  water: number | null;
 }
 
 export interface SulfuricSummaryResult {
@@ -315,6 +362,7 @@ export interface TankMaterialGroup {
 }
 
 export interface TankLevelsResult {
+  /** 期末库存的生产归属日；液位来自次日填报 */
   date: string;
   groups: TankMaterialGroup[];
 }
