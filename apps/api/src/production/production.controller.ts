@@ -1,9 +1,20 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  Length,
+  Max,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Role, type DetailedWorkshopCode, type PlanSettingsSaveBody, type PlanTargetSaveBody } from '@hgxt/shared';
+import { Role, type DetailedWorkshopCode } from '@hgxt/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { OverviewService } from './overview.service';
 import { PlanService } from './plan.service';
@@ -27,6 +38,61 @@ class PlanYearQuery {
   @Min(2020)
   @Max(2100)
   year?: number = new Date().getFullYear();
+}
+
+// 保存体的运行时校验：shared 里只有 TS interface（编译后消失），必须用真 DTO class
+class PlanRowDto {
+  @IsString()
+  @Length(1, 20)
+  workshop!: string;
+
+  @IsInt()
+  @Min(0)
+  annual!: number;
+
+  @IsArray()
+  @ArrayMinSize(12)
+  @ArrayMaxSize(12)
+  months!: Array<unknown>;
+}
+
+class PlanTargetDto {
+  @IsString()
+  @Length(1, 20)
+  workshop!: string;
+
+  @IsString()
+  @Length(1, 20)
+  material!: string;
+
+  @IsString()
+  @Length(1, 10)
+  unit!: string;
+
+  @IsString()
+  @Length(1, 40)
+  target!: string;
+}
+
+class PlanSettingsSaveDto {
+  @IsInt()
+  @Min(2020)
+  @Max(2100)
+  year!: number;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(12)
+  @ValidateNested({ each: true })
+  @Type(() => PlanRowDto)
+  rows!: PlanRowDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(50)
+  @ValidateNested({ each: true })
+  @Type(() => PlanTargetDto)
+  targets?: PlanTargetDto[];
 }
 
 /** 生产指标（读取时现算，不改写表单数据） */
@@ -102,14 +168,8 @@ export class ProductionController {
   }
 
   @Post('plan/settings')
-  @ApiOperation({ summary: '保存年度计划与月度手工值（null=清除手工回到自动拆分）' })
-  savePlanSettings(@Body() body: PlanSettingsSaveBody) {
-    return this.plan.saveSettings(body);
-  }
-
-  @Post('plan/targets')
-  @ApiOperation({ summary: '保存单耗目标' })
-  savePlanTargets(@Body() body: PlanTargetSaveBody) {
-    return this.plan.saveTargets(body);
+  @ApiOperation({ summary: '保存年度计划、月度手工值与单耗目标（单一事务，任一失败整体回滚）' })
+  savePlanSettings(@Body() body: PlanSettingsSaveDto) {
+    return this.plan.saveSettings(body as never);
   }
 }

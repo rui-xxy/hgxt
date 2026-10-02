@@ -6,7 +6,6 @@ import type {
   MaterialsResult,
   PlanSettingsResult,
   PlanSettingsSaveBody,
-  PlanTargetSaveBody,
   ProductionPlanBoardResult,
   SulfuricSummaryResult,
   ThermalSummaryResult,
@@ -47,7 +46,4 @@ export function planSettings(year = new Date().getFullYear()): Promise<PlanSetti
 }
 export function savePlanSettings(body: PlanSettingsSaveBody): Promise<PlanSettingsResult> {
   return request('/production/plan/settings', { method: 'POST', body });
-}
-export function savePlanTargets(body: PlanTargetSaveBody): Promise<Array<{ workshop: string; material: string; unit: string; target: string }>> {
-  return request('/production/plan/targets', { method: 'POST', body });
 }

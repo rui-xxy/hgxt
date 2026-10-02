@@ -501,9 +501,7 @@ export interface PlanSettingsSaveBody {
   year: number;
   /** 每车间年度值与 12 个月手工值（null=清除手工、回到自动拆分） */
   rows: Array<{ workshop: string; annual: number; months: Array<number | null> }>;
-}
-
-export interface PlanTargetSaveBody {
+  /** 单耗目标一并保存：与计划在同一个事务里落库 */
   targets: PlanTargetRow[];
 }
 
@@ -537,12 +535,19 @@ export interface PlanWeekRow {
   productionThis: number;
   productionLast: number | null;
   productionDelta: number | null;
+  /** 周一到周日逐日产量：本周未来日为 null，上周为完整 7 天 */
+  productionDailyThis: Array<number | null>;
+  productionDailyLast: number[];
   /** 本周销量 / 上周同期销量 / 环比% */
   salesThis: number;
   salesLast: number | null;
   salesDelta: number | null;
-  /** 上周全周产量 */
+  /** 周一到周日逐日销量：本周未来日为 null，上周为完整 7 天 */
+  salesDailyThis: Array<number | null>;
+  salesDailyLast: number[];
+  /** 上周全周产量 / 销量 */
   productionLastFullWeek: number | null;
+  salesLastFullWeek: number | null;
 }
 
 /** 产销视图行 */
@@ -574,9 +579,11 @@ export interface PlanConsumptionRow {
   lastMonth: number | null;
   /** 目标（来自 ConsumptionTarget，区间/上限文本） */
   target: string | null;
+  /** 目标区间下限数值（"85 – 95" 解析为 85）；单上限（≤ x）为 null */
+  targetMin: number | null;
   /** 目标上限数值（可解析时），用于偏离计算 */
   targetMax: number | null;
-  /** (当前 ÷ 目标上限 − 1)×100%，正=超目标 */
+  /** 区间外偏离：超上限为正、低于下限为负、区间内为 0（单上限只看上限） */
   deviationPct: number | null;
 }
 
@@ -609,3 +616,6 @@ export interface ProductionPlanBoardResult {
   materialConsumption: PlanConsumptionRow[];
   tasks: PlanTask[];
 }
+
+export { daysInYear, daysInMonth, splitAnnual, parsePlanTarget, planTargetDeviation } from './planning.js';
+export type { PlanTargetRange } from './planning.js';
