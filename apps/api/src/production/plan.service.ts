@@ -480,8 +480,8 @@ export class PlanService {
     formFieldUsage('丰联', '85%磷酸', 't/t', fenglianForm, 'field_005');
     formFieldUsage('丰联', '68哌嗪', 't/t', fenglianForm, 'field_008');
 
-    // ── 事项（matters-2026 表单提交推导） ──
-    const tasks = await this.loadTasks(asOf);
+    // ── 事项（matters-2026 表单提交推导，按看板年度过滤） ──
+    const tasks = await this.loadTasks(asOf, year);
 
     return { year, asOf, timeProgress, completion, week, sales, energyConsumption, materialConsumption, tasks };
   }
@@ -491,7 +491,7 @@ export class PlanService {
     return (form?.schema as unknown as FormField[]) ?? null;
   }
 
-  private async loadTasks(asOf: string | null): Promise<PlanTask[]> {
+  private async loadTasks(asOf: string | null, year: number): Promise<PlanTask[]> {
     const form = await this.prisma.form.findUnique({ where: { code: CODE_MATTERS } });
     if (!form) return [];
     const submissions = await this.prisma.formSubmission.findMany({
@@ -511,6 +511,8 @@ export class PlanService {
     for (const s of submissions) {
       const data = s.data as FormData;
       const due = typeof data.dueDate === 'string' ? data.dueDate : null;
+      // 事项表跨多年（2024-2026 全量），只取看板年度；无完成时间的无法推导周期，跳过
+      if (!due || !due.startsWith(String(year))) continue;
       const progress = typeof data.progress === 'string' ? data.progress : '';
       const done = progress === '已完成' || progress === '延期完成';
       let period: '本周' | '下周' = '本周';

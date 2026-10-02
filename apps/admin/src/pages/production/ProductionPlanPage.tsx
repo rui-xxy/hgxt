@@ -110,6 +110,7 @@ export function ProductionPlanPage() {
     if (taskTab === 'late') return tasks.filter((t) => t.status === 'late');
     return tasks;
   }, [tasks, taskTab]);
+  const taskDisplay = taskTab === 'all' ? taskList.slice(0, 100) : taskList;
 
   const workshops = ['全部', ...(data?.completion.map((r) => r.workshop) ?? [])];
   const inWs = (w: string) => wsFilter === '全部' || wsFilter === w;
@@ -379,12 +380,12 @@ export function ProductionPlanPage() {
             <button role="tab" className={taskTab === 'all' ? 'on' : ''} onClick={() => setTaskTab('all')}>全部 {tasks.length}</button>
           </div>
         </div>
-        {taskList.length ? (
+        {taskDisplay.length ? (
           <div>
             <div className="trow th" style={{ gridTemplateColumns: '76px minmax(0,2fr) 110px 84px 72px 80px 84px minmax(0,1.4fr)' }}>
               <span>状态</span><span>事项</span><span>部门</span><span>重要程度</span><span>负责人</span><span>计划完成</span><span>进度</span><span>完成情况说明</span>
             </div>
-            {taskList.map((t, i) => (
+            {taskDisplay.map((t, i) => (
               <div className="trow" key={`${t.matter}-${i}`} style={{ gridTemplateColumns: '76px minmax(0,2fr) 110px 84px 72px 80px 84px minmax(0,1.4fr)' }}>
                 <div>
                   {t.status === 'done' ? <span className="st st-ok">已完成</span>
@@ -403,7 +404,9 @@ export function ProductionPlanPage() {
             ))}
           </div>
         ) : <div className="empty">暂无事项</div>}
-        <div className="faint" style={{ fontSize: 12, padding: '8px 10px 10px' }}>来自「2026年事项表」表单提交；周期按计划完成日所在周推导</div>
+        <div className="faint" style={{ fontSize: 12, padding: '8px 10px 10px' }}>
+          来自「2026年事项表」表单提交（{year} 年度共 {tasks.length} 条{taskTab === 'all' && taskList.length > taskDisplay.length ? `，仅显示前 ${taskDisplay.length} 条` : ''}）；周期按计划完成日所在周推导
+        </div>
       </div>
     </Dash>
   );
