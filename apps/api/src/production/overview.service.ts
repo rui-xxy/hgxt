@@ -41,6 +41,7 @@ const CODE = {
   magnesium: 'magnesium_daily',
   hydrotalcite: 'hydrotalcite_daily',
   anthraquinone: 'anthraquinone_daily',
+  fenglian: 'fenglian_daily',
   warehouse: 'warehouse_daily',
   finished: 'finished_products_daily',
 } as const;
@@ -61,7 +62,7 @@ const THERMAL_OUTLETS: Array<ThermalOutletDefinition & { field: string }> = [
   { key: 'anthraquinone', name: '二乙基蒽醌', group: 'internal', field: 'field_deaq_steam' },
 ];
 
-type ByDate = Map<string, FormData>;
+export type ByDate = Map<string, FormData>;
 type MetricSpec = WorkshopMetricDefinition & {
   field?: string;
   factor?: number;
@@ -83,7 +84,7 @@ export class OverviewService {
   ) {}
 
   /** 填报日 D 的当日产出/消耗归属 D−1；库存是 D−1 的期末快照。 */
-  private async byDate(code: string): Promise<ByDate> {
+  async byDate(code: string): Promise<ByDate> {
     const form = await this.prisma.form.findUnique({ where: { code } });
     if (!form) return new Map();
     const dateField = primaryDateField(form.schema as never);
@@ -149,7 +150,7 @@ export class OverviewService {
   }
 
   /** 直接上报字段的日序列（多字段求和；全部缺失为 null） */
-  private reportedSeries(source: ByDate, dates: string[], fields: string[]): Array<number | null> {
+  reportedSeries(source: ByDate, dates: string[], fields: string[]): Array<number | null> {
     return dates.map((date) => {
       const data = source.get(date);
       if (!data) return null;
@@ -221,12 +222,13 @@ export class OverviewService {
   // ── 车间版面 ─────────────────────────────────────────────
 
   async workshopOverview(days = 30): Promise<WorkshopOverviewResult> {
-    const [sulfuric, amino, magnesium, hydrotalcite, anthraquinone, thermal] = await Promise.all([
+    const [sulfuric, amino, magnesium, hydrotalcite, anthraquinone, fenglian, thermal] = await Promise.all([
       this.production.sulfuricSummary(days),
       this.byDate(CODE.amino),
       this.byDate(CODE.magnesium),
       this.byDate(CODE.hydrotalcite),
       this.byDate(CODE.anthraquinone),
+      this.byDate(CODE.fenglian),
       this.byDate(CODE.thermal),
     ]);
 
@@ -234,7 +236,7 @@ export class OverviewService {
       sulfuric.days.map((d) => [d.productionDate, d.production?.total98Equivalent ?? null]),
     );
     const dates = this.windowOf(
-      [sulfuricByDate, amino, magnesium, hydrotalcite, anthraquinone, thermal],
+      [sulfuricByDate, amino, magnesium, hydrotalcite, anthraquinone, fenglian, thermal],
       days,
     );
 
@@ -273,6 +275,12 @@ export class OverviewService {
         name: '蒽醌',
         unit: 't',
         values: this.reportedSeries(anthraquinone, dates, ['field_crude_output', 'field_fine_output']),
+      },
+      {
+        code: 'fenglian',
+        name: '丰联',
+        unit: 't',
+        values: this.reportedSeries(fenglian, dates, ['field_204']),
       },
       {
         code: 'thermal',

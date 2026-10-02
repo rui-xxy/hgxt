@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { Avatar, Dropdown } from 'antd';
 import {
   BarChart3,
+  CalendarRange,
   FlaskConical,
   Home,
   LogOut,
   Moon,
   Package,
   Settings,
+  SlidersHorizontal,
   Sun,
   Users,
   Zap,
@@ -57,7 +59,7 @@ const MODULES: ModuleDef[] = [
     title: '生产',
     path: '/',
     match: (p) =>
-      p === '/' || p.startsWith('/board') || p.startsWith('/energy') || p.startsWith('/materials'),
+      p === '/' || p.startsWith('/board') || p.startsWith('/energy') || p.startsWith('/materials') || p.startsWith('/plan'),
     sections: [
       { label: '页面', items: [{ label: '概览', path: '/', icon: Home }] },
       {
@@ -66,6 +68,8 @@ const MODULES: ModuleDef[] = [
           { label: '车间版面', path: '/board', icon: BarChart3 },
           { label: '能源中心', path: '/energy', icon: Zap },
           { label: '物料与库存', path: '/materials', icon: Package },
+          { label: '计划与完成', path: '/plan', icon: CalendarRange },
+          { label: '生产计划设置', path: '/plan/settings', icon: SlidersHorizontal },
         ],
       },
     ],
@@ -99,6 +103,9 @@ function pageName(pathname: string): string {
   if (pathname.startsWith('/board')) return '车间版面';
   if (pathname.startsWith('/energy')) return '能源中心';
   if (pathname.startsWith('/materials')) return '物料与库存';
+  if (pathname === '/plan') return '计划与完成';
+  if (pathname.startsWith('/plan/settings')) return '生产计划设置';
+  if (pathname.startsWith('/plan')) return '计划与完成';
   if (pathname.startsWith('/users')) return '成员';
   return 'HGXT';
 }
