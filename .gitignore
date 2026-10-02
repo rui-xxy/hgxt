@@ -26,3 +26,4 @@ Thumbs.db
 
 # 设计稿 zip 原件（内容已解压进 design/）
 HGXT-UI设计稿.zip
+design/*.zip
