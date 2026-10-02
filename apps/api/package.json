@@ -13,7 +13,8 @@
     "db:migrate:named": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
-    "db:import-legacy": "tsx --env-file=.env prisma/scripts/import-legacy.ts"
+    "db:import-legacy": "tsx --env-file=.env prisma/scripts/import-legacy.ts",
+    "db:import-matters": "tsx --env-file=.env prisma/scripts/import-matters.ts"
   },
   "prisma": {
     "seed": "tsx --env-file=.env prisma/seed.ts"

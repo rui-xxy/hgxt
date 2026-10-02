@@ -14,9 +14,10 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Role } from '@hgxt/shared';
 import { logoutApi } from '../api/auth';
+import { listForms } from '../api/forms';
 import { useMe } from '../api/hooks';
 import { tokenStore } from '../api/client';
 import { queryClient } from '../api/queryClient';
@@ -71,12 +72,12 @@ const MODULES: ModuleDef[] = [
   },
   {
     key: 'production',
-    label: '生产',
+    label: '表单',
     icon: FlaskConical,
-    title: '生产',
+    title: '表单',
     path: '/forms',
     match: (p) => p.startsWith('/forms'),
-    sections: [{ label: '页面', items: [{ label: '表单', path: '/forms', icon: FlaskConical }] }],
+    sections: [{ label: '页面', items: [{ label: '总览', path: '/forms', icon: FlaskConical }] }],
   },
   {
     key: 'system',
@@ -93,7 +94,7 @@ const MODULES: ModuleDef[] = [
 /** 顶部路径栏的页面名 */
 function pageName(pathname: string): string {
   if (pathname === '/') return '概览';
-  if (pathname === '/forms') return '表单';
+  if (pathname === '/forms') return '总览';
   if (pathname.startsWith('/forms/')) return '数据';
   if (pathname.startsWith('/board')) return '车间版面';
   if (pathname.startsWith('/energy')) return '能源中心';
@@ -112,6 +113,11 @@ export function AdminLayout() {
   const me = useMe();
   const { mode, toggleMode } = useThemeMode();
   const isAdmin = me.data?.role === Role.SUPER_ADMIN;
+  const formNavigation = useQuery({
+    queryKey: ['forms', 'navigation'],
+    queryFn: () => listForms({ page: 1, pageSize: 100, keyword: '' }),
+    enabled: !!me.data,
+  });
   const [hoverKey, setHoverKey] = useState<string | null>(null);
   const [accountOpen, setAccountOpen] = useState(false);
   const closeTimer = useRef<number | undefined>(undefined);
@@ -131,7 +137,7 @@ export function AdminLayout() {
   const current = MODULES.find((m) => m.match(location.pathname)) ?? MODULES[0];
   const flyout = modules.find((m) => m.key === hoverKey) ?? null;
   const itemActive = (path: string) =>
-    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+    path === '/' || path === '/forms' ? location.pathname === path : location.pathname.startsWith(path);
 
   const logoutMutation = useMutation({
     mutationFn: () => logoutApi(tokenStore.getRefreshToken() ?? ''),
@@ -231,6 +237,7 @@ export function AdminLayout() {
                   <Link
                     key={item.path}
                     to={item.path}
+                    title={item.label}
                     onClick={() => setHoverKey(null)}
                     className={`hgxt-flyout-link${itemActive(item.path) ? ' is-on' : ''}`}
                   >
@@ -249,7 +256,7 @@ export function AdminLayout() {
           <div className="hgxt-crumb">
             <span>{current.title}</span>
             <span className="hgxt-crumb-sep">/</span>
-            <b>{pageName(location.pathname)}</b>
+            <b>{location.pathname.startsWith('/forms/') ? formNavigation.data?.items.find((form) => location.pathname === `/forms/${form.id}`)?.title ?? pageName(location.pathname) : pageName(location.pathname)}</b>
           </div>
         </header>
         <main className="hgxt-scroll">

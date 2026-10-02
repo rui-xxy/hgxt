@@ -1,0 +1,18 @@
+[
+  { "id": "matter", "title": "事项", "type": "text", "group": "事项", "width": 360, "required": true },
+  { "id": "completionNote", "title": "完成情况说明", "type": "text", "group": "事项", "width": 360 },
+  { "id": "department", "title": "部门", "type": "text", "group": "责任", "width": 180 },
+  { "id": "owner", "title": "负责人", "type": "text", "group": "责任", "width": 130 },
+  { "id": "importance", "title": "重要程度", "type": "text", "group": "执行", "width": 100 },
+  { "id": "progress", "title": "进度", "type": "select", "group": "执行", "width": 110, "required": true, "options": [
+    { "label": "已完成", "value": "已完成" },
+    { "label": "进行中", "value": "进行中" },
+    { "label": "延期完成", "value": "延期完成" },
+    { "label": "搁置", "value": "搁置" },
+    { "label": "延期", "value": "延期" }
+  ] },
+  { "id": "startDate", "title": "开始时间", "type": "date", "group": "时间", "width": 128 },
+  { "id": "dueDate", "title": "完成时间", "type": "date", "group": "时间", "width": 128 },
+  { "id": "remainingAtExport", "title": "导出时剩余日期", "type": "text", "group": "时间", "width": 130, "description": "附件导出时的值，不随当前日期变化" },
+  { "id": "source", "title": "来源", "type": "text", "group": "来源", "width": 180 }
+]

@@ -66,6 +66,9 @@ model Form {
   title       String
   /// 稳定业务标识（如 sulfuric_daily / sales_daily），代码用此字段找表
   code           String?          @unique
+  category       String           @default("生产")
+  /// form = 独立填写页；sheet = 仅在数据表格中维护
+  entryMode      String           @default("form")
   description String?
   schema      Json
   status      String           @default("published")

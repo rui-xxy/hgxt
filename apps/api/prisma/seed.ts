@@ -12,6 +12,8 @@ import salesSchema from './form-schemas/sales.json';
 import fenglianSchema from './form-schemas/fenglian.json';
 import warehouseSchema from './form-schemas/warehouse.json';
 import finishedProductsSchema from './form-schemas/finished-products.json';
+import mattersSchema from './form-schemas/matters-2026.json';
+import { importMatters } from './import-matters';
 
 // manifest 是唯一的表单配置源：新增表单只需加一行 manifest + 对应 JSON 文件
 const SCHEMA_MAP: Record<string, unknown> = {
@@ -25,6 +27,7 @@ const SCHEMA_MAP: Record<string, unknown> = {
   'fenglian.json': fenglianSchema,
   'warehouse.json': warehouseSchema,
   'finished-products.json': finishedProductsSchema,
+  'matters-2026.json': mattersSchema,
 };
 
 // B3：seed 不再有默认密码——必须显式配置 SEED_ADMIN_PASSWORD 才执行
@@ -83,6 +86,8 @@ async function main(): Promise<void> {
         where: { id: existingForm.id },
         data: {
           code: entry.code,
+          category: 'category' in entry ? entry.category : '生产',
+          entryMode: 'entryMode' in entry ? entry.entryMode : 'form',
           parkingEnabled: entry.parkingEnabled ?? false,
         },
       });
@@ -91,6 +96,8 @@ async function main(): Promise<void> {
         data: {
           title: entry.title,
           code: entry.code,
+          category: 'category' in entry ? entry.category : '生产',
+          entryMode: 'entryMode' in entry ? entry.entryMode : 'form',
           description: entry.description,
           schema: schema as never,
           parkingEnabled: entry.parkingEnabled ?? false,
@@ -98,6 +105,12 @@ async function main(): Promise<void> {
       });
       console.log(`已创建表单：${entry.title}（${(schema as unknown[]).length} 字段，code=${entry.code}）`);
     }
+  }
+
+  const mattersForm = await prisma.form.findUnique({ where: { code: 'matters_2026' } });
+  if (mattersForm) {
+    const imported = await importMatters(prisma, mattersForm.id);
+    if (imported) console.log(`已导入事项表：${imported} 条`);
   }
 
   // 储罐与电表档案（产盘指标换算参数）。fieldId 与旧系统（hengguang_chemical）表单字段一致。

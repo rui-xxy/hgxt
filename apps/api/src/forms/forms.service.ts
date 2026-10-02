@@ -12,12 +12,12 @@ function schemaOf(form: Form): FormField[] {
 }
 
 /**
- * 主日期字段 = schema 中第一个 date 类型字段（数据归属日期，通常是隐藏的 field_date）。
+ * 主日期字段 = schema 中第一个必填 date 字段（数据归属日期，通常是隐藏的 field_date）。
  * 「最新填写时间」「排序」「新增行默认日期」都以它为准；没有 date 字段的表单
- * （如纯登记表）相关逻辑整体跳过——不写死任何字段名。
+ * （如纯登记表、事项表中可空的开始/完成日期）相关逻辑整体跳过。
  */
 export function primaryDateField(schema: FormField[]): FormField | undefined {
-  return schema.find((field) => field.type === 'date');
+  return schema.find((field) => field.type === 'date' && field.required);
 }
 
 /** 字段 id 可安全拼进 SQL（schema 数据入库前受控，这里再防御一次） */
@@ -93,7 +93,7 @@ function cleanData(form: Form, input: unknown): FormData {
       throw new BadRequestException(`${field.title}格式不正确`);
     }
   }
-  // 主日期字段必须有效（没有 date 字段的表单跳过该校验）
+    // 必填主日期必须有效；仅含可选日期的表格跳过该校验
   const primary = primaryDateField(schema);
   if (primary) {
     const value = data[primary.id];
@@ -120,6 +120,7 @@ export class FormsService {
     const where: Prisma.FormWhereInput = {
       status: 'published',
       ...(query.keyword?.trim() ? { title: { contains: query.keyword.trim(), mode: 'insensitive' } } : {}),
+      ...(query.category?.trim() ? { category: query.category.trim() } : {}),
     };
     const [forms, total] = await Promise.all([
       this.prisma.form.findMany({
@@ -148,6 +149,8 @@ export class FormsService {
       items: forms.map((form): FormDTO => ({
         id: form.id,
         title: form.title,
+        category: form.category,
+        entryMode: form.entryMode === 'sheet' ? 'sheet' : 'form',
         description: form.description,
         schema: schemaOf(form),
         parkingEnabled: form.parkingEnabled,
@@ -172,6 +175,8 @@ export class FormsService {
     return {
       id: form.id,
       title: form.title,
+      category: form.category,
+      entryMode: form.entryMode === 'sheet' ? 'sheet' : 'form',
       description: form.description,
       schema,
       parkingEnabled: form.parkingEnabled,
@@ -188,15 +193,30 @@ export class FormsService {
     const orderExpr = primary
       ? Prisma.sql`data->>${safeFieldId(primary.id)} DESC NULLS LAST, "createdAt" DESC`
       : Prisma.sql`"createdAt" DESC`;
-    const [rows, total] = await Promise.all([
+    const conditions: Prisma.Sql[] = [Prisma.sql`"formId" = ${id}`];
+    if (form.entryMode === 'sheet' && query.keyword?.trim()) {
+      const keyword = `%${query.keyword.trim()}%`;
+      conditions.push(Prisma.sql`(
+        data->>'matter' ILIKE ${keyword} OR data->>'completionNote' ILIKE ${keyword}
+        OR data->>'department' ILIKE ${keyword} OR data->>'owner' ILIKE ${keyword}
+        OR data->>'source' ILIKE ${keyword}
+      )`);
+    }
+    if (form.entryMode === 'sheet' && query.progress?.trim()) {
+      conditions.push(Prisma.sql`data->>'progress' = ${query.progress.trim()}`);
+    }
+    const where = Prisma.join(conditions, ' AND ');
+    const [rows, counts] = await Promise.all([
       this.prisma.$queryRaw<FormSubmission[]>(Prisma.sql`
-        SELECT * FROM "FormSubmission" WHERE "formId" = ${id}
+        SELECT * FROM "FormSubmission" WHERE ${where}
         ORDER BY ${orderExpr}
         LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
       `),
-      this.prisma.formSubmission.count({ where: { formId: id } }),
+      this.prisma.$queryRaw<{ total: number }[]>(Prisma.sql`
+        SELECT COUNT(*)::int AS total FROM "FormSubmission" WHERE ${where}
+      `),
     ]);
-    return { items: rows.map(asSubmission), total, page, pageSize };
+    return { items: rows.map(asSubmission), total: counts[0]?.total ?? 0, page, pageSize };
   }
 
   /**
@@ -237,6 +257,7 @@ export class FormsService {
 
   async createSubmission(id: string, input: unknown, submitterId: string): Promise<FormSubmissionDTO> {
     const form = await this.findForm(id);
+    if (form.entryMode === 'sheet') throw new BadRequestException('此表格仅支持在数据页维护');
     const data = cleanData(form, input);
     return asSubmission(await this.prisma.formSubmission.create({
       data: { formId: id, data: data as Prisma.InputJsonValue, submitterId },

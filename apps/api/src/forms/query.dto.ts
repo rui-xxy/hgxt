@@ -8,6 +8,8 @@ export class FormListQuery {
   pageSize = 20;
   @IsOptional() @IsString() @MaxLength(64)
   keyword?: string;
+  @IsOptional() @IsString() @MaxLength(32)
+  category?: string;
 }
 
 export class SubmissionListQuery {
@@ -15,4 +17,8 @@ export class SubmissionListQuery {
   page = 1;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(1000)
   pageSize = 100;
+  @IsOptional() @IsString() @MaxLength(100)
+  keyword?: string;
+  @IsOptional() @IsString() @MaxLength(32)
+  progress?: string;
 }

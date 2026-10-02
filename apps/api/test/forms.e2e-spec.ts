@@ -183,3 +183,65 @@ describe('forms 通用性（无日期字段 + 文本/选项/可选数字混合�
     expect(latest.body.device_name.value).toBe('1#反应釜');
   });
 });
+
+describe('事项表：按分类显示、分页筛选并直接编辑数据', () => {
+  let app: INestApplication;
+  let prisma: PrismaService;
+  let token: string;
+  let formId: string;
+  let rowId: string;
+
+  beforeAll(async () => {
+    app = await createTestApp();
+    prisma = app.get(PrismaService);
+    await prisma.formSubmission.deleteMany();
+    await prisma.form.deleteMany();
+    await resetDbWithAdmin(prisma);
+    token = (await loginOk(http(app))).accessToken;
+    const form = await prisma.form.create({ data: {
+      title: '2026年事项表', category: '总经办', entryMode: 'sheet',
+      schema: [
+        { id: 'matter', title: '事项', type: 'text', required: true },
+        { id: 'progress', title: '进度', type: 'select', required: true, options: [{ label: '进行中', value: '进行中' }, { label: '已完成', value: '已完成' }] },
+        { id: 'startDate', title: '开始时间', type: 'date' },
+        { id: 'department', title: '部门', type: 'text' },
+      ],
+    } });
+    formId = form.id;
+    for (const [index, matter] of ['设备检查', '设备检修', '月度报告'].entries()) {
+      const row = await prisma.formSubmission.create({ data: {
+        formId,
+        data: { matter, progress: index === 2 ? '已完成' : '进行中', startDate: null, department: '总经办' },
+        createdAt: new Date(`2026-09-0${index + 1}T00:00:00.000Z`),
+      } });
+      if (index === 1) rowId = row.id;
+    }
+  });
+  afterAll(async () => { await app.close(); });
+  const auth = () => `Bearer ${token}`;
+
+  it('分类目录只返回总经办标题，且禁止走逐项填写接口', async () => {
+    const list = await http(app).get('/api/forms?category=总经办').set('Authorization', auth()).expect(200);
+    expect(list.body.items).toMatchObject([{ id: formId, category: '总经办', entryMode: 'sheet', submissionCount: 3 }]);
+    await http(app).post(`/api/forms/${formId}/submissions`).set('Authorization', auth())
+      .send({ data: { matter: '新增', progress: '进行中' } }).expect(400);
+  });
+
+  it('能跨页搜索事项并按进度筛选，空开始日期不阻止表格修改', async () => {
+    const page = await http(app).get(`/api/forms/${formId}/submissions?page=2&pageSize=1&keyword=设备&progress=进行中`)
+      .set('Authorization', auth()).expect(200);
+    expect(page.body.total).toBe(2);
+    expect(page.body.items).toHaveLength(1);
+    expect(page.body.items[0].data.matter).toBe('设备检查');
+
+    await http(app).post(`/api/forms/${formId}/submissions/batch`).set('Authorization', auth()).send({
+      created: [],
+      updated: [{ id: rowId, data: { matter: '设备检修完成', progress: '已完成', startDate: null, department: '总经办' } }],
+      deleted: [],
+    }).expect(201);
+    const filtered = await http(app).get(`/api/forms/${formId}/submissions?keyword=设备&progress=已完成`)
+      .set('Authorization', auth()).expect(200);
+    expect(filtered.body.total).toBe(1);
+    expect(filtered.body.items[0].data.matter).toBe('设备检修完成');
+  });
+});

@@ -1,3 +1,7 @@
+.forms-category-bar { padding: 12px 16px; overflow-x: auto; border-bottom: 1px solid var(--ant-color-border-secondary); }
+.forms-sheet-filters { display: flex; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--ant-color-border-secondary); }
+.forms-sheet-search { max-width: 340px; }
+.forms-sheet-progress { min-width: 132px; }
 .forms-sheet-toolbar {
   display: flex;
   align-items: center;
@@ -14,6 +18,7 @@
 .forms-unsaved { color: var(--ant-color-warning); font-size: var(--ui-font-size-sm); }
 .forms-saved { color: var(--ant-color-success); font-size: var(--ui-font-size-sm); }
 .forms-sheet-notice { padding: 8px 16px; color: var(--ant-color-text-secondary); border-bottom: 1px solid var(--ant-color-border-secondary); font-size: var(--ui-font-size-sm); }
+.forms-sheet-pagination { display: flex; justify-content: flex-end; padding: 10px 16px; border-top: 1px solid var(--ant-color-border-secondary); }
 .forms-sheet-scroll { overflow: auto; max-height: calc(100vh - 300px); }
 .forms-sheet-table { border-spacing: 0; table-layout: fixed; width: 100%; color: var(--ant-color-text); }
 .forms-sheet-table th,
@@ -40,6 +45,7 @@
 .forms-sheet-cell.forms-sheet-changed { color: var(--ant-color-warning); background: var(--ant-color-warning-bg); }
 .forms-sheet-table tbody tr:hover td.forms-sheet-changed { background: var(--ant-color-warning-bg); }
 .forms-sheet-cell.forms-sheet-active { outline: 1px solid var(--brand); outline-offset: -1px; }
+.forms-sheet-computed { color: var(--ant-color-text-secondary); font-variant-numeric: tabular-nums; }
 .forms-sheet-cell input,
 .forms-sheet-cell select { box-sizing: border-box; display: block; width: 100%; height: 100%; min-height: 42px; padding: 0; border: 0; outline: 0; box-shadow: none; background: transparent; color: var(--ant-color-text); text-align: center; font: inherit; font-variant-numeric: tabular-nums; }
 .forms-sheet-cell input::selection { background: var(--ant-color-fill-secondary); color: var(--ant-color-text); }

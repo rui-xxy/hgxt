@@ -68,5 +68,14 @@
     "parkingEnabled": false,
     "code": "finished_products_daily",
     "description": "各车间产成品产销存"
+  },
+  {
+    "file": "matters-2026.json",
+    "title": "2026年事项表",
+    "category": "总经办",
+    "entryMode": "sheet",
+    "parkingEnabled": false,
+    "code": "matters_2026",
+    "description": "事项跟踪表"
   }
 ]

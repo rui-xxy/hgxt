@@ -1,5 +1,5 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { App, Button, Empty, Popconfirm, Space } from 'antd';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { App, Button, Empty, Pagination, Popconfirm, Space } from 'antd';
 import { Download, Plus, Save, Trash2, Undo2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { FormData, FormField, FormSubmissionDTO, SaveFormSubmissionsBody } from '@hgxt/shared';
@@ -10,16 +10,27 @@ import { cellValuesEqual, displaySheetCell, parseSheetCell, sheetDataEqual } fro
 
 interface SheetRow { key: string; id?: string; data: FormData; original: FormData; }
 interface Cell { key: string; col: number; }
-interface Props { formId: string; formTitle: string; parkingEnabled: boolean; schema: FormField[]; submissions: FormSubmissionDTO[]; total: number; scrollPositionRef: { current: { left: number; top: number } }; }
+interface Props { formId: string; formTitle: string; parkingEnabled: boolean; schema: FormField[]; submissions: FormSubmissionDTO[]; total: number; page?: number; pageSize?: number; disableAdd?: boolean; showLiveRemaining?: boolean; onPageChange?: (page: number) => void; onDirtyChange?: (dirty: boolean) => void; scrollPositionRef: { current: { left: number; top: number } }; }
 
 const rowNoWidth = 48;
 const parkingWidth = 118;
 const actionWidth = 64;
 const dateWidth = 128;
+const remainingWidth = 116;
 
-/** 主日期字段 = schema 中第一个 date 字段（数据归属日期）；无 date 字段的表单返回 undefined */
+function currentRemaining(value: FormData[string] | undefined): string {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '—';
+  const [year, month, day] = value.split('-').map(Number);
+  const due = Date.UTC(year, month - 1, day);
+  const now = new Date();
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((due - today) / 86_400_000);
+  return days === 0 ? '今天' : days > 0 ? `${days}天后` : `${-days}天前`;
+}
+
+/** 主日期字段 = schema 中第一个必填 date 字段；可选日期不作为日报归属日 */
 function primaryDateField(schema: FormField[]): FormField | undefined {
-  return schema.find((field) => field.type === 'date');
+  return schema.find((field) => field.type === 'date' && field.required);
 }
 
 /** 现有数据里主日期的最大值 + 1 天（日报场景逐日递增；无数据/无日期字段则为今天） */
@@ -41,7 +52,7 @@ function nextDate(schema: FormField[], submissions: FormSubmissionDTO[]): string
   return next.toISOString().slice(0, 10);
 }
 
-export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissions, total, scrollPositionRef }: Props) {
+export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissions, total, page = 1, pageSize = 1000, disableAdd = false, showLiveRemaining = false, onPageChange, onDirtyChange, scrollPositionRef }: Props) {
   const { message } = App.useApp();
   const queryClient = useQueryClient();
   const initial = useMemo(() => submissions.map((item): SheetRow => ({ key: item.id, id: item.id, data: { ...item.data }, original: { ...item.data } })), [submissions]);
@@ -77,6 +88,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
   const pendingEdit = !!editing && !!editRow && !!pendingField && !!pendingValue &&
     ('error' in pendingValue || !cellValuesEqual(pendingField, editRow.data[pendingField.id], pendingValue.value));
   const dirty = stats.created + stats.updated + stats.deleted > 0 || pendingEdit;
+  useEffect(() => { onDirtyChange?.(dirty); return () => onDirtyChange?.(false); }, [dirty, onDirtyChange]);
   const mutation = useMutation({
     mutationFn: (body: SaveFormSubmissionsBody) => saveSubmissions(formId, body),
     onSuccess: async () => {
@@ -179,7 +191,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
     // 主日期字段自动填「最大日期 + 1 天」，其余字段按类型置空；无日期字段则不填
     const primary = primaryDateField(schema);
     const dateValue = nextDate(schema, submissions);
-    const data = Object.fromEntries(schema.map((field) => [field.id, field.type === 'date' ? dateValue : field.type === 'number' ? null : ''])) as FormData;
+    const data = Object.fromEntries(schema.map((field) => [field.id, field.type === 'date' ? field.required ? dateValue : null : field.type === 'number' ? null : ''])) as FormData;
     const firstEntry = schema.findIndex((field) => field.id !== primary?.id);
     const col = firstEntry < 0 ? 0 : firstEntry;
     replaceRows([{ key, data, original: { ...data } }, ...rowsRef.current]);
@@ -225,7 +237,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
 
   return <div className="forms-sheet">
     <div className="forms-sheet-toolbar">
-      <Space size="small"><Button icon={<Plus size={16} strokeWidth={1.6} />} disabled={mutation.isPending} onClick={addRow}>新增行</Button><Button type="text" icon={<Download size={16} strokeWidth={1.6} />} disabled={!rows.length || mutation.isPending} onClick={exportCsv}>导出 CSV</Button></Space>
+      <Space size="small"><Button icon={<Plus size={16} strokeWidth={1.6} />} disabled={mutation.isPending || disableAdd || (!!onPageChange && page > 1)} onClick={addRow}>新增行</Button><Button type="text" icon={<Download size={16} strokeWidth={1.6} />} disabled={!rows.length || mutation.isPending} onClick={exportCsv}>{onPageChange ? '导出本页 CSV' : '导出 CSV'}</Button></Space>
       <Space size="middle" wrap>
         {dirty && <span className="forms-unsaved">有未保存的更改{stats.created ? ` · 新增 ${stats.created}` : ''}{stats.updated ? ` · 修改 ${stats.updated}` : ''}{stats.deleted ? ` · 删除 ${stats.deleted}` : ''}</span>}
         {saved && !dirty && <span className="forms-saved">已保存</span>}
@@ -233,38 +245,42 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
         <Button type={dirty ? 'primary' : 'default'} icon={<Save size={16} strokeWidth={1.6} />} disabled={!dirty} loading={mutation.isPending} onClick={save}>保存修改</Button>
       </Space>
     </div>
-    {total > submissions.length && <div className="forms-sheet-notice">当前显示最近 {submissions.length} 条，共 {total} 条记录。</div>}
+    {total > submissions.length && <div className="forms-sheet-notice">{onPageChange ? `当前显示第 ${(page - 1) * pageSize + 1}—${(page - 1) * pageSize + submissions.length} 条，共 ${total} 条记录。${dirty ? '请先保存或撤销本页修改，再翻页。' : ''}` : `当前显示最近 ${submissions.length} 条，共 ${total} 条记录。`}</div>}
     <div className="forms-sheet-scroll" ref={scrollRef} aria-busy={mutation.isPending} onScroll={(event) => { scrollPositionRef.current = { left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop }; }}>
-      <table className="forms-sheet-table" style={{ minWidth: leadingWidth + fieldWidths.reduce((a, b) => a + b, 0) }}>
-        <colgroup><col style={{ width: rowNoWidth }} />{includeParking && <col style={{ width: parkingWidth }} />}<col style={{ width: actionWidth }} />{fieldWidths.map((width, index) => <col key={schema[index].id} style={{ width }} />)}</colgroup>
+      <table className="forms-sheet-table" style={{ minWidth: leadingWidth + fieldWidths.reduce((a, b) => a + b, 0) + (showLiveRemaining ? remainingWidth : 0) }}>
+        <colgroup><col style={{ width: rowNoWidth }} />{includeParking && <col style={{ width: parkingWidth }} />}<col style={{ width: actionWidth }} />{fieldWidths.map((width, index) => <col key={schema[index].id} style={{ width }} />)}{showLiveRemaining && <col style={{ width: remainingWidth }} />}</colgroup>
         <thead><tr>
           <th className="forms-sheet-sticky forms-sheet-sticky-0" rowSpan={2}>#</th>
           {includeParking && <th className="forms-sheet-sticky" style={{ left: rowNoWidth }} rowSpan={2}>停车记录</th>}
           <th className="forms-sheet-sticky" style={{ left: rowNoWidth + (includeParking ? parkingWidth : 0) }} rowSpan={2}>操作</th>
           {groups.map((group, index) => <th key={`${group.title}-${index}`} colSpan={group.count} title={group.title} className={`forms-sheet-group forms-sheet-tone-${index % 2}`}>{group.count > 1 ? group.title : ''}</th>)}
+          {showLiveRemaining && <th className="forms-sheet-group" colSpan={1}>时间</th>}
         </tr><tr>
           {schema.map((field, index) => <th key={field.id} title={field.title} className={`forms-sheet-field forms-sheet-tone-${groupIndexes[index] % 2} ${index === 0 ? 'forms-sheet-sticky forms-sheet-date' : ''}`} style={{ ...(index === 0 ? { left: leadingWidth } : {}), width: fieldWidths[index], minWidth: fieldWidths[index] }}>{field.title}{field.unit && <small>{field.unit}</small>}</th>)}
+          {showLiveRemaining && <th className="forms-sheet-field" style={{ width: remainingWidth, minWidth: remainingWidth }}>当前剩余</th>}
         </tr></thead>
         <tbody>
-          {!rows.length && <tr><td className="forms-sheet-empty" colSpan={schema.length + (includeParking ? 3 : 2)}><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无数据，点击「新增行」开始录入" /></td></tr>}
+          {!rows.length && <tr><td className="forms-sheet-empty" colSpan={schema.length + (includeParking ? 3 : 2) + (showLiveRemaining ? 1 : 0)}><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无数据，点击「新增行」开始录入" /></td></tr>}
           {rows.map((row, index) => <tr key={row.key}>
-            <td className="forms-sheet-sticky forms-sheet-sticky-0 forms-sheet-rowno">{index + 1}</td>
+            <td className="forms-sheet-sticky forms-sheet-sticky-0 forms-sheet-rowno">{onPageChange ? (page - 1) * pageSize + index + 1 : index + 1}</td>
             {includeParking && <td className="forms-sheet-sticky forms-sheet-parking" style={{ left: rowNoWidth }}><Button size="small" disabled={mutation.isPending} onClick={() => setParkingKey(row.key)}>{parseParking(row.data.parkingRecords, String(row.data[primaryDateField(schema)?.id ?? ''] ?? '')).length ? `${parseParking(row.data.parkingRecords, String(row.data[primaryDateField(schema)?.id ?? ''] ?? '')).length} 条记录` : '无记录'}</Button></td>}
             <td className="forms-sheet-sticky forms-sheet-action" style={{ left: rowNoWidth + (includeParking ? parkingWidth : 0) }}><Popconfirm title="删除这行数据？" okText="删除" cancelText="取消" okButtonProps={{ danger: true }} onConfirm={() => removeRow(row)}><Button type="text" size="small" danger disabled={mutation.isPending} aria-label={`删除第 ${index + 1} 行`} icon={<Trash2 size={16} strokeWidth={1.6} />} /></Popconfirm></td>
             {schema.map((field, col) => {
               const active = editing?.key === row.key && editing.col === col;
               const changed = !!row.id && !cellValuesEqual(field, row.data[field.id], row.original[field.id]);
-              return <td key={field.id} className={`forms-sheet-cell forms-sheet-tone-${groupIndexes[col] % 2} ${col === 0 ? 'forms-sheet-sticky forms-sheet-date' : ''} ${changed ? 'forms-sheet-changed' : ''} ${active ? 'forms-sheet-active' : ''}`} style={col === 0 ? { left: leadingWidth } : undefined} onPointerDown={(event) => { if (!active && !mutation.isPending) { event.preventDefault(); switchTo({ key: row.key, col }); } }}>
+              return <td key={field.id} title={displaySheetCell(row.data[field.id])} className={`forms-sheet-cell forms-sheet-tone-${groupIndexes[col] % 2} ${col === 0 ? 'forms-sheet-sticky forms-sheet-date' : ''} ${changed ? 'forms-sheet-changed' : ''} ${active ? 'forms-sheet-active' : ''}`} style={col === 0 ? { left: leadingWidth } : undefined} onPointerDown={(event) => { if (!active && !mutation.isPending) { event.preventDefault(); switchTo({ key: row.key, col }); } }}>
                 {active ? field.type === 'select'
                   ? <select ref={inputRef as React.RefObject<HTMLSelectElement>} aria-label={`第 ${index + 1} 行 ${field.title}`} disabled={mutation.isPending} value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={() => finishEditing({ key: row.key, col })} onKeyDown={handleCellKeyDown}><option value="">请选择</option>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
                   : <input ref={inputRef as React.RefObject<HTMLInputElement>} aria-label={`第 ${index + 1} 行 ${field.title}`} disabled={mutation.isPending} type={field.type === 'date' ? 'date' : 'text'} inputMode={field.type === 'number' ? 'decimal' : undefined} value={draft} onInput={(e) => setDraft(e.currentTarget.value)} onChange={(e) => setDraft(e.target.value)} onBlur={() => finishEditing({ key: row.key, col })} onKeyDown={handleCellKeyDown} />
                   : <span>{displaySheetCell(row.data[field.id]) || '\u00a0'}</span>}
               </td>;
             })}
+            {showLiveRemaining && <td className="forms-sheet-computed">{currentRemaining(row.data.dueDate)}</td>}
           </tr>)}
         </tbody>
       </table>
     </div>
+    {onPageChange && total > pageSize && <div className="forms-sheet-pagination"><Pagination size="small" current={page} pageSize={pageSize} total={total} showSizeChanger={false} disabled={dirty || mutation.isPending} onChange={onPageChange} /></div>}
     {parkingRow && <ParkingEditor key={parkingRow.key} initial={parseParking(parkingRow.data.parkingRecords, String(parkingRow.data[primaryDateField(schema)?.id ?? ''] ?? ''))} date={String(parkingRow.data[primaryDateField(schema)?.id ?? ''] ?? '')} onClose={() => setParkingKey(null)} onSave={(records) => { const value = serializeParking(records); if (value !== parkingRow.data.parkingRecords) { replaceRows(rowsRef.current.map((row) => row.key === parkingRow.key ? { ...row, data: { ...row.data, parkingRecords: value } } : row)); setSaved(false); } setParkingKey(null); }} />}
   </div>;
 }

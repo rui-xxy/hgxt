@@ -114,6 +114,8 @@ export type FormData = Record<string, string | number | null>;
 export interface FormDTO {
   id: string;
   title: string;
+  category: string;
+  entryMode: 'form' | 'sheet';
   description: string | null;
   schema: FormField[];
   /** 是否启用「停车记录」附加录入 */

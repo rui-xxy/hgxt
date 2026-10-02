@@ -38,6 +38,7 @@ pnpm dev
 | `pnpm lint` / `pnpm typecheck` / `pnpm test` / `pnpm build` | 单独执行各项检查 |
 | `pnpm db:migrate:named -- --name xxx` | 新增迁移（在 apps/api 下） |
 | `pnpm db:seed` | 重建/补种管理员（幂等，需 SEED_ADMIN_PASSWORD） |
+| `pnpm --filter @hgxt/api db:import-matters` | 向已有开发库首次导入 2026 年事项表；已有记录时跳过，保留表格修改 |
 | `docker compose up -d` / `down` | 启停数据库 |
 
 > 测试使用独立数据库 `hgxt_test`（同容器），自动迁移与重建数据，不影响开发库。
