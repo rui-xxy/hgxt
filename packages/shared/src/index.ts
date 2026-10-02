@@ -582,8 +582,8 @@ export interface PlanConsumptionRow {
 
 /** 事项（matters-2026 表单提交推导） */
 export interface PlanTask {
-  /** 本周 / 下周 */
-  period: '本周' | '下周';
+  /** 本周 / 下周 / 其他（不在当前与下一周的历史或远期事项） */
+  period: '本周' | '下周' | '其他';
   /** done=已完成(含延期完成)；late=已逾期未完成；doing=进行中；todo=未开始/搁置 */
   status: 'done' | 'late' | 'doing' | 'todo';
   matter: string;

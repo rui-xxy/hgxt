@@ -515,8 +515,13 @@ export class PlanService {
       if (!due || !due.startsWith(String(year))) continue;
       const progress = typeof data.progress === 'string' ? data.progress : '';
       const done = progress === '已完成' || progress === '延期完成';
-      let period: '本周' | '下周' = '本周';
-      if (due) period = weekOf(due) === weekOf(today) ? '本周' : '下周';
+      // 周期只标注本周/下个自然周；其余（历史、远期）归「其他」
+      let period: PlanTask['period'] = '其他';
+      if (due) {
+        const weekGap = weekOf(due) - weekOf(today);
+        if (weekGap === 0) period = '本周';
+        else if (weekGap === 1) period = '下周';
+      }
       let status: PlanTask['status'] = 'todo';
       if (done) status = 'done';
       else if (due && due < today) status = 'late';
