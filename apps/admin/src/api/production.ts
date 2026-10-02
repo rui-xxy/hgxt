@@ -4,10 +4,6 @@ import type {
   DetailedWorkshopResult,
   EnergyResult,
   MaterialsResult,
-  PlanSettingsResult,
-  PlanSettingsSaveBody,
-  PlanTargetSaveBody,
-  ProductionPlanBoardResult,
   SulfuricSummaryResult,
   ThermalSummaryResult,
   TankLevelsResult,
@@ -38,16 +34,4 @@ export function materialsSummary(): Promise<MaterialsResult> {
 }
 export function tankLevels(date?: string): Promise<TankLevelsResult> {
   return request(`/production/tanks${date ? `?date=${encodeURIComponent(date)}` : ''}`);
-}
-export function planBoard(year = new Date().getFullYear()): Promise<ProductionPlanBoardResult> {
-  return request(`/production/plan?year=${year}`);
-}
-export function planSettings(year = new Date().getFullYear()): Promise<PlanSettingsResult> {
-  return request(`/production/plan/settings?year=${year}`);
-}
-export function savePlanSettings(body: PlanSettingsSaveBody): Promise<PlanSettingsResult> {
-  return request('/production/plan/settings', { method: 'POST', body });
-}
-export function savePlanTargets(body: PlanTargetSaveBody): Promise<Array<{ workshop: string; material: string; unit: string; target: string }>> {
-  return request('/production/plan/targets', { method: 'POST', body });
 }
