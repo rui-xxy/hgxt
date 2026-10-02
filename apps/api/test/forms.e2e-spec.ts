@@ -199,7 +199,7 @@ describe('事项表：按分类显示、分页筛选并直接编辑数据', () =
     await resetDbWithAdmin(prisma);
     token = (await loginOk(http(app))).accessToken;
     const form = await prisma.form.create({ data: {
-      title: '2026年事项表', category: '总经办', entryMode: 'sheet',
+      title: '2026年事项表', code: 'matters_2026', category: '总经办', entryMode: 'sheet',
       schema: [
         { id: 'matter', title: '事项', type: 'text', required: true },
         { id: 'progress', title: '进度', type: 'select', required: true, options: [{ label: '进行中', value: '进行中' }, { label: '已完成', value: '已完成' }] },
@@ -243,5 +243,45 @@ describe('事项表：按分类显示、分页筛选并直接编辑数据', () =
       .set('Authorization', auth()).expect(200);
     expect(filtered.body.total).toBe(1);
     expect(filtered.body.items[0].data.matter).toBe('设备检修完成');
+  });
+
+  it('新事项使用现行部门、识别已确认旧称，历史部门可原样保留', async () => {
+    const form = await http(app).get(`/api/forms/${formId}`).set('Authorization', auth()).expect(200);
+    const department = form.body.schema.find((field: { id: string }) => field.id === 'department');
+    expect(department.multiple).toBe(true);
+    expect(department.options).toHaveLength(17);
+    expect(department.options).toContainEqual({ label: '水滑石生产部', value: '水滑石生产部' });
+    expect(department.options).not.toContainEqual({ label: '新材料生产部', value: '新材料生产部' });
+
+    const created = await http(app).post(`/api/forms/${formId}/submissions/batch`).set('Authorization', auth()).send({
+      created: [{ matter: '跨部门事项', progress: '进行中', department: '2-EAQ生产部,硫酸生产部,2-EAQ生产部' }],
+      updated: [], deleted: [],
+    }).expect(201);
+    expect(created.body.created).toBe(1);
+    const rows = await http(app).get(`/api/forms/${formId}/submissions?keyword=跨部门事项`).set('Authorization', auth()).expect(200);
+    expect(rows.body.items[0].data.department).toBe('二乙基蒽醌生产部,硫酸生产部');
+
+    await http(app).post(`/api/forms/${formId}/submissions/batch`).set('Authorization', auth()).send({
+      created: [{ matter: '水滑石事项', progress: '进行中', department: '新材料生产部,水滑石生产部' }],
+      updated: [], deleted: [],
+    }).expect(201);
+    const waterSlagRows = await http(app).get(`/api/forms/${formId}/submissions?keyword=水滑石事项`).set('Authorization', auth()).expect(200);
+    expect(waterSlagRows.body.items[0].data.department).toBe('水滑石生产部');
+
+    await http(app).post(`/api/forms/${formId}/submissions/batch`).set('Authorization', auth()).send({
+      created: [{ matter: '非现行部门', progress: '进行中', department: '水滑石项目组' }], updated: [], deleted: [],
+    }).expect(400);
+
+    const legacy = await prisma.formSubmission.create({ data: {
+      formId, data: { matter: '历史任务', progress: '进行中', startDate: null, department: '生产技术部' },
+    } });
+    await http(app).post(`/api/forms/${formId}/submissions/batch`).set('Authorization', auth()).send({
+      created: [], updated: [{ id: legacy.id, data: { matter: '历史任务已更新', progress: '进行中', startDate: null, department: '生产技术部' } }], deleted: [],
+    }).expect(201);
+    await http(app).post(`/api/forms/${formId}/submissions/batch`).set('Authorization', auth()).send({
+      created: [], updated: [{ id: legacy.id, data: { matter: '历史任务已更新', progress: '进行中', startDate: null, department: '其他部门' } }], deleted: [],
+    }).expect(400);
+    const unchanged = await prisma.formSubmission.findUniqueOrThrow({ where: { id: legacy.id } });
+    expect((unchanged.data as { department: string }).department).toBe('生产技术部');
   });
 });

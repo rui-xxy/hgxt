@@ -1,4 +1,4 @@
-import type { FormData, FormField } from '@hgxt/shared';
+import { normalizeDepartmentValue, parseDepartmentNames, type FormData, type FormField } from '@hgxt/shared';
 
 type CellValue = FormData[string];
 type ParsedCell = { value: CellValue; error?: never } | { value?: never; error: string };
@@ -45,6 +45,13 @@ export function parseSheetCell(field: FormField, draft: string): ParsedCell {
   }
   if (field.type === 'select' && !field.options?.some((option) => option.value === text)) {
     return { error: `${field.title}选项无效` };
+  }
+  if (field.multiple && field.options) {
+    const allowed = new Set(field.options.map((option) => option.value));
+    if (parseDepartmentNames(text).some((name) => !allowed.has(name))) {
+      return { error: `${field.title}请选择现行部门` };
+    }
+    return { value: normalizeDepartmentValue(text) };
   }
   if (text.length > 1000) return { error: `${field.title}内容过长` };
   return { value: text };

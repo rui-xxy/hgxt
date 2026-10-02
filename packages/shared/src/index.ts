@@ -91,6 +91,8 @@ export interface ResetPasswordBody {
   newPassword: string;
 }
 
+export { CURRENT_DEPARTMENTS, normalizeDepartmentValue, parseDepartmentNames } from './departments.js';
+
 export type FormFieldType = 'text' | 'number' | 'date' | 'select';
 export interface FormField {
   id: string;
@@ -98,6 +100,8 @@ export interface FormField {
   type: FormFieldType;
   group?: string;
   options?: { label: string; value: string }[];
+  /** 多选字段按逗号分隔的文本存储；options 是新记录的可选项。 */
+  multiple?: boolean;
   precision?: number;
   unit?: string;
   width?: number;

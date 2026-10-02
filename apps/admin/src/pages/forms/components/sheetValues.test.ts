@@ -24,4 +24,17 @@ describe('表格单元格的改动判定', () => {
     expect(parseSheetCell(date, '2026-09-26')).toEqual({ value: '2026-09-26' });
     expect(parseSheetCell(date, '2026-02-30')).toEqual({ error: '日期无效' });
   });
+
+  it('多部门输入去重并统一已确认的旧称', () => {
+    const department: FormField = { id: 'department', title: '部门', type: 'text', multiple: true, options: [
+      { label: '二乙基蒽醌生产部', value: '二乙基蒽醌生产部' },
+      { label: '硫酸生产部', value: '硫酸生产部' },
+      { label: '水滑石生产部', value: '水滑石生产部' },
+    ] };
+    expect(parseSheetCell(department, '2-EAQ生产部，硫酸生产部，2-EAQ生产部'))
+      .toEqual({ value: '二乙基蒽醌生产部,硫酸生产部' });
+    expect(parseSheetCell(department, '新材料生产部，水滑石生产部'))
+      .toEqual({ value: '水滑石生产部' });
+    expect(parseSheetCell(department, '生产技术部')).toEqual({ error: '部门请选择现行部门' });
+  });
 });

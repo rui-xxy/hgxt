@@ -1,7 +1,7 @@
 [
   { "id": "matter", "title": "事项", "type": "text", "group": "事项", "width": 360, "required": true },
   { "id": "completionNote", "title": "完成情况说明", "type": "text", "group": "事项", "width": 360 },
-  { "id": "department", "title": "部门", "type": "text", "group": "责任", "width": 180 },
+  { "id": "department", "title": "部门", "type": "text", "group": "责任", "width": 180, "multiple": true },
   { "id": "owner", "title": "负责人", "type": "text", "group": "责任", "width": 130 },
   { "id": "importance", "title": "重要程度", "type": "text", "group": "执行", "width": 100 },
   { "id": "progress", "title": "进度", "type": "select", "group": "执行", "width": 110, "required": true, "options": [

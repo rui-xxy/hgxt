@@ -3,12 +3,18 @@ import type {
   FormDTO, FormData, FormField, FormLastValuesResult, FormPageResult,
   FormSubmissionDTO, FormSubmissionPageResult, SaveFormSubmissionsBody,
 } from '@hgxt/shared';
+import { CURRENT_DEPARTMENTS, normalizeDepartmentValue, parseDepartmentNames } from '@hgxt/shared';
 import { Prisma, type Form, type FormSubmission } from '../generated/prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { FormListQuery, SubmissionListQuery } from './query.dto';
 
+/** 事项表的部门选项统一使用现行名称，旧称在保存时归一。 */
 function schemaOf(form: Form): FormField[] {
-  return form.schema as unknown as FormField[];
+  const schema = form.schema as unknown as FormField[];
+  if (form.code !== 'matters_2026') return schema;
+  return schema.map((field) => field.id === 'department'
+    ? { ...field, multiple: true, options: CURRENT_DEPARTMENTS.map((name) => ({ label: name, value: name })) }
+    : field);
 }
 
 /**
@@ -54,7 +60,7 @@ function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function cleanData(form: Form, input: unknown): FormData {
+function cleanData(form: Form, input: unknown, previousData?: FormData): FormData {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
     throw new BadRequestException('提交内容必须是字段对象');
   }
@@ -88,7 +94,17 @@ function cleanData(form: Form, input: unknown): FormData {
       if (field.type === 'select' && !field.options?.some((option) => option.value === raw)) {
         throw new BadRequestException(`${field.title}选项无效`);
       }
-      data[field.id] = raw;
+      if (field.multiple && field.options) {
+        const names = parseDepartmentNames(raw);
+        const allowed = new Set(field.options.map((option) => option.value));
+        const hasHistoricalName = names.some((name) => !allowed.has(name));
+        if (hasHistoricalName && previousData?.[field.id] !== raw) {
+          throw new BadRequestException(`${field.title}请选择现行部门`);
+        }
+        data[field.id] = hasHistoricalName ? raw : normalizeDepartmentValue(raw);
+      } else {
+        data[field.id] = raw;
+      }
     } else {
       throw new BadRequestException(`${field.title}格式不正确`);
     }
@@ -275,15 +291,19 @@ export class FormsService {
     const created = body.created.map((row) => cleanData(form, row));
     const updated = body.updated.map((row) => {
       if (!row || typeof row.id !== 'string') throw new BadRequestException('记录 ID 无效');
-      return { id: row.id, data: cleanData(form, row.data) };
+      return { id: row.id, data: row.data };
     });
     if (body.deleted.some((value) => typeof value !== 'string')) throw new BadRequestException('记录 ID 无效');
     const ids = [...updated.map((row) => row.id), ...body.deleted];
     if (new Set(ids).size !== ids.length) throw new BadRequestException('记录 ID 重复');
     await this.prisma.$transaction(async (tx) => {
       if (ids.length) {
-        const count = await tx.formSubmission.count({ where: { formId: id, id: { in: ids } } });
-        if (count !== ids.length) throw new NotFoundException('部分记录不属于此表单');
+        const existingRows = await tx.formSubmission.findMany({ where: { formId: id, id: { in: ids } }, select: { id: true, data: true } });
+        if (existingRows.length !== ids.length) throw new NotFoundException('部分记录不属于此表单');
+        const existingById = new Map(existingRows.map((row) => [row.id, row.data as FormData]));
+        for (const row of updated) {
+          row.data = cleanData(form, row.data, existingById.get(row.id));
+        }
       }
       for (const data of created) {
         await tx.formSubmission.create({ data: { formId: id, data: data as Prisma.InputJsonValue, submitterId } });

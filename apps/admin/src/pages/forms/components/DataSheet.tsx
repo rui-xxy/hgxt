@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { App, Button, Empty, Pagination, Popconfirm, Space } from 'antd';
+import { App, Button, Empty, Pagination, Popconfirm, Select, Space } from 'antd';
 import { Download, Plus, Save, Trash2, Undo2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { FormData, FormField, FormSubmissionDTO, SaveFormSubmissionsBody } from '@hgxt/shared';
+import { parseDepartmentNames, type FormData, type FormField, type FormSubmissionDTO, type SaveFormSubmissionsBody } from '@hgxt/shared';
 import { saveSubmissions } from '../../../api/forms';
 import { ParkingEditor } from './ParkingEditor';
 import { parseParking, serializeParking } from './parking';
@@ -63,6 +63,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
   const [parkingKey, setParkingKey] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
+  const activeCellRef = useRef<HTMLTableCellElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const suppressBlur = useRef(false);
   const rowsRef = useRef(rows);
@@ -85,7 +86,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
   const editRow = editing && rows.find((row) => row.key === editing.key);
   const pendingField = editing && schema[editing.col];
   const pendingValue = pendingField ? parseSheetCell(pendingField, draft) : null;
-  const pendingEdit = !!editing && !!editRow && !!pendingField && !!pendingValue &&
+  const pendingEdit = !!editing && !!editRow && !!pendingField && draft !== displaySheetCell(editRow.data[pendingField.id]) && !!pendingValue &&
     ('error' in pendingValue || !cellValuesEqual(pendingField, editRow.data[pendingField.id], pendingValue.value));
   const dirty = stats.created + stats.updated + stats.deleted > 0 || pendingEdit;
   useEffect(() => { onDirtyChange?.(dirty); return () => onDirtyChange?.(false); }, [dirty, onDirtyChange]);
@@ -106,11 +107,12 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
   const replaceRows = (next: SheetRow[]) => { rowsRef.current = next; setRows(next); };
   const commit = (cell: Cell, value: string) => {
     const field = schema[cell.col];
-    const parsed = parseSheetCell(field, value);
-    if ('error' in parsed) { message.warning(parsed.error); return false; }
     const current = rowsRef.current;
     const row = current.find((item) => item.key === cell.key);
-    if (!row || cellValuesEqual(field, row.data[field.id], parsed.value)) return true;
+    if (!row || displaySheetCell(row.data[field.id]) === value) return true;
+    const parsed = parseSheetCell(field, value);
+    if ('error' in parsed) { message.warning(parsed.error); return false; }
+    if (cellValuesEqual(field, row.data[field.id], parsed.value)) return true;
     replaceRows(current.map((item) => item.key === cell.key ? { ...item, data: { ...item.data, [field.id]: parsed.value } } : item));
     setSaved(false);
     return true;
@@ -162,12 +164,12 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
     scrollRef.current?.scrollTo(scrollPositionRef.current);
   }, [scrollPositionRef]);
   useLayoutEffect(() => {
-    if (!editing || !inputRef.current) return;
+    if (!editing) return;
     const input = inputRef.current;
     const scroll = scrollRef.current;
-    input.focus({ preventScroll: true });
+    input?.focus({ preventScroll: true });
     if (!scroll) return;
-    const cell = input.closest('td');
+    const cell = activeCellRef.current;
     if (!cell) return;
     const scrollBounds = scroll.getBoundingClientRect();
     let cellBounds = cell.getBoundingClientRect();
@@ -268,8 +270,10 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
             {schema.map((field, col) => {
               const active = editing?.key === row.key && editing.col === col;
               const changed = !!row.id && !cellValuesEqual(field, row.data[field.id], row.original[field.id]);
-              return <td key={field.id} title={displaySheetCell(row.data[field.id])} className={`forms-sheet-cell forms-sheet-tone-${groupIndexes[col] % 2} ${col === 0 ? 'forms-sheet-sticky forms-sheet-date' : ''} ${changed ? 'forms-sheet-changed' : ''} ${active ? 'forms-sheet-active' : ''}`} style={col === 0 ? { left: leadingWidth } : undefined} onPointerDown={(event) => { if (!active && !mutation.isPending) { event.preventDefault(); switchTo({ key: row.key, col }); } }}>
-                {active ? field.type === 'select'
+              return <td key={field.id} ref={active ? activeCellRef : undefined} title={displaySheetCell(row.data[field.id])} className={`forms-sheet-cell forms-sheet-tone-${groupIndexes[col] % 2} ${col === 0 ? 'forms-sheet-sticky forms-sheet-date' : ''} ${changed ? 'forms-sheet-changed' : ''} ${active ? 'forms-sheet-active' : ''}`} style={col === 0 ? { left: leadingWidth } : undefined} onPointerDown={(event) => { if (!active && !mutation.isPending) { event.preventDefault(); switchTo({ key: row.key, col }); } }}>
+                {active ? field.multiple && field.options
+                  ? <Select mode="multiple" autoFocus defaultOpen showSearch optionFilterProp="label" aria-label={`第 ${index + 1} 行 ${field.title}`} className="forms-sheet-multiselect" popupMatchSelectWidth={false} maxTagCount={1} placeholder="选择部门" disabled={mutation.isPending} value={parseDepartmentNames(draft)} options={field.options} onChange={(values) => setDraft(values.join(','))} onBlur={() => finishEditing({ key: row.key, col })} />
+                  : field.type === 'select'
                   ? <select ref={inputRef as React.RefObject<HTMLSelectElement>} aria-label={`第 ${index + 1} 行 ${field.title}`} disabled={mutation.isPending} value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={() => finishEditing({ key: row.key, col })} onKeyDown={handleCellKeyDown}><option value="">请选择</option>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
                   : <input ref={inputRef as React.RefObject<HTMLInputElement>} aria-label={`第 ${index + 1} 行 ${field.title}`} disabled={mutation.isPending} type={field.type === 'date' ? 'date' : 'text'} inputMode={field.type === 'number' ? 'decimal' : undefined} value={draft} onInput={(e) => setDraft(e.currentTarget.value)} onChange={(e) => setDraft(e.target.value)} onBlur={() => finishEditing({ key: row.key, col })} onKeyDown={handleCellKeyDown} />
                   : <span>{displaySheetCell(row.data[field.id]) || '\u00a0'}</span>}
