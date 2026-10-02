@@ -1,24 +1,12 @@
 import { useState } from 'react';
-<<<<<<< HEAD
 import { App, Badge, Button, Card, Input, Popconfirm, Space, Table, Tag } from 'antd';
 import { Plus } from 'lucide-react';
-=======
-import { App, Button, Dropdown, Input, Table, type MenuProps, type TableColumnsType } from 'antd';
->>>>>>> claude/exciting-shannon-u2nwwv
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Role, UserStatus, type UserDTO } from '@hgxt/shared';
 import { useMe, useUsers } from '../../api/hooks';
 import { createUserApi, deleteUserApi, resetPasswordApi, updateUserApi, updateUserStatusApi } from '../../api/users';
 import { PageHeader } from '../../components/PageHeader';
-import {
-  BanIcon,
-  MoreIcon,
-  PlusIcon,
-  SearchIcon,
-  TrashIcon,
-  UserCheckIcon,
-} from '../../components/icons';
 import { UserFormModal, type UserFormValues } from './UserFormModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
 
@@ -27,8 +15,12 @@ const roleText: Record<string, string> = {
   [Role.USER]: '普通用户',
 };
 
+/**
+ * 用户管理：HGXT 数据工作区模板（规范见 docs/ui-mapping.md「页面模板」）——
+ * PageHeader（标题 + 说明 + 主操作）→ 同一表面内的 Toolbar（搜索 + 计数）与 Table。
+ */
 export function UsersPage() {
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const me = useMe();
   const queryClient = useQueryClient();
 
@@ -125,81 +117,34 @@ export function UsersPage() {
     }
   };
 
-  const confirmStatusChange = (record: UserDTO) => {
-    const active = record.status === UserStatus.ACTIVE;
-    modal.confirm({
-      title: active ? `禁用 ${record.name}？` : `启用 ${record.name}？`,
-      content: active ? '禁用后该用户将立即退出登录且无法再登录。' : '启用后该用户可以重新登录。',
-      icon: <span className={`hg-confirm-icon ${active ? 'hg-confirm-icon-danger' : ''}`}>{active ? <BanIcon /> : <UserCheckIcon />}</span>,
-      okText: active ? '禁用' : '启用',
-      okButtonProps: active ? { danger: true } : undefined,
-      cancelText: '取消',
-      onOk: async () => {
-        try {
-          await statusMutation.mutateAsync({
-            id: record.id,
-            status: active ? UserStatus.DISABLED : UserStatus.ACTIVE,
-          });
-        } catch {
-          // 失败提示已由 onError 的 message 呈现
-        }
-      },
-    });
-  };
-
-  const confirmDelete = (record: UserDTO) => {
-    modal.confirm({
-      title: `删除 ${record.name}（${record.username}）？`,
-      content: '删除后不可恢复。该用户的表单提交记录会保留（提交人显示为空），但账号和登录会话将被彻底移除。',
-      icon: <span className="hg-confirm-icon hg-confirm-icon-danger"><TrashIcon /></span>,
-      okText: '删除',
-      okButtonProps: { danger: true },
-      cancelText: '取消',
-      onOk: async () => {
-        try {
-          await deleteMutation.mutateAsync(record.id);
-        } catch {
-          // 失败提示已由 onError 的 message 呈现
-        }
-      },
-    });
-  };
-
-  const columns: TableColumnsType<UserDTO> = [
+  const columns = [
     {
-      title: '用户',
+      title: '用户名',
       dataIndex: 'username',
-      width: 220,
-      render: (_: string, record) => (
-        <div className="hg-cell-user">
-          <span className="hg-avatar">{record.name.charAt(0)}</span>
-          <div className="hg-cell-stack">
-            <span className="hg-cell-primary">
-              {record.name}
-              {record.id === me.data?.id ? <span className="hg-cell-self">你</span> : null}
-            </span>
-            <span className="hg-cell-secondary mono">{record.username}</span>
-          </div>
-        </div>
-      ),
+      width: 150,
+      render: (username: string) => <span className="mono">{username}</span>,
     },
+    { title: '姓名', dataIndex: 'name', width: 120 },
     {
       title: '角色',
       dataIndex: 'role',
-      width: 120,
+      width: 100,
       render: (role: UserDTO['role']) =>
-        <span className={role === Role.SUPER_ADMIN ? 'hg-badge hg-badge-strong' : 'hg-badge'}>{roleText[role]}</span>,
+        role === Role.SUPER_ADMIN ? (
+          <Tag color="gold">{roleText[role]}</Tag>
+        ) : (
+          <Tag>{roleText[role]}</Tag>
+        ),
     },
     {
       title: '状态',
       dataIndex: 'status',
-      width: 100,
-      // 状态语义：颜色 + 文字双重表达
+      width: 90,
       render: (status: UserDTO['status']) =>
         status === UserStatus.ACTIVE ? (
-          <span className="hg-status-dot hg-status-dot-success">正常</span>
+          <Badge status="success" text="正常" />
         ) : (
-          <span className="hg-status-dot">已禁用</span>
+          <Badge status="default" text="已禁用" />
         ),
     },
     {
@@ -207,64 +152,32 @@ export function UsersPage() {
       title: '邮箱',
       dataIndex: 'email',
       ellipsis: true,
-<<<<<<< HEAD
       render: (email: string | null) => email ?? <span className="hgxt-muted">—</span>,
-=======
-      render: (email: string | null) =>
-        email ? <span className="hg-cell-muted">{email}</span> : <span className="hg-cell-empty">—</span>,
->>>>>>> claude/exciting-shannon-u2nwwv
     },
     {
       title: '手机号',
       dataIndex: 'phone',
-<<<<<<< HEAD
       width: 130,
       render: (phone: string | null) => phone ?? <span className="hgxt-muted">—</span>,
-=======
-      width: 140,
-      render: (phone: string | null) =>
-        phone ? <span className="tabular hg-cell-muted">{phone}</span> : <span className="hg-cell-empty">—</span>,
->>>>>>> claude/exciting-shannon-u2nwwv
     },
     {
       title: '创建时间',
       dataIndex: 'createdAt',
-<<<<<<< HEAD
       width: 120,
       render: (createdAt: string) => dayjs(createdAt).format('YYYY-MM-DD'),
-=======
-      width: 160,
-      render: (createdAt: string) => (
-        <span className="tabular hg-cell-muted">{dayjs(createdAt).format('YYYY-MM-DD HH:mm')}</span>
-      ),
->>>>>>> claude/exciting-shannon-u2nwwv
     },
     {
-      title: <span className="hg-sr-only">操作</span>,
+      title: '操作',
       key: 'actions',
       fixed: 'right' as const,
-      width: 200,
+      width: 260,
       render: (_: unknown, record: UserDTO) => {
         const active = record.status === UserStatus.ACTIVE;
         const isSelf = record.id === me.data?.id;
-        const busy =
-          (statusMutation.isPending && statusMutation.variables?.id === record.id) ||
-          (deleteMutation.isPending && deleteMutation.variables === record.id);
-        const moreItems: MenuProps['items'] = [
-          active
-            ? { key: 'disable', label: '禁用账号', icon: <BanIcon />, danger: true }
-            : { key: 'enable', label: '启用账号', icon: <UserCheckIcon /> },
-          ...(isSelf
-            ? []
-            : [
-                { type: 'divider' as const },
-                { key: 'delete', label: '删除用户', icon: <TrashIcon />, danger: true },
-              ]),
-        ];
         return (
-          <div className="hg-row-actions">
+          <Space size={0}>
             <Button
-              type="text"
+              type="link"
               size="small"
               onClick={() => {
                 setEditingUser(record);
@@ -273,23 +186,59 @@ export function UsersPage() {
             >
               编辑
             </Button>
-            <Button type="text" size="small" onClick={() => setResettingUser(record)}>
-              重置密码
-            </Button>
-            <Dropdown
-              trigger={['click']}
-              placement="bottomRight"
-              menu={{
-                items: moreItems,
-                onClick: ({ key }) => {
-                  if (key === 'delete') confirmDelete(record);
-                  else confirmStatusChange(record);
-                },
+            <Button
+              type="link"
+              size="small"
+              onClick={() => {
+                setResettingUser(record);
               }}
             >
-              <Button type="text" size="small" icon={<MoreIcon />} loading={busy} aria-label={`${record.name} 的更多操作`} />
-            </Dropdown>
-          </div>
+              重置密码
+            </Button>
+            <Popconfirm
+              title={active ? `确定禁用 ${record.name}？` : `确定启用 ${record.name}？`}
+              description={active ? '禁用后该用户将立即退出登录且无法再登录。' : undefined}
+              okText={active ? '禁用' : '启用'}
+              okButtonProps={active ? { danger: true } : undefined}
+              cancelText="取消"
+              disabled={statusMutation.isPending}
+              onConfirm={() =>
+                statusMutation.mutate({
+                  id: record.id,
+                  status: active ? UserStatus.DISABLED : UserStatus.ACTIVE,
+                })
+              }
+            >
+              <Button
+                type="link"
+                size="small"
+                danger={active}
+                loading={statusMutation.isPending && statusMutation.variables?.id === record.id}
+              >
+                {active ? '禁用' : '启用'}
+              </Button>
+            </Popconfirm>
+            {!isSelf && (
+              <Popconfirm
+                title={`确定删除 ${record.name}（${record.username}）？`}
+                description="删除后不可恢复。该用户的表单提交记录会保留（提交人显示为空），但账号和登录会话将被彻底移除。"
+                okText="删除"
+                okButtonProps={{ danger: true }}
+                cancelText="取消"
+                disabled={deleteMutation.isPending}
+                onConfirm={() => deleteMutation.mutate(record.id)}
+              >
+                <Button
+                  type="link"
+                  size="small"
+                  danger
+                  loading={deleteMutation.isPending && deleteMutation.variables === record.id}
+                >
+                  删除
+                </Button>
+              </Popconfirm>
+            )}
+          </Space>
         );
       },
     },
@@ -298,21 +247,12 @@ export function UsersPage() {
   return (
     <div>
       <PageHeader
-<<<<<<< HEAD
         title="成员"
         description="管理可以登录系统、填写报表的人员"
         extra={
           <Button
             type="primary"
             icon={<Plus size={16} strokeWidth={1.6} />}
-=======
-        title="用户管理"
-        meta={usersQuery.data ? usersQuery.data.total : undefined}
-        extra={
-          <Button
-            type="primary"
-            icon={<PlusIcon />}
->>>>>>> claude/exciting-shannon-u2nwwv
             onClick={() => {
               setEditingUser(null);
               setFormOpen(true);
@@ -322,37 +262,20 @@ export function UsersPage() {
           </Button>
         }
       />
-<<<<<<< HEAD
       <Card className="hgxt-surface" styles={{ body: { padding: 0 } }}>
         <div className="hgxt-toolbar">
           <Input.Search
             allowClear
             placeholder="搜索：用户名 / 姓名 / 手机 / 邮箱"
             className="hgxt-toolbar-search"
-=======
-      <div className="hg-list">
-        <div className="hg-toolbar">
-          <Input
-            allowClear
-            variant="filled"
-            className="hg-search"
-            prefix={<SearchIcon />}
-            placeholder="搜索用户名、姓名、手机或邮箱"
->>>>>>> claude/exciting-shannon-u2nwwv
             value={keywordInput}
-            onChange={(event) => {
-              setKeywordInput(event.target.value);
-              // 清空即恢复全部
-              if (!event.target.value) {
-                setKeyword('');
-                setPage(1);
-              }
-            }}
-            onPressEnter={() => {
-              setKeyword(keywordInput.trim());
+            onChange={(event) => setKeywordInput(event.target.value)}
+            onSearch={(value) => {
+              setKeyword(value);
               setPage(1);
             }}
           />
+          <span className="hgxt-toolbar-meta">共 {usersQuery.data?.total ?? 0} 条</span>
         </div>
         <Table<UserDTO>
           rowKey="id"
@@ -365,14 +288,13 @@ export function UsersPage() {
             pageSize,
             total: usersQuery.data?.total ?? 0,
             showSizeChanger: true,
-            size: 'small',
             onChange: (nextPage, nextPageSize) => {
               setPage(nextPage);
               setPageSize(nextPageSize);
             },
           }}
         />
-      </div>
+      </Card>
 
       <UserFormModal
         open={formOpen}
