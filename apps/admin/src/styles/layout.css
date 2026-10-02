@@ -156,6 +156,10 @@
   letter-spacing: 0.01em;
 }
 
+.hgxt-flyout-section + .hgxt-flyout-section {
+  margin-top: 16px;
+}
+
 .hgxt-flyout-label {
   padding: 0 10px 8px;
   color: var(--ink3);

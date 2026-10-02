@@ -28,6 +28,11 @@ interface ModuleItem {
   icon: LucideIcon;
 }
 
+interface ModuleSection {
+  label: string;
+  items: ModuleItem[];
+}
+
 interface ModuleDef {
   key: string;
   label: string;
@@ -38,7 +43,7 @@ interface ModuleDef {
   path: string;
   /** 路径命中该前缀（或精确命中 '/'）即视为当前模块 */
   match: (pathname: string) => boolean;
-  items: ModuleItem[];
+  sections: ModuleSection[];
   adminOnly?: boolean;
 }
 
@@ -48,10 +53,21 @@ const MODULES: ModuleDef[] = [
     key: 'home',
     label: '首页',
     icon: Home,
-    title: '工作台',
+    title: '生产',
     path: '/',
-    match: (p) => p === '/',
-    items: [{ label: '概览', path: '/', icon: Home }],
+    match: (p) =>
+      p === '/' || p.startsWith('/board') || p.startsWith('/energy') || p.startsWith('/materials'),
+    sections: [
+      { label: '页面', items: [{ label: '概览', path: '/', icon: Home }] },
+      {
+        label: '生产',
+        items: [
+          { label: '车间版面', path: '/board', icon: BarChart3 },
+          { label: '能源中心', path: '/energy', icon: Zap },
+          { label: '物料与库存', path: '/materials', icon: Package },
+        ],
+      },
+    ],
   },
   {
     key: 'production',
@@ -59,13 +75,8 @@ const MODULES: ModuleDef[] = [
     icon: FlaskConical,
     title: '生产',
     path: '/forms',
-    match: (p) => p.startsWith('/forms') || p.startsWith('/board') || p.startsWith('/energy') || p.startsWith('/materials'),
-    items: [
-      { label: '表单', path: '/forms', icon: FlaskConical },
-      { label: '车间版面', path: '/board', icon: BarChart3 },
-      { label: '能源中心', path: '/energy', icon: Zap },
-      { label: '物料与库存', path: '/materials', icon: Package },
-    ],
+    match: (p) => p.startsWith('/forms'),
+    sections: [{ label: '页面', items: [{ label: '表单', path: '/forms', icon: FlaskConical }] }],
   },
   {
     key: 'system',
@@ -75,7 +86,7 @@ const MODULES: ModuleDef[] = [
     path: '/users',
     match: (p) => p.startsWith('/users'),
     adminOnly: true,
-    items: [{ label: '成员', path: '/users', icon: Users }],
+    sections: [{ label: '页面', items: [{ label: '成员', path: '/users', icon: Users }] }],
   },
 ];
 
@@ -212,20 +223,24 @@ export function AdminLayout() {
           onBlur={scheduleClose}
         >
           <div className="hgxt-flyout-title">{flyout.title}</div>
-          <div className="hgxt-flyout-label">页面</div>
-          <div className="hgxt-flyout-nav">
-            {flyout.items.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setHoverKey(null)}
-                className={`hgxt-flyout-link${itemActive(item.path) ? ' is-on' : ''}`}
-              >
-                <item.icon size={18} strokeWidth={1.6} />
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </div>
+          {flyout.sections.map((section) => (
+            <div key={section.label} className="hgxt-flyout-section">
+              <div className="hgxt-flyout-label">{section.label}</div>
+              <div className="hgxt-flyout-nav">
+                {section.items.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setHoverKey(null)}
+                    className={`hgxt-flyout-link${itemActive(item.path) ? ' is-on' : ''}`}
+                  >
+                    <item.icon size={18} strokeWidth={1.6} />
+                    <span>{item.label}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
         </aside>
       ) : null}
 

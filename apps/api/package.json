@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "nest start --watch",
+    "dev": "nest start --watch --path tsconfig.dev.json",
     "build": "prisma generate && nest build",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "start": "node dist/main.js",
