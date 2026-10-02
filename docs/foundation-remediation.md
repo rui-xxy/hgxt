@@ -2,7 +2,7 @@
 
 > 版本：v1.1（2026-09）
 > 状态：**六阶段已全部实施完成**（实施记录见文末）
-> 定位：本文档是**可执行的工作规格**，不是泛泛的优化建议。每个条目有唯一编号（A1…F4），按「现状 → 为什么是问题 → 不改会怎样 → 怎么改 → 完成标准」五段展开。后续开发会话直接引用编号（如"完成 A1"）即可开工。
+> 定位：本文档是**可执行的工作规格**，不是泛泛的优化建议。每个条目有唯一编号（A1…F3），按「现状 → 为什么是问题 → 不改会怎样 → 怎么改 → 完成标准」五段展开。后续开发会话直接引用编号（如"完成 A1"）即可开工。
 >
 > 总体结论不变：`pnpm Monorepo + React + NestJS + Prisma + PostgreSQL` 技术路线没有问题，**不重新搭架构**。本整改只修底座，在第一个真实业务模块（审批/表单/项目等）开工之前完成。
 
@@ -383,18 +383,6 @@ kind: 'auth'      // 401/403，且刷新已失败
 **怎么改**：页面级 `React.lazy` + `Suspense`（fallback 用紧凑 Spin）；路由不变。
 **完成标准**：[ ] `vite build` 产物中 Users/Login 为独立 chunk；[ ] 主包不再包含用户管理页代码；[ ] 路由切换无可见闪烁（fallback 轻量）。
 
-## F4. 把 DESIGN.md 变成 HGXT 自己的设计系统（已按用户要求回退，见文末实施记录）
-
-**现状**：根 DESIGN.md 是 ZCode（AI Chat 产品）的设计系统，大量 Chat/Diff/Terminal/Workflow 规则与 HGXT 企业后台无关；目前靠 ui-mapping.md 做转换层，长期会让每个 AI 会话读到无关规则产生干扰。
-**怎么改**：
-1. 原文移至 `docs/reference/zcode-design-system.md`（保留出处与思想来源）；
-2. 根 DESIGN.md 重写为 **HGXT Design System**：只保留适用于企业运营后台的部分——字号刻度、颜色分层、圆角层级、密度、间距、表格/表单/Modal/菜单/布局规范、主题机制、国际化与可访问性；开头一句定位：「HGXT 是企业运营后台：密集、冷静、操作型；不是营销页、不是 Chat UI、不是大圆角卡片 Dashboard」；
-3. `docs/ui-mapping.md` 改为与之配套的实现映射（引用 AntD token），删除对已移除章节的引用。
-**完成标准**
-- [ ] 根 DESIGN.md 中不再出现 Chat/Diff/Terminal/Conversation/Workflow 等无关规则；
-- [ ] 现有页面视觉零变化（纯文档重构）；
-- [ ] 新开 AI 会话读根 DESIGN.md + ui-mapping.md 即可正确产出 HGXT 风格页面。
-
 ---
 
 # 实施顺序与阶段验收
@@ -407,7 +395,7 @@ kind: 'auth'      // 401/403，且刷新已失败
 | 三 | C1–C3 测试链与 `pnpm check` | `pnpm check` 一键全绿；AGENTS.md 就位 |
 | 四 | D1–D3 前端认证状态机 | C2 全绿；手工双标签/断网演练通过 |
 | 五 | E1–E4 契约收紧 | C1 新增契约用例全绿；Swagger/文档一致 |
-| 六 | F1–F4 工程质量 | 干净机器构建通过；路由分包生效；DESIGN.md 重写完成 |
+| 六 | F1–F3 工程质量 | 干净机器构建通过；路由分包生效 |
 | — | **然后**才开始第一个真实业务模块 | —— |
 
 **再次明确不做**（第一阶段起持续有效）：RBAC 权限五表、动态表单引擎、工作流引擎、部门岗位体系、租户隔离、Redis 限流存储、Token Family/Device Session、Zod/codegen 契约体系。这些等真实业务提出真实要求后再评估——底座的正确成长方式是「做牢 → 接业务 → 从业务中抽象」，而不是提前画大架构。
@@ -428,6 +416,6 @@ kind: 'auth'      // 401/403，且刷新已失败
 | D2 | 刷新失败后**先重读 localStorage** 再判定登出；跨标签同步只用 storage 事件单通道（不加 BroadcastChannel） | 获胜标签页写入新 token 的 storage 事件可能晚于输家的失败处理；双通道本身属过度设计 |
 | 阶段〇 | 用 Vitest 测试骨架直接承载（未另做一次性手工回归脚本） | A/A2/A4 的验收标准天然就是测试用例，测试是长期资产，手工脚本是一次性劳动 |
 
-各项完成状态：A1–A5 ✅（含并发/宽限期/authVersion/FOR UPDATE/429 集成测试）；B1–B6 ✅；C1–C3 ✅（`pnpm check` + AGENTS.md）；D1–D3 ✅（错误三分类/错误页/storage 同步/confirmLoading，含 15 项前端测试）；E1–E4 ✅（正则/小写/null 语义/文档措辞）；F1–F3 ✅（build 链、audit 政策、路由拆包）；F4 已按用户要求**回退**——根目录 DESIGN.md 恢复为 ZCode 原版设计系统（用户指定以其为最高 UI 规范），不再使用改写版，ui-mapping.md 负责向 AntD 映射。
+各项完成状态：A1–A5 ✅（含并发/宽限期/authVersion/FOR UPDATE/429 集成测试）；B1–B6 ✅；C1–C3 ✅（`pnpm check` + AGENTS.md）；D1–D3 ✅（错误三分类/错误页/storage 同步/confirmLoading，含 15 项前端测试）；E1–E4 ✅（正则/小写/null 语义/文档措辞）；F1–F3 ✅（build 链、audit 政策、路由拆包）。
 
 收尾补充（同日第二轮）：轮换改为「旧作废+新创建」同事务（create 失败抢占回滚）；新增 `revokedReason`（ROTATED/LOGOUT/PASSWORD_RESET/USER_DISABLED/REUSE_DETECTED，含迁移与测试断言）；client.ts 清空会话前对比重放 token 防误清并发标签新 token；me 刷新（变更目标是本人时 invalidate + refetchOnWindowFocus）；UpdateUserDto.name 补非空校验；CI（GitHub Actions + TEST_DATABASE_URL 覆盖）。

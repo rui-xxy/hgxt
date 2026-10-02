@@ -2,7 +2,7 @@
 
 pnpm Monorepo：`apps/admin`（React 19 + Vite + Ant Design 6 后台）+ `apps/api`（NestJS 12 + Prisma 7 + PostgreSQL 18）。
 
-V1 范围：**登录 + 用户管理**。技术栈已冻结（见 [docs/architecture.md](docs/architecture.md)），UI 规范见 [docs/ui-mapping.md](docs/ui-mapping.md)（依据根目录 DESIGN.md）。
+V1 范围：**登录 + 用户管理**。技术栈已冻结（见 [docs/architecture.md](docs/architecture.md)），UI 风格以 `apps/admin/src/theme/tokens.ts` 与现有页面实现为准。
 
 ## 快速开始
 
@@ -56,7 +56,6 @@ hgxt/
 │     ├─ prisma/        # schema + 迁移 + seed
 │     └─ prisma.config.ts
 ├─ packages/shared/     # 前后端共享枚举与 DTO 类型
-├─ docs/                # 架构决策 / UI 映射 / API 概览
-├─ DESIGN.md            # UI 设计规范（最高优先级）
+├─ docs/                # 架构决策 / API 概览
 └─ docker-compose.yml   # postgres:18 @ 5433
 ```

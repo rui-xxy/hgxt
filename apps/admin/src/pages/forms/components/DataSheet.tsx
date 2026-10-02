@@ -1,6 +1,12 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+<<<<<<< HEAD
 import { App, Button, Empty, Popconfirm, Space } from 'antd';
 import { Download, Plus, Save, Trash2, Undo2 } from 'lucide-react';
+=======
+import { App, Button, Popconfirm, Tooltip } from 'antd';
+import { CheckIcon, DownloadIcon, PauseCircleIcon, PlusIcon, SaveIcon, TableIcon, TrashIcon, UndoIcon } from '../../../components/icons';
+import { StatusView } from '../../../components/StatusView';
+>>>>>>> claude/exciting-shannon-u2nwwv
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { FormData, FormField, FormSubmissionDTO, SaveFormSubmissionsBody } from '@hgxt/shared';
 import { saveSubmissions } from '../../../api/forms';
@@ -224,6 +230,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
   };
 
   return <div className="forms-sheet">
+<<<<<<< HEAD
     <div className="forms-sheet-toolbar">
       <Space size="small"><Button icon={<Plus size={16} strokeWidth={1.6} />} disabled={mutation.isPending} onClick={addRow}>新增行</Button><Button type="text" icon={<Download size={16} strokeWidth={1.6} />} disabled={!rows.length || mutation.isPending} onClick={exportCsv}>导出 CSV</Button></Space>
       <Space size="middle" wrap>
@@ -232,6 +239,19 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
         {dirty && <Button type="text" icon={<Undo2 size={16} strokeWidth={1.6} />} disabled={mutation.isPending} onClick={reset}>撤销</Button>}
         <Button type={dirty ? 'primary' : 'default'} icon={<Save size={16} strokeWidth={1.6} />} disabled={!dirty} loading={mutation.isPending} onClick={save}>保存修改</Button>
       </Space>
+=======
+    <div className="hg-toolbar forms-sheet-toolbar">
+      <div className="hg-toolbar-group">
+        <Button icon={<PlusIcon />} disabled={mutation.isPending} onClick={addRow}>新增行</Button>
+        <Button type="text" icon={<DownloadIcon />} disabled={!rows.length || mutation.isPending} onClick={exportCsv}>导出 CSV</Button>
+      </div>
+      <div className="hg-toolbar-group">
+        {dirty && <span className="hg-pill hg-pill-warning"><span className="hg-dot" />未保存{stats.created ? ` · 新增 ${stats.created}` : ''}{stats.updated ? ` · 修改 ${stats.updated}` : ''}{stats.deleted ? ` · 删除 ${stats.deleted}` : ''}</span>}
+        {saved && !dirty && <span className="hg-pill hg-pill-success"><CheckIcon />已保存</span>}
+        {dirty && <Button type="text" icon={<UndoIcon />} disabled={mutation.isPending} onClick={reset}>撤销</Button>}
+        <Button type={dirty ? 'primary' : 'default'} icon={<SaveIcon />} disabled={!dirty} loading={mutation.isPending} onClick={save}>保存修改</Button>
+      </div>
+>>>>>>> claude/exciting-shannon-u2nwwv
     </div>
     {total > submissions.length && <div className="forms-sheet-notice">当前显示最近 {submissions.length} 条，共 {total} 条记录。</div>}
     <div className="forms-sheet-scroll" ref={scrollRef} aria-busy={mutation.isPending} onScroll={(event) => { scrollPositionRef.current = { left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop }; }}>
@@ -246,11 +266,15 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
           {schema.map((field, index) => <th key={field.id} title={field.title} className={`forms-sheet-field forms-sheet-tone-${groupIndexes[index] % 2} ${index === 0 ? 'forms-sheet-sticky forms-sheet-date' : ''}`} style={{ ...(index === 0 ? { left: leadingWidth } : {}), width: fieldWidths[index], minWidth: fieldWidths[index] }}>{field.title}{field.unit && <small>{field.unit}</small>}</th>)}
         </tr></thead>
         <tbody>
-          {!rows.length && <tr><td className="forms-sheet-empty" colSpan={schema.length + (includeParking ? 3 : 2)}><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无数据，点击「新增行」开始录入" /></td></tr>}
           {rows.map((row, index) => <tr key={row.key}>
             <td className="forms-sheet-sticky forms-sheet-sticky-0 forms-sheet-rowno">{index + 1}</td>
+<<<<<<< HEAD
             {includeParking && <td className="forms-sheet-sticky forms-sheet-parking" style={{ left: rowNoWidth }}><Button size="small" disabled={mutation.isPending} onClick={() => setParkingKey(row.key)}>{parseParking(row.data.parkingRecords, String(row.data[primaryDateField(schema)?.id ?? ''] ?? '')).length ? `${parseParking(row.data.parkingRecords, String(row.data[primaryDateField(schema)?.id ?? ''] ?? '')).length} 条记录` : '无记录'}</Button></td>}
             <td className="forms-sheet-sticky forms-sheet-action" style={{ left: rowNoWidth + (includeParking ? parkingWidth : 0) }}><Popconfirm title="删除这行数据？" okText="删除" cancelText="取消" okButtonProps={{ danger: true }} onConfirm={() => removeRow(row)}><Button type="text" size="small" danger disabled={mutation.isPending} aria-label={`删除第 ${index + 1} 行`} icon={<Trash2 size={16} strokeWidth={1.6} />} /></Popconfirm></td>
+=======
+            {includeParking && <td className="forms-sheet-sticky forms-sheet-parking" style={{ left: rowNoWidth }}>{(() => { const count = parseParking(row.data.parkingRecords, String(row.data[primaryDateField(schema)?.id ?? ''] ?? '')).length; return <button type="button" className={`forms-sheet-parking-btn ${count ? 'has-records' : ''}`} disabled={mutation.isPending} onClick={() => setParkingKey(row.key)}><PauseCircleIcon />{count ? `${count} 条记录` : '无记录'}</button>; })()}</td>}
+            <td className="forms-sheet-sticky forms-sheet-action" style={{ left: rowNoWidth + (includeParking ? parkingWidth : 0) }}><Popconfirm title="删除这行数据？" description="保存修改后生效" icon={<TrashIcon className="forms-sheet-confirm-icon" />} okText="删除" cancelText="取消" okButtonProps={{ danger: true }} onConfirm={() => removeRow(row)}><Tooltip title="删除这行" placement="right"><Button type="text" size="small" className="forms-sheet-delete" disabled={mutation.isPending} aria-label={`删除第 ${index + 1} 行`} icon={<TrashIcon />} /></Tooltip></Popconfirm></td>
+>>>>>>> claude/exciting-shannon-u2nwwv
             {schema.map((field, col) => {
               const active = editing?.key === row.key && editing.col === col;
               const changed = !!row.id && !cellValuesEqual(field, row.data[field.id], row.original[field.id]);
@@ -264,6 +288,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
           </tr>)}
         </tbody>
       </table>
+      {!rows.length && <div className="forms-sheet-empty"><StatusView compact icon={<TableIcon />} title="还没有数据" description="点击「新增行」开始录入" /></div>}
     </div>
     {parkingRow && <ParkingEditor key={parkingRow.key} initial={parseParking(parkingRow.data.parkingRecords, String(parkingRow.data[primaryDateField(schema)?.id ?? ''] ?? ''))} date={String(parkingRow.data[primaryDateField(schema)?.id ?? ''] ?? '')} onClose={() => setParkingKey(null)} onSave={(records) => { const value = serializeParking(records); if (value !== parkingRow.data.parkingRecords) { replaceRows(rowsRef.current.map((row) => row.key === parkingRow.key ? { ...row, data: { ...row.data, parkingRecords: value } } : row)); setSaved(false); } setParkingKey(null); }} />}
   </div>;

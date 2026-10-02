@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * design/00-设计规范.html 的配色与字体，以 CSS 变量落地（浅色 / 深色随 data-theme）。
  * 自定义 CSS 只引用这些变量；AntD 组件的同一套色值在 theme/tokens.ts。
@@ -75,6 +76,24 @@
   --danger-soft: rgba(242, 139, 128, 0.12);
   --ok: #8fc6a0;
   --ok-soft: rgba(143, 198, 160, 0.12);
+=======
+:root {
+  --ui-font-size: 14px;
+  --ui-font-size-xl: 18px; /* 一级标题 */
+  --ui-font-size-lg: 16px; /* 二级标题 */
+  --ui-font-size-base: 14px; /* 正文/默认 UI 文本 */
+  --ui-font-size-caption: 13px; /* 紧凑辅助文本 */
+  --ui-font-size-sm: 12px; /* 次级信息/帮助文本 */
+  --ui-font-size-xs: 10px; /* 徽标级极弱元数据 */
+  --ui-font-size-mobile-input: 16px; /* 移动端输入防 iOS 聚焦缩放 */
+  --hg-radius-sm: 6px;
+  --hg-radius-md: 8px;
+  --hg-radius-lg: 12px;
+  --hg-radius-xl: 16px;
+
+  --font-mono: var(--hg-font-mono);
+  --hg-ease: cubic-bezier(0.32, 0.72, 0, 1);
+>>>>>>> claude/exciting-shannon-u2nwwv
 }
 
 html,
@@ -85,14 +104,25 @@ body,
 
 body {
   margin: 0;
+<<<<<<< HEAD
   font-family: var(--font-sans);
   font-size: var(--ui-font-size-base);
   line-height: 1.55;
   color: var(--ink);
   background-color: var(--side);
+=======
+  font-family: var(--hg-font-sans);
+  font-size: var(--ui-font-size-base);
+  font-feature-settings: 'cv11', 'ss01';
+  color: var(--hg-text);
+  background-color: var(--hg-canvas);
+>>>>>>> claude/exciting-shannon-u2nwwv
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
+<<<<<<< HEAD
 * {
   box-sizing: border-box;
 }
@@ -190,4 +220,218 @@ body,
   justify-content: flex-end;
   gap: 8px;
   margin-top: 16px;
+=======
+::selection {
+  background-color: var(--hg-accent-soft);
+  color: var(--hg-text);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--hg-fill-strong) transparent;
+}
+
+.mono {
+  font-family: var(--hg-font-mono);
+  font-feature-settings: normal;
+  letter-spacing: -0.01em;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 图标 ---------- */
+
+.hg-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: -0.125em;
+}
+
+.ant-btn .hg-icon {
+  font-size: 1.07em;
+}
+
+.hg-brand-mark {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ---------- 状态页 / 空态（StatusView） ---------- */
+
+.hg-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 64px 24px;
+  text-align: center;
+}
+
+.hg-status-fullscreen {
+  min-height: 100vh;
+  box-sizing: border-box;
+  justify-content: center;
+  background-color: var(--hg-canvas);
+}
+
+.hg-status-compact {
+  padding: 40px 16px;
+}
+
+.hg-status-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  border-radius: var(--hg-radius-lg);
+  background-color: var(--hg-panel);
+  box-shadow: var(--hg-shadow-xs);
+  color: var(--hg-text2);
+  font-size: var(--ui-font-size-xl);
+}
+
+.hg-status-compact .hg-status-icon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 12px;
+  border-radius: var(--hg-radius-md);
+  font-size: var(--ui-font-size-lg);
+}
+
+.hg-status-danger .hg-status-icon {
+  background-color: var(--hg-danger-soft);
+  box-shadow: none;
+  color: var(--hg-danger);
+}
+
+.hg-status-success .hg-status-icon {
+  background-color: var(--hg-success-soft);
+  box-shadow: none;
+  color: var(--hg-success);
+}
+
+.hg-status-title {
+  color: var(--hg-text);
+  font-size: var(--ui-font-size-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.hg-status-compact .hg-status-title {
+  font-size: var(--ui-font-size-base);
+  font-weight: 500;
+}
+
+.hg-status-desc {
+  max-width: 360px;
+  margin-top: 6px;
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-sm);
+  line-height: 1.6;
+}
+
+.hg-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+/* ---------- 浮层细节：菜单 / 弹窗 ---------- */
+
+.ant-dropdown .ant-dropdown-menu {
+  padding: 4px;
+  box-shadow: var(--hg-shadow-overlay);
+}
+
+.ant-dropdown .ant-dropdown-menu-item {
+  gap: 2px;
+}
+
+.ant-modal .ant-modal-content {
+  box-shadow: var(--hg-shadow-overlay);
+}
+
+.ant-modal .ant-modal-header {
+  margin-bottom: 20px;
+}
+
+.ant-modal .ant-modal-title {
+  letter-spacing: -0.01em;
+}
+
+.ant-modal .ant-modal-footer {
+  margin-top: 24px;
+}
+
+.ant-form-vertical .ant-form-item-label > label {
+  font-size: var(--ui-font-size-caption);
+  font-weight: 500;
+}
+
+.ant-popover .ant-popover-inner {
+  box-shadow: var(--hg-shadow-overlay);
+}
+
+.ant-message .ant-message-notice-content {
+  box-shadow: var(--hg-shadow-overlay);
+}
+
+/* ---------- 主题切换：圆形展开（View Transitions，由 ThemeProvider 驱动） ---------- */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+.hg-theme-switching *,
+.hg-theme-switching *::before,
+.hg-theme-switching *::after {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- 全屏加载 ---------- */
+
+.hg-page-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 100vh;
+  background-color: var(--hg-canvas);
+}
+
+.hg-page-loading .hg-brand-mark {
+  animation: hg-breathe 1.6s var(--hg-ease) infinite;
+}
+
+@keyframes hg-breathe {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.72;
+    transform: scale(0.94);
+  }
+>>>>>>> claude/exciting-shannon-u2nwwv
 }

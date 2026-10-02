@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * 壳层与页面模板样式（design/00 · 布局架构 / 页面模板）。
  * 只引用 styles/global.css 的设计变量与 --ant-* 语义变量，不写裸色值。
@@ -229,10 +230,131 @@
 }
 
 .hgxt-acct-menu button {
+=======
+/* ---------- 壳层 ---------- */
+
+.hg-shell.ant-layout {
+  height: 100vh;
+  overflow: hidden;
+  background: var(--hg-canvas);
+}
+
+.hg-sider.ant-layout-sider {
+  background: transparent;
+}
+
+.hg-sider .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 10px 10px;
+  box-sizing: border-box;
+}
+
+.hg-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 8px 8px 8px 0;
+  border-radius: var(--hg-radius-lg);
+  background: var(--hg-panel);
+  box-shadow: var(--hg-shadow-panel);
+  overflow: hidden;
+}
+
+/* ---------- 侧栏：品牌 ---------- */
+
+.hg-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 6px;
+  margin-bottom: 14px;
+  min-width: 0;
+}
+
+.hg-brand-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hg-brand-name {
+  color: var(--hg-text);
+  font-size: var(--ui-font-size-base);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.hg-brand-sub {
+  margin-top: 2px;
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-sm);
+  line-height: 1.2;
+}
+
+/* ---------- 侧栏：导航 ---------- */
+
+.hg-nav.ant-menu {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  background: transparent;
+  border-inline-end: none !important;
+}
+
+.hg-nav.ant-menu .ant-menu-item {
+  width: 100%;
+  font-weight: 500;
+  transition:
+    background-color 0.16s var(--hg-ease),
+    color 0.16s var(--hg-ease),
+    box-shadow 0.16s var(--hg-ease);
+}
+
+.hg-nav.ant-menu .ant-menu-item .hg-icon {
+  color: var(--hg-text3);
+  transition: color 0.16s var(--hg-ease);
+}
+
+.hg-nav.ant-menu .ant-menu-item:hover .hg-icon {
+  color: var(--hg-text2);
+}
+
+.hg-nav.ant-menu .ant-menu-item-selected {
+  box-shadow: var(--hg-shadow-xs);
+}
+
+.hg-nav.ant-menu .ant-menu-item-selected .hg-icon {
+  color: var(--hg-accent);
+}
+
+.hg-nav.ant-menu .ant-menu-item-group-title {
+  padding: 18px 10px 6px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.hg-nav.ant-menu-inline-collapsed .ant-menu-item-group-title {
+  height: 1px;
+  margin: 12px 8px;
+  padding: 0;
+  overflow: hidden;
+  background: var(--hg-hairline);
+  color: transparent;
+}
+
+/* ---------- 侧栏：账户 ---------- */
+
+.hg-account {
+>>>>>>> claude/exciting-shannon-u2nwwv
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
+<<<<<<< HEAD
   height: 34px;
   padding: 0 10px;
   border: 0;
@@ -251,17 +373,54 @@
 
 /* ③ 内容画布：圆角 14 的嵌入式白底 */
 .hgxt-canvas {
+=======
+  min-width: 0;
+  height: 48px;
+  margin-top: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--hg-radius-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 0.16s var(--hg-ease);
+}
+
+.hg-account:hover,
+.hg-account[aria-expanded='true'] {
+  background: var(--hg-fill-hover);
+}
+
+.hg-account:focus-visible,
+.hg-icon-button:focus-visible {
+  outline: none;
+  box-shadow: var(--hg-focus-ring);
+}
+
+.hg-account-copy {
+>>>>>>> claude/exciting-shannon-u2nwwv
   display: flex;
   flex: 1;
   flex-direction: column;
+<<<<<<< HEAD
   min-width: 0;
   margin: 8px 8px 8px 0;
+=======
+  line-height: 1.3;
+}
+
+.hg-account-name,
+.hg-account-meta {
+>>>>>>> claude/exciting-shannon-u2nwwv
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--r-container);
   background-color: var(--bg);
 }
 
+<<<<<<< HEAD
 .hgxt-bar {
   display: flex;
   flex: none;
@@ -332,10 +491,64 @@
 /* ---------- 页面模板：列表页（工具栏 + 表格同一表面，无卡片边框） ---------- */
 
 .hgxt-toolbar {
+=======
+.hg-account-name {
+  color: var(--hg-text);
+  font-weight: 500;
+}
+
+.hg-account-meta {
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-sm);
+}
+
+.hg-account-chevron {
+  color: var(--hg-text3);
+}
+
+.hg-sider.ant-layout-sider-collapsed .hg-brand {
+  justify-content: center;
+  padding: 0;
+}
+
+.hg-sider.ant-layout-sider-collapsed .hg-account {
+  justify-content: center;
+  padding: 0;
+}
+
+/* ---------- 头像 ---------- */
+
+.hg-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--hg-fill);
+  box-shadow: inset 0 0 0 1px var(--hg-hairline);
+  color: var(--hg-text2);
+  font-size: var(--ui-font-size-sm);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.hg-avatar-sm {
+  width: 24px;
+  height: 24px;
+  font-size: var(--ui-font-size-xs);
+}
+
+/* ---------- 顶栏 ---------- */
+
+.hg-topbar {
+  flex: none;
+>>>>>>> claude/exciting-shannon-u2nwwv
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+<<<<<<< HEAD
   padding: 0 0 16px;
 }
 
@@ -487,3 +700,457 @@
   }
 }
 
+=======
+  height: 52px;
+  padding: 0 12px 0 10px;
+  border-bottom: 1px solid var(--hg-hairline);
+}
+
+.hg-topbar-left,
+.hg-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.hg-topbar-divider {
+  width: 1px;
+  height: 16px;
+  margin: 0 8px 0 4px;
+  background: var(--hg-border);
+}
+
+.hg-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: var(--ui-font-size-caption);
+  white-space: nowrap;
+}
+
+.hg-crumb-muted {
+  color: var(--hg-text3);
+}
+
+.hg-crumb-sep {
+  color: var(--hg-text4);
+  font-size: var(--ui-font-size-sm);
+}
+
+.hg-crumb-current {
+  overflow: hidden;
+  color: var(--hg-text);
+  font-weight: 500;
+  text-overflow: ellipsis;
+}
+
+.hg-icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--hg-radius-md);
+  background: transparent;
+  color: var(--hg-text2);
+  font-size: var(--ui-font-size-lg);
+  cursor: pointer;
+  transition:
+    background-color 0.16s var(--hg-ease),
+    color 0.16s var(--hg-ease);
+}
+
+.hg-icon-button:hover {
+  background: var(--hg-fill);
+  color: var(--hg-text);
+}
+
+.hg-theme-toggle {
+  position: relative;
+}
+
+.hg-theme-toggle .hg-icon {
+  grid-area: 1 / 1;
+  transition:
+    transform 0.36s var(--hg-ease),
+    opacity 0.2s var(--hg-ease);
+}
+
+.hg-theme-toggle[data-mode='light'] .hg-theme-sun,
+.hg-theme-toggle[data-mode='dark'] .hg-theme-moon {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.4);
+}
+
+/* ---------- 内容区 ---------- */
+
+.hg-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 24px 28px 32px;
+}
+
+/* ---------- 页面模板：PageHeader ---------- */
+
+.hg-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 36px;
+  margin-bottom: 20px;
+}
+
+.hg-page-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.hg-page-title {
+  margin: 0;
+  overflow: hidden;
+  color: var(--hg-text);
+  font-size: var(--ui-font-size-xl);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hg-page-meta {
+  flex-shrink: 0;
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-base);
+  font-weight: 400;
+}
+
+.hg-page-extra {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---------- 页面模板：数据工作区（Toolbar + Table 同一表面） ---------- */
+
+.hg-surface {
+  overflow: hidden;
+  border: 1px solid var(--hg-hairline);
+  border-radius: var(--hg-radius-lg);
+  background: var(--hg-panel);
+}
+
+.hg-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--hg-hairline);
+}
+
+.hg-toolbar-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.hg-toolbar-meta {
+  padding-inline: 4px;
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hg-search.ant-input-affix-wrapper {
+  width: 280px;
+  max-width: 100%;
+}
+
+.hg-search .ant-input-prefix {
+  margin-inline-end: 8px;
+  color: var(--hg-text3);
+}
+
+.hg-surface .ant-table-wrapper .ant-table {
+  background: transparent;
+}
+
+.hg-surface .ant-table-wrapper .ant-table-thead > tr > th {
+  padding-block: 9px;
+  font-size: var(--ui-font-size-sm);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.hg-surface .ant-table-wrapper .ant-table-tbody > tr:last-child > td {
+  border-bottom: 0;
+}
+
+.hg-surface .ant-table-wrapper .ant-table-pagination.ant-pagination {
+  margin: 0;
+  padding: 10px 16px;
+  border-top: 1px solid var(--hg-hairline);
+}
+
+/* ---------- 表格单元原语 ---------- */
+
+.hg-cell-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.hg-cell-stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.hg-cell-primary {
+  overflow: hidden;
+  color: var(--hg-text);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hg-cell-secondary {
+  overflow: hidden;
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hg-cell-muted {
+  color: var(--hg-text2);
+}
+
+.hg-cell-empty {
+  color: var(--hg-text4);
+}
+
+.hg-cell-tile {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--hg-radius-md);
+  background: var(--hg-fill);
+  color: var(--hg-text2);
+  font-size: var(--ui-font-size-lg);
+}
+
+.hg-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.hg-row-actions .ant-btn-text {
+  color: var(--hg-text2);
+}
+
+.hg-row-actions .ant-btn-text:not(:disabled):hover {
+  color: var(--hg-text);
+}
+
+/* ---------- 标记：状态点 / 角色胶囊 ---------- */
+
+.hg-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--hg-fill);
+  color: var(--hg-text2);
+  font-size: var(--ui-font-size-sm);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.hg-pill .hg-icon {
+  font-size: var(--ui-font-size-caption);
+}
+
+.hg-pill-accent {
+  background: var(--hg-accent-soft);
+  color: var(--hg-accent-text);
+}
+
+.hg-pill-success {
+  background: var(--hg-success-soft);
+  color: var(--hg-success);
+}
+
+.hg-pill-warning {
+  background: var(--hg-warning-soft);
+  color: var(--hg-warning);
+}
+
+.hg-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.hg-status-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--hg-text2);
+  white-space: nowrap;
+}
+
+.hg-status-dot::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hg-text4);
+}
+
+.hg-status-dot-success::before {
+  background: var(--hg-success);
+  box-shadow: 0 0 0 3px var(--hg-success-soft);
+}
+
+/* ---------- 窄屏 ---------- */
+
+@media (max-width: 768px) {
+  .hg-content {
+    padding: 16px;
+  }
+
+  .hg-page-header {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---------- 杂项原语 ---------- */
+
+.hg-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.hg-cell-self {
+  margin-inline-start: 6px;
+  padding: 0 5px;
+  border-radius: var(--hg-radius-sm);
+  background: var(--hg-fill);
+  color: var(--hg-text3);
+  font-size: var(--ui-font-size-xs);
+  font-weight: 500;
+  vertical-align: 1px;
+}
+
+.hg-confirm-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  margin-inline-end: 12px;
+  border-radius: var(--hg-radius-md);
+  background: var(--hg-fill);
+  color: var(--hg-text2);
+  font-size: var(--ui-font-size-lg);
+}
+
+.hg-confirm-icon-danger {
+  background: var(--hg-danger-soft);
+  color: var(--hg-danger);
+}
+
+/* ---------- 列表工作区 ---------- */
+
+.hg-list .hg-toolbar {
+  padding: 0 0 14px;
+  border-bottom: 0;
+}
+
+.hg-list .ant-table-wrapper .ant-table-thead > tr > th {
+  border-top: 1px solid var(--hg-hairline);
+}
+
+.hg-list .ant-table-wrapper .ant-table-thead > tr > th:first-child,
+.hg-list .ant-table-wrapper .ant-table-tbody > tr > td:first-child {
+  padding-inline-start: 4px;
+}
+
+.hg-list .ant-table-wrapper .ant-table-thead > tr > th {
+  padding-block: 10px;
+  font-size: var(--ui-font-size-sm);
+  font-weight: 500;
+}
+
+.hg-list .ant-table-wrapper .ant-table-pagination.ant-pagination {
+  margin: 16px 0 0;
+}
+
+@media (hover: hover) {
+  .hg-list .hg-row-actions {
+    opacity: 0;
+    transition: opacity 0.16s var(--hg-ease);
+  }
+
+  .hg-list .ant-table-row:hover .hg-row-actions,
+  .hg-list .ant-table-row:focus-within .hg-row-actions,
+  .hg-list .hg-row-actions:has([aria-expanded='true']) {
+    opacity: 1;
+  }
+}
+
+.hg-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--hg-border);
+  border-radius: var(--hg-radius-sm);
+  color: var(--hg-text2);
+  font-size: var(--ui-font-size-sm);
+  white-space: nowrap;
+}
+
+.hg-badge-strong {
+  border-color: var(--hg-border-hover);
+  color: var(--hg-text);
+  font-weight: 500;
+}
+
+.ant-pagination .ant-pagination-item-active,
+.ant-pagination .ant-pagination-item-active:hover {
+  border-color: var(--hg-border-hover);
+  background: var(--hg-panel);
+}
+
+.ant-pagination .ant-pagination-item-active a,
+.ant-pagination .ant-pagination-item-active:hover a {
+  color: var(--hg-text);
+}
+>>>>>>> claude/exciting-shannon-u2nwwv
