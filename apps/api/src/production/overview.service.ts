@@ -1,5 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import type {
+  AminoSummaryResult,
+  DetailedWorkshopCode,
+  DetailedWorkshopResult,
+  WorkshopMetricDefinition,
+  WorkshopStockDefinition,
   EnergyResult,
   FinishedProductItem,
   FormData,
@@ -10,6 +15,10 @@ import type {
   TankLevelItem,
   TankLevelsResult,
   TankMaterialGroup,
+  ThermalDaySummary,
+  ThermalMeterValue,
+  ThermalOutletDefinition,
+  ThermalSummaryResult,
   WorkshopOverviewResult,
   WorkshopSeries,
 } from '@hgxt/shared';
@@ -20,7 +29,7 @@ import { ProductionService } from './production.service';
 /**
  * 车间版面 / 能源中心 / 物料与库存 —— 三张看板的现算服务。
  * 口径与倍率全部对照 b2（参照/dashboard-b2-source）：
- *   车间产量：硫酸=差值法折98（复用 ProductionService）；其余车间=表单直接上报字段
+ *   车间产量：硫酸=差值法折98；热电=十路供汽表差合计；其余车间=表单直接上报字段
  *   电：读数差 × 倍率（硫酸 4 表用 Meter 档案；氨基二期 2000 / 镁一期 200 二期 4000 为 b2 代码常量）
  *   汽/水：热电与各车间表单的流量计/水表读数差（倍率 1）
  *   物料：仓库表与产成品表的「三件套」字段；可用天数=库存÷近7日平均耗用
@@ -39,8 +48,32 @@ const CODE = {
 const AMINO_PHASE2_ELECTRICITY_MULTIPLIER = 2000;
 const MAGNESIUM_PHASE1_ELECTRICITY_MULTIPLIER = 200;
 const MAGNESIUM_PHASE2_ELECTRICITY_MULTIPLIER = 4000;
+const THERMAL_OUTLETS: Array<ThermalOutletDefinition & { field: string }> = [
+  { key: 'jianheng', name: '建衡', group: 'external', field: 'field_jianheng_steam' },
+  { key: 'xuguang', name: '旭光', group: 'external', field: 'field_xuguang_steam' },
+  { key: 'xinkesi', name: '鑫科思', group: 'external', field: 'field_xinkesi_steam' },
+  { key: 'lihong', name: '力泓', group: 'external', field: 'field_lihong_steam' },
+  { key: 'xiangshuo', name: '湘硕', group: 'external', field: 'field_xiangshuo_steam' },
+  { key: 'fenglian', name: '丰联', group: 'external', field: 'field_fenglian_steam' },
+  { key: 'amino', name: '氨基磺酸', group: 'internal', field: 'field_amino_steam' },
+  { key: 'magnesium', name: '硫酸镁', group: 'internal', field: 'field_mgso4_steam' },
+  { key: 'hydrotalcite', name: '水滑石', group: 'internal', field: 'field_hydrotalcite_steam' },
+  { key: 'anthraquinone', name: '二乙基蒽醌', group: 'internal', field: 'field_deaq_steam' },
+];
 
 type ByDate = Map<string, FormData>;
+type MetricSpec = WorkshopMetricDefinition & {
+  field?: string;
+  factor?: number;
+  meter?: Array<{ field: string; multiplier: number; reverse?: boolean; maxDelta?: number }>;
+};
+type StockSpec = WorkshopStockDefinition & {
+  source: 'main' | 'warehouse' | 'finished' | 'sulfuric';
+  incomingField?: string;
+  outgoingField?: string;
+  closingField?: string;
+  outgoingMetric?: string;
+};
 
 @Injectable()
 export class OverviewService {
@@ -95,7 +128,7 @@ export class OverviewService {
   private meterSeries(
     source: ByDate,
     dates: string[],
-    fields: Array<{ field: string; multiplier: number }>,
+    fields: Array<{ field: string; multiplier: number; reverse?: boolean; maxDelta?: number }>,
   ): Array<number | null> {
     return dates.map((date) => {
       const current = source.get(date);
@@ -103,12 +136,13 @@ export class OverviewService {
       if (!current || !prev) return null;
       let total = 0;
       let seen = false;
-      for (const { field, multiplier } of fields) {
+      for (const { field, multiplier, reverse, maxDelta } of fields) {
         const a = OverviewService.toNum(prev[field]);
         const b = OverviewService.toNum(current[field]);
         if (a === null || b === null) continue;
         seen = true;
-        total += Math.max(0, (b - a) * multiplier);
+        const delta = (b - a) * (reverse ? -1 : 1);
+        total += maxDelta !== undefined && delta > maxDelta ? 0 : Math.max(0, delta * multiplier);
       }
       return seen ? +total.toFixed(2) : null;
     });
@@ -137,22 +171,70 @@ export class OverviewService {
     return +values.reduce<number>((s, v) => s + (v ?? 0), 0).toFixed(2);
   }
 
+  private thermalDay(date: string, source: ByDate): ThermalDaySummary {
+    const current = source.get(date);
+    const previous = source.get(this.dayBefore(date));
+    const meter = (field: string, multiplier = 1, adjustment = 0): ThermalMeterValue => {
+      const previousReading = previous ? OverviewService.toNum(previous[field]) : null;
+      const currentReading = current ? OverviewService.toNum(current[field]) : null;
+      const reset = previousReading !== null && currentReading !== null && currentReading < previousReading;
+      const delta = previousReading !== null && currentReading !== null
+        ? reset ? currentReading : currentReading - previousReading : null;
+      return {
+        previousReading, currentReading, delta,
+        value: delta === null ? null : +(delta * multiplier + adjustment).toFixed(3),
+        ...(reset ? { reset: true } : {}),
+        ...(adjustment ? { adjustment } : {}),
+      };
+    };
+    const outlets = Object.fromEntries(THERMAL_OUTLETS.map((outlet) => [
+      outlet.key,
+      // b2 源系统对 2026-08-03 建衡蒸汽有一次已知的 −51.97 t 修正。
+      meter(outlet.field, 1, outlet.key === 'jianheng' && date === '2026-08-03' ? -51.97 : 0),
+    ])) as Record<string, ThermalMeterValue>;
+    const totalOf = (group: 'external' | 'internal') => {
+      const values = THERMAL_OUTLETS.filter((outlet) => outlet.group === group).map((outlet) => outlets[outlet.key].value);
+      return values.every((value): value is number => value !== null)
+        ? +values.reduce<number>((sum, value) => sum + value!, 0).toFixed(3) : null;
+    };
+    const externalTotal = totalOf('external');
+    const internalTotal = totalOf('internal');
+    return {
+      date, outlets, externalTotal, internalTotal,
+      totalSupply: externalTotal !== null && internalTotal !== null ? +(externalTotal + internalTotal).toFixed(3) : null,
+      generation: meter('field_condenser_gen_active', 12000),
+      water: meter('field_water_meter'),
+      steamMeter: meter('field_steam_meter'),
+    };
+  }
+
+  /** 热电：分路供汽、发电、总水表与蒸汽总表，均归属填报前一日。 */
+  async thermalSummary(days = 30): Promise<ThermalSummaryResult> {
+    const thermal = await this.byDate(CODE.thermal);
+    const dates = this.windowOf([thermal], days);
+    return {
+      outlets: THERMAL_OUTLETS.map(({ key, name, group }) => ({ key, name, group })),
+      days: dates.map((date) => this.thermalDay(date, thermal)),
+    };
+  }
+
   // ── 车间版面 ─────────────────────────────────────────────
 
   async workshopOverview(days = 30): Promise<WorkshopOverviewResult> {
-    const [sulfuric, amino, magnesium, hydrotalcite, anthraquinone] = await Promise.all([
+    const [sulfuric, amino, magnesium, hydrotalcite, anthraquinone, thermal] = await Promise.all([
       this.production.sulfuricSummary(days),
       this.byDate(CODE.amino),
       this.byDate(CODE.magnesium),
       this.byDate(CODE.hydrotalcite),
       this.byDate(CODE.anthraquinone),
+      this.byDate(CODE.thermal),
     ]);
 
     const sulfuricByDate = new Map<string, unknown>(
       sulfuric.days.map((d) => [d.productionDate, d.production?.total98Equivalent ?? null]),
     );
     const dates = this.windowOf(
-      [sulfuricByDate, amino, magnesium, hydrotalcite, anthraquinone],
+      [sulfuricByDate, amino, magnesium, hydrotalcite, anthraquinone, thermal],
       days,
     );
 
@@ -189,11 +271,204 @@ export class OverviewService {
       {
         code: 'anthraquinone',
         name: '蒽醌',
-        unit: 't·精品',
-        values: this.reportedSeries(anthraquinone, dates, ['field_fine_output']),
+        unit: 't',
+        values: this.reportedSeries(anthraquinone, dates, ['field_crude_output', 'field_fine_output']),
+      },
+      {
+        code: 'thermal',
+        name: '热电',
+        unit: 't',
+        values: dates.map((date) => thermal.has(date) ? this.thermalDay(date, thermal).totalSupply : null),
       },
     ];
     return { dates, workshops };
+  }
+
+  /** 氨基磺酸车间：能耗表差值、原料日报耗用与三项期末库存。 */
+  async aminoSummary(days = 30): Promise<AminoSummaryResult> {
+    const [amino, sulfuric, warehouse, finished, meters, sulfuricSummary] = await Promise.all([
+      this.byDate(CODE.amino),
+      this.byDate(CODE.sulfuric),
+      this.byDate(CODE.warehouse),
+      this.byDate(CODE.finished),
+      this.prisma.meter.findMany({ where: { formCode: CODE.sulfuric, fieldId: 'meter_amino' } }),
+      this.production.sulfuricSummary(days),
+    ]);
+    const dates = this.windowOf([amino, finished, warehouse], days);
+    const phase1 = this.meterSeries(sulfuric, dates, [
+      { field: 'meter_amino', multiplier: meters[0]?.multiplier ?? 3000 },
+    ]);
+    const phase2 = this.meterSeries(amino, dates, [
+      { field: 'field_electricity_meter', multiplier: AMINO_PHASE2_ELECTRICITY_MULTIPLIER },
+    ]);
+    const steam = this.meterSeries(amino, dates, [
+      { field: 'field_steam_1', multiplier: 1 },
+      { field: 'field_steam_2', multiplier: 1 },
+      { field: 'field_steam_phase2', multiplier: 1 },
+    ]);
+    const water = this.meterSeries(amino, dates, [{ field: 'field_water_meter', multiplier: 1 }]);
+    const sulfuricByDate = new Map(sulfuricSummary.days.map((d) => [d.productionDate, d]));
+    const read = (data: FormData | undefined, field: string) => data ? OverviewService.toNum(data[field]) : null;
+    return {
+      days: dates.map((date, i) => {
+        const acidVolume = read(amino.get(date), 'field_nitric_acid');
+        return {
+          date,
+          production: read(amino.get(date), 'field_production'),
+          electricity: phase1[i] === null && phase2[i] === null ? null : OverviewService.sumOrNull(phase1[i], phase2[i]),
+          steam: steam[i],
+          water: water[i],
+          urea: read(amino.get(date), 'field_urea'),
+          fuming: acidVolume === null ? null : +(acidVolume * 1.92).toFixed(3),
+          finishedProduction: read(finished.get(date), 'field_001'),
+          finishedSales: read(finished.get(date), 'field_002'),
+          finishedStock: read(finished.get(date), 'field_003'),
+          ureaPurchase: read(warehouse.get(date), 'field_016'),
+          ureaWarehouseConsumption: read(warehouse.get(date), 'field_017'),
+          ureaStock: read(warehouse.get(date), 'field_018'),
+          fumingStock: sulfuricByDate.get(date)?.inventory?.fuming ?? null,
+        };
+      }),
+    };
+  }
+
+  /** 三个车间的统一明细：日报耗用、仪表差值和产销存均归属填报日前一天。 */
+  async detailedWorkshop(code: DetailedWorkshopCode, days = 30): Promise<DetailedWorkshopResult> {
+    if (code !== 'magnesium' && code !== 'hydrotalcite' && code !== 'anthraquinone') {
+      throw new BadRequestException('不支持的车间');
+    }
+    const formCode = CODE[code];
+    const [main, warehouse, finished, sulfuricSummary] = await Promise.all([
+      this.byDate(formCode), this.byDate(CODE.warehouse), this.byDate(CODE.finished),
+      this.production.sulfuricSummary(days),
+    ]);
+    const dates = this.windowOf([main, warehouse, finished], days);
+    const sulfuricByDate = new Map(sulfuricSummary.days.map((day) => [day.productionDate, day]));
+    const read = (data: FormData | undefined, field?: string): number | null =>
+      data && field ? OverviewService.toNum(data[field]) : null;
+    const finishedStock = (key: string, name: string, incomingField: string, outgoingField: string, closingField: string): StockSpec =>
+      ({ key, name, kind: 'finished', incomingLabel: '产量', outgoingLabel: '销量', unit: 't', source: 'finished', incomingField, outgoingField, closingField });
+    const rawStock = (key: string, name: string, incomingField: string, outgoingField: string, closingField: string): StockSpec =>
+      ({ key, name, kind: 'raw', incomingLabel: '购入', outgoingLabel: '耗用', unit: 't', source: 'warehouse', incomingField, outgoingField, closingField });
+
+    let productionFields: string[];
+    let productionLabel: string;
+    let metrics: MetricSpec[];
+    let stocks: StockSpec[];
+
+    if (code === 'magnesium') {
+      productionFields = ['field_mgso4_production'];
+      productionLabel = '硫酸镁产量';
+      metrics = [
+        { key: 'electricity', name: '用电', unit: 'kWh', category: 'energy', featured: true, meter: [
+          { field: 'field_electricity_phase1', multiplier: MAGNESIUM_PHASE1_ELECTRICITY_MULTIPLIER },
+          { field: 'field_electricity_phase2', multiplier: MAGNESIUM_PHASE2_ELECTRICITY_MULTIPLIER },
+        ] },
+        { key: 'steam', name: '蒸汽', unit: 't', category: 'energy', featured: true, meter: [{ field: 'field_steam_flow', multiplier: 1 }] },
+        { key: 'water', name: '水', unit: 'm³', category: 'energy', featured: true, meter: [{ field: 'field_water_meter', multiplier: 1 }] },
+        { key: 'mgo', name: '氧化镁', unit: 't', category: 'raw', featured: true, field: 'field_mgo_consumption' },
+        { key: 'sulfuric93', name: '93% 酸', unit: 'm³', category: 'raw', featured: true, field: 'field_sulfuric_93' },
+        { key: 'aminoDilute', name: '氨基磺酸稀酸', unit: 'm³', category: 'raw', featured: false, field: 'field_amino_dilute_acid' },
+        { key: 'anthraDilute', name: '蒽醌稀酸', unit: 'm³', category: 'raw', featured: false, field: 'field_anthraquinone_dilute_acid' },
+      ];
+      stocks = [
+        finishedStock('magnesium', '硫酸镁', 'field_004', 'field_005', 'field_006'),
+        rawStock('mgo', '氧化镁', 'field_019', 'field_020', 'field_021'),
+        ...[
+          ['sulfuric93', '93% 酸', 'field_sulfuric_93'],
+          ['aminoDilute', '氨基磺酸稀酸', 'field_amino_dilute_acid'],
+          ['anthraDilute', '蒽醌稀酸', 'field_anthraquinone_dilute_acid'],
+        ].map(([key, name, outgoingField]): StockSpec => ({
+          key, name, kind: 'raw', incomingLabel: '领入', outgoingLabel: '耗用', unit: 'm³', source: 'main', outgoingField,
+          note: '日报未单列领入和库存',
+        })),
+      ];
+    } else if (code === 'hydrotalcite') {
+      productionFields = ['field_hg200_output', 'field_hg201_output', 'field_hg300_output', 'field_hg205_output'];
+      productionLabel = '水滑石合计产量';
+      metrics = [
+        { key: 'mediumSteam', name: '中压蒸汽', unit: 't', category: 'energy', featured: true, meter: [{ field: 'field_medium_pressure_steam', multiplier: 0.001 }] },
+        { key: 'lowSteam', name: '低压蒸汽', unit: 't', category: 'energy', featured: true, meter: [{ field: 'field_low_pressure_steam', multiplier: 0.001 }] },
+        { key: 'mgo', name: '高活性氧化镁', unit: 't', category: 'raw', featured: true, field: 'field_mgo' },
+        { key: 'aluminum', name: '氢氧化铝', unit: 't', category: 'raw', featured: true, field: 'field_aluminum_hydroxide' },
+        { key: 'soda', name: '纯碱', unit: 't', category: 'raw', featured: true, field: 'field_soda_ash' },
+      ];
+      stocks = [
+        finishedStock('hg200', 'HG-200', 'field_007', 'field_008', 'field_009'),
+        finishedStock('hg201', 'HG-201', 'field_010', 'field_011', 'field_012'),
+        finishedStock('hg300', 'HG-300', 'field_013', 'field_014', 'field_015'),
+        finishedStock('hg205', 'HG-205', 'field_016', 'field_017', 'field_018'),
+        rawStock('soda', '纯碱', 'field_022', 'field_023', 'field_024'),
+        rawStock('mgo', '高活性氧化镁', 'field_025', 'field_026', 'field_027'),
+        rawStock('aluminum', '氢氧化铝', 'field_028', 'field_029', 'field_030'),
+      ];
+    } else {
+      productionFields = ['field_crude_output', 'field_fine_output'];
+      productionLabel = '粗品 + 精品产量';
+      metrics = [
+        { key: 'electricity', name: '用电', unit: 'kWh', category: 'energy', featured: true, meter: [{ field: 'field_electricity_meter', multiplier: 600, maxDelta: 500 }] },
+        { key: 'steam', name: '蒸汽', unit: 't', category: 'energy', featured: true, meter: [{ field: 'field_steam_meter', multiplier: 1 }] },
+        { key: 'water', name: '水', unit: 'm³', category: 'energy', featured: true, meter: [{ field: 'field_water_meter', multiplier: 1 }] },
+        { key: 'gas', name: '天然气', unit: 'm³', category: 'energy', featured: true, meter: [{ field: 'field_gas_meter', multiplier: 1, reverse: true }] },
+        { key: 'fuming', name: '发烟硫酸', unit: 't', category: 'raw', featured: true, meter: [{ field: 'field_fuming_sulfuric_flow', multiplier: 1.92 }] },
+        ...[
+          ['toluene', '甲苯', 'field_toluene_consumption'],
+          ['ethylbenzene', '乙苯', 'field_ethylbenzene_consumption'],
+          ['chlorobenzene', '氯苯', 'field_chlorobenzene_consumption'],
+          ['phthalic', '苯酐', 'field_phthalic_anhydride_consumption'],
+          ['alcl3', '无水三氯化铝', 'field_alcl3_consumption'],
+          ['carbon', '活性炭', 'field_carbon_consumption'],
+          ['lye', '液碱', 'field_lye_consumption'],
+          ['flake', '片碱', 'field_flake_caustic_consumption'],
+        ].map(([key, name, field]): MetricSpec => ({ key, name, field, unit: 't', category: 'raw', featured: false })),
+      ];
+      stocks = [
+        { key: 'crude', name: '蒽醌粗品', kind: 'finished', incomingLabel: '产量', outgoingLabel: '销量', unit: 't', source: 'main', incomingField: 'field_crude_output', outgoingField: 'field_crude_sales', closingField: 'field_crude_stock' },
+        { key: 'fine', name: '蒽醌精品', kind: 'finished', incomingLabel: '产量', outgoingLabel: '销量', unit: 't', source: 'main', incomingField: 'field_fine_output', outgoingField: 'field_fine_sales', closingField: 'field_fine_stock' },
+        ...[
+          ['toluene', '甲苯', 'field_toluene'], ['ethylbenzene', '乙苯', 'field_ethylbenzene'],
+          ['chlorobenzene', '氯苯', 'field_chlorobenzene'], ['phthalic', '苯酐', 'field_phthalic_anhydride'],
+          ['alcl3', '无水三氯化铝', 'field_alcl3'], ['carbon', '活性炭', 'field_carbon'],
+          ['lye', '液碱', 'field_lye'], ['flake', '片碱', 'field_flake_caustic'],
+        ].map(([key, name, prefix]): StockSpec => ({
+          key, name, kind: 'raw', incomingLabel: '购入', outgoingLabel: '耗用', unit: 't', source: 'main',
+          incomingField: `${prefix}_purchase`, outgoingField: `${prefix}_consumption`, closingField: `${prefix}_stock`,
+        })),
+        { key: 'fuming', name: '发烟硫酸', kind: 'raw', incomingLabel: '领入', outgoingLabel: '耗用', unit: 't', source: 'sulfuric', outgoingMetric: 'fuming', note: '硫酸罐区库存；无独立领入记录' },
+      ];
+    }
+
+    const metricSeries = new Map(metrics.map((metric) => [metric.key, metric.meter
+      ? this.meterSeries(main, dates, metric.meter)
+      : dates.map((date) => {
+        const value = read(main.get(date), metric.field);
+        return value === null ? null : +(value * (metric.factor ?? 1)).toFixed(3);
+      }),
+    ]));
+    return {
+      code, productionLabel,
+      metrics: metrics.map(({ key, name, unit, category, featured }) => ({ key, name, unit, category, featured })),
+      stockItems: stocks.map(({ key, name, kind, incomingLabel, outgoingLabel, unit, note }) => ({ key, name, kind, incomingLabel, outgoingLabel, unit, note })),
+      days: dates.map((date, index) => {
+        const productionValues = productionFields.map((field) => read(main.get(date), field));
+        const present = productionValues.filter((value): value is number => value !== null);
+        const values = Object.fromEntries(metrics.map((metric) => [metric.key, metricSeries.get(metric.key)?.[index] ?? null]));
+        const stockValues = Object.fromEntries(stocks.map((stock) => {
+          const data = stock.source === 'warehouse' ? warehouse.get(date) : stock.source === 'finished' ? finished.get(date) : main.get(date);
+          return [stock.key, {
+            incoming: read(data, stock.incomingField),
+            outgoing: stock.outgoingMetric ? values[stock.outgoingMetric] : read(data, stock.outgoingField),
+            closing: stock.source === 'sulfuric' ? sulfuricByDate.get(date)?.inventory?.fuming ?? null : read(data, stock.closingField),
+          }];
+        }));
+        return {
+          date,
+          production: present.length ? +present.reduce((sum, value) => sum + value, 0).toFixed(3) : null,
+          metrics: values,
+          stocks: stockValues,
+        };
+      }),
+    };
   }
 
   // ── 能源中心 ─────────────────────────────────────────────
@@ -242,12 +517,11 @@ export class OverviewService {
           },
           {
             name: '蒽醌',
-            values: this.meterSeries(anthraquinone, dates, [{ field: 'field_electricity_meter', multiplier: 1 }]),
+            values: this.meterSeries(anthraquinone, dates, [{ field: 'field_electricity_meter', multiplier: 600, maxDelta: 500 }]),
           },
         ],
-        // 发电/外购为电网关口有功表，读数单位万kWh，倍率取 b2 thermal.service 的 POWER_MULTIPLIER=12000
+        // b2 thermal.service 仅对 1# 冷凝机发电表使用 12000 倍率；2# 进线未参与原热电计算。
         generation: this.meterSeries(thermal, dates, [{ field: 'field_condenser_gen_active', multiplier: 12000 }]),
-        purchase: this.meterSeries(thermal, dates, [{ field: 'field_line2_active', multiplier: 12000 }]),
       },
       steam: {
         internal: [

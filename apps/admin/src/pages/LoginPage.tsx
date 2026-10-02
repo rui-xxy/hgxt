@@ -1,4 +1,5 @@
 import { App, Button, Form, Input } from 'antd';
+import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { loginApi } from '../api/auth';
@@ -10,14 +11,42 @@ interface LoginFormValues {
   password: string;
 }
 
-/** 登录页：居中卡片、平静无装饰（DESIGN.md：无渐变、无整面品牌色） */
+/** 登录页右侧保留现有表单，左侧挂载参考页的粒子影片。 */
 export function LoginPage() {
   const [form] = Form.useForm<LoginFormValues>();
+  const filmContainer = useRef<HTMLElement>(null);
   const { message } = App.useApp();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = (location.state as { from?: string } | null)?.from ?? '/';
+
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 901px)');
+    let cancelled = false;
+    let generation = 0;
+    let film: { destroy: () => void } | undefined;
+    const syncFilm = () => {
+      const currentGeneration = ++generation;
+      if (!desktop.matches) {
+        film?.destroy();
+        film = undefined;
+        return;
+      }
+      void import('./login-film').then(({ mountHgxtFilm }) => {
+        if (cancelled || currentGeneration !== generation || !filmContainer.current) return;
+        film = mountHgxtFilm(filmContainer.current, { brand: false, footer: false });
+      }).catch(() => undefined);
+    };
+    desktop.addEventListener('change', syncFilm);
+    syncFilm();
+    return () => {
+      cancelled = true;
+      generation++;
+      desktop.removeEventListener('change', syncFilm);
+      film?.destroy();
+    };
+  }, []);
 
   const loginMutation = useMutation({
     mutationFn: (values: LoginFormValues) => loginApi(values.username, values.password),
@@ -36,23 +65,7 @@ export function LoginPage() {
   // RequireAuth 的 /me 结果决定，避免网络错误时的登录页↔后台循环跳转
   return (
     <div className="hgxt-login">
-      <section className="hgxt-login-hero">
-        <div className="hgxt-login-brand">
-          <div className="hgxt-mark">化</div>
-          <div className="hgxt-login-word">Hgxt</div>
-        </div>
-        <div className="hgxt-login-copy">
-          <h2 className="hgxt-login-headline">
-            每一个车间的
-            <br />
-            每一笔数据，
-            <br />
-            <em>清清楚楚。</em>
-          </h2>
-          <div className="hgxt-login-lead">所有日报在一处填写、汇总与追溯。</div>
-        </div>
-        <div className="hgxt-login-foot">© 2026 HGXT · 内部系统，仅限授权人员使用</div>
-      </section>
+      <section ref={filmContainer} className="hgxt-login-hero" aria-hidden="true" />
       <section className="hgxt-login-panel">
         <div className="hgxt-login-form">
           <h1 className="hgxt-login-title">登录</h1>

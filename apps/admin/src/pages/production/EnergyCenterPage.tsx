@@ -97,7 +97,6 @@ export function EnergyCenterPage() {
   const stExtTotal = pick(totalSeries(stExternal));
   const waTotal = pick(totalSeries(rowsOf('wa')));
   const gen = pick(data?.electricity.generation ?? []);
-  const buy = pick(data?.electricity.purchase ?? []);
   const selfRatio = gen.map((g, i) => (g !== null && elTotal[i] ? (g / (elTotal[i] as number)) * 100 : null));
 
   const kp = (series: Values) => {
@@ -109,7 +108,7 @@ export function EnergyCenterPage() {
   const kSt = kp(stTotal);
   const kWa = kp(waTotal);
   const kGen = kp(gen);
-  const kBuy = kp(buy);
+  const kExternalSteam = kp(stExtTotal);
   const kSelf = kp(selfRatio);
 
   const tabInfo = TABS.find((t) => t.key === tab) ?? TABS[0];
@@ -160,7 +159,7 @@ export function EnergyCenterPage() {
         <Kpi label="今日用汽" value={fmt(kSt.now, 1)} unit="t" delta={kSt.delta} good="down" sub={`${stInternal.length} 个车间内供 · 外供 ${fmt(kp(stExtTotal).now, 1)} t`} spark={stTotal} sparkTail={7} />
         <Kpi label="今日用水" value={fmt(kWa.now, 0)} unit="t" delta={kWa.delta} good="down" sub={`${data?.water.workshops.length ?? 0} 个车间合计`} spark={waTotal} sparkTail={7} />
         <Kpi label="发电量" value={kGen.now === null ? '—' : fmt(kGen.now / 10000, 2)} unit="万kWh" delta={kGen.delta} sub="1# 冷凝机" spark={gen} sparkTail={7} />
-        <Kpi label="外购电" value={kBuy.now === null ? '—' : fmt(kBuy.now / 10000, 2)} unit="万kWh" delta={kBuy.delta} good="down" sub="2# 进线" spark={buy} sparkTail={7} />
+        <Kpi label="外供蒸汽" value={fmt(kExternalSteam.now, 1)} unit="t" delta={kExternalSteam.delta} sub={`${stExternal.length} 个去向`} spark={stExtTotal} sparkTail={7} />
         <Kpi label="自发电占比" value={fmt(kSelf.now, 1)} unit="%" delta={kSelf.delta} sub="发电 ÷ 总用电" spark={selfRatio} sparkTail={7} />
       </div>
 

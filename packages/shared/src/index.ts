@@ -261,9 +261,9 @@ export interface SulfuricSummaryResult {
 
 /** 一个车间的日产量序列（values 与 dates 一一对应，无数据为 null） */
 export interface WorkshopSeries {
-  code: 'sulfuric' | 'aminosulfonic' | 'magnesium' | 'hydrotalcite' | 'anthraquinone';
+  code: 'sulfuric' | 'aminosulfonic' | 'magnesium' | 'hydrotalcite' | 'anthraquinone' | 'thermal';
   name: string;
-  /** 硫酸为折98吨（差值法现算）；其余车间为表单直接上报产量（吨） */
+  /** 硫酸为折98吨，热电为十路供汽计量合计，其余车间为日报上报产量。 */
   unit: string;
   values: Array<number | null>;
 }
@@ -271,6 +271,100 @@ export interface WorkshopSeries {
 export interface WorkshopOverviewResult {
   dates: string[];
   workshops: WorkshopSeries[];
+}
+
+/** 氨基磺酸车间日报，日期均为生产归属日（次日填报）。 */
+export interface AminoDaySummary {
+  date: string;
+  production: number | null;
+  electricity: number | null;
+  steam: number | null;
+  water: number | null;
+  urea: number | null;
+  fuming: number | null;
+  /** 产成品日报的氨基磺酸产销存。 */
+  finishedProduction: number | null;
+  finishedSales: number | null;
+  finishedStock: number | null;
+  /** 仓库日报的尿素进销存；与车间日报的 urea 可能有录入口径/精度差异。 */
+  ureaPurchase: number | null;
+  ureaWarehouseConsumption: number | null;
+  ureaStock: number | null;
+  /** 硫酸罐区的发烟酸期末库存，供氨基磺酸车间使用。 */
+  fumingStock: number | null;
+}
+
+export interface AminoSummaryResult {
+  days: AminoDaySummary[];
+}
+
+/** 硫酸镁、水滑石、蒽醌车间的动态明细字段。 */
+export type DetailedWorkshopCode = 'magnesium' | 'hydrotalcite' | 'anthraquinone';
+export interface WorkshopMetricDefinition {
+  key: string;
+  name: string;
+  unit: string;
+  category: 'energy' | 'raw';
+  featured: boolean;
+}
+export interface WorkshopStockDefinition {
+  key: string;
+  name: string;
+  kind: 'finished' | 'raw';
+  incomingLabel: string;
+  outgoingLabel: string;
+  unit: string;
+  note?: string;
+}
+export interface WorkshopStockValues {
+  incoming: number | null;
+  outgoing: number | null;
+  closing: number | null;
+}
+export interface DetailedWorkshopDay {
+  date: string;
+  production: number | null;
+  metrics: Record<string, number | null>;
+  stocks: Record<string, WorkshopStockValues>;
+}
+export interface DetailedWorkshopResult {
+  code: DetailedWorkshopCode;
+  productionLabel: string;
+  metrics: WorkshopMetricDefinition[];
+  stockItems: WorkshopStockDefinition[];
+  days: DetailedWorkshopDay[];
+}
+
+/** 热电日报的连续两次填报读数；缺少连续读数时不生成日量，回退视为清零重计。 */
+export interface ThermalMeterValue {
+  previousReading: number | null;
+  currentReading: number | null;
+  delta: number | null;
+  value: number | null;
+  reset?: boolean;
+  adjustment?: number;
+}
+
+export interface ThermalOutletDefinition {
+  key: string;
+  name: string;
+  group: 'external' | 'internal';
+}
+
+export interface ThermalDaySummary {
+  date: string;
+  outlets: Record<string, ThermalMeterValue>;
+  externalTotal: number | null;
+  internalTotal: number | null;
+  totalSupply: number | null;
+  generation: ThermalMeterValue;
+  water: ThermalMeterValue;
+  steamMeter: ThermalMeterValue;
+}
+
+export interface ThermalSummaryResult {
+  outlets: ThermalOutletDefinition[];
+  days: ThermalDaySummary[];
 }
 
 /** 能源中心的一条日序列（读数差 × 倍率；跨断天为 null 不拆分） */
@@ -286,8 +380,6 @@ export interface EnergyResult {
     workshops: EnergySeries[];
     /** 1#冷凝机日发电 kWh */
     generation: Array<number | null>;
-    /** 2#进线日外购电 kWh */
-    purchase: Array<number | null>;
   };
   steam: {
     /** 内供各车间日供汽 t */

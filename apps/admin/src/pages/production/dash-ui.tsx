@@ -62,6 +62,7 @@ export function Kpi({
   sub,
   spark,
   sparkTail = 0,
+  sparkWidth,
 }: {
   label: string;
   value: string;
@@ -71,18 +72,19 @@ export function Kpi({
   sub?: string;
   spark?: Array<number | null>;
   sparkTail?: number;
+  sparkWidth?: number;
 }) {
   const hasDelta = delta !== undefined && delta !== null && Number.isFinite(delta);
   const isGood = hasDelta && (good === 'up' ? delta >= 0 : delta <= 0);
   return (
     <div className="kpi">
       <div className="kl">{label}</div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: sparkWidth ? 4 : 8 }}>
         <div className="kv" style={{ whiteSpace: 'nowrap' }}>
           {value}
           {unit ? <small>{unit}</small> : null}
         </div>
-        {spark ? <Spark values={spark} tail={sparkTail} /> : null}
+        {spark ? <Spark values={spark} tail={sparkTail} w={sparkWidth} /> : null}
       </div>
       <div className="kd" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {hasDelta ? (

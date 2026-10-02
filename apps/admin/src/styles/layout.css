@@ -421,69 +421,16 @@
 
 .hgxt-login {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 50.45fr) minmax(0, 49.55fr);
   min-height: 100vh;
   background-color: var(--bg);
 }
 
 .hgxt-login-hero {
-  display: flex;
-  flex-direction: column;
-  padding: 48px 64px;
-  background-color: var(--side);
-}
-
-.hgxt-login-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.hgxt-login-brand .hgxt-mark {
-  margin-bottom: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-.hgxt-login-word {
-  font-family: var(--font-serif);
-  font-size: 21px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-}
-
-.hgxt-login-copy {
-  max-width: 520px;
-  margin-top: auto;
-  animation: hgxt-enter 0.5s var(--ease) both;
-}
-
-.hgxt-login-headline {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: 52px;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  line-height: 1.18;
-}
-
-.hgxt-login-headline em {
-  color: var(--brand);
-}
-
-.hgxt-login-lead {
-  max-width: 420px;
-  margin-top: 20px;
-  color: var(--ink2);
-  font-size: var(--ui-font-size-lg);
-}
-
-.hgxt-login-foot {
-  margin-top: 64px;
-  color: var(--ink3);
-  font-size: var(--ui-font-size-sm);
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  background-color: var(--login-film-bg);
 }
 
 .hgxt-login-panel {

@@ -1,9 +1,9 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Role } from '@hgxt/shared';
+import { Role, type DetailedWorkshopCode } from '@hgxt/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { OverviewService } from './overview.service';
 import { ProductionService } from './production.service';
@@ -36,13 +36,31 @@ export class ProductionController {
   }
 
   @Get('workshops')
-  @ApiOperation({ summary: '车间版面：各车间日产量序列（硫酸为折98现算，其余为上报值）' })
+  @ApiOperation({ summary: '车间版面：各车间日产量序列（硫酸折98、热电供汽计量，其余为上报值）' })
   workshops(@Query() query: SulfuricSummaryQuery) {
     return this.overview.workshopOverview(query.days);
   }
 
+  @Get('workshops/:code/detail')
+  @ApiOperation({ summary: '硫酸镁、水滑石、蒽醌车间的消耗与产销存明细' })
+  workshopDetail(@Param('code') code: DetailedWorkshopCode, @Query() query: SulfuricSummaryQuery) {
+    return this.overview.detailedWorkshop(code, query.days);
+  }
+
+  @Get('amino')
+  @ApiOperation({ summary: '氨基磺酸车间：日产量、五项消耗与期末库存' })
+  amino(@Query() query: SulfuricSummaryQuery) {
+    return this.overview.aminoSummary(query.days);
+  }
+
+  @Get('thermal')
+  @ApiOperation({ summary: '热电车间：外供和内供蒸汽分路、发电、水表与蒸汽总表日差值' })
+  thermal(@Query() query: SulfuricSummaryQuery) {
+    return this.overview.thermalSummary(query.days);
+  }
+
   @Get('energy')
-  @ApiOperation({ summary: '能源中心：各车间电 / 汽（内供+外供）/ 水的日用量与发电外购' })
+  @ApiOperation({ summary: '能源中心：各车间电 / 汽（内供+外供）/ 水的日用量与自发电' })
   energy(@Query() query: SulfuricSummaryQuery) {
     return this.overview.energy(query.days);
   }
