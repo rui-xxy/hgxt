@@ -70,7 +70,7 @@ class PlanTargetDto {
   unit!: string;
 
   @IsString()
-  @Length(1, 40)
+  @Length(0, 40)
   target!: string;
 }
 
@@ -162,13 +162,13 @@ export class ProductionController {
   }
 
   @Get('plan/settings')
-  @ApiOperation({ summary: '生产计划设置：年度/月度计划（自动按天数拆分，手工覆盖）与单耗目标' })
+  @ApiOperation({ summary: '生产计划设置：分别录入年度/月度计划与各车间单耗上限' })
   planSettings(@Query() query: PlanYearQuery) {
     return this.plan.getSettings(query.year ?? new Date().getFullYear());
   }
 
   @Post('plan/settings')
-  @ApiOperation({ summary: '保存年度计划、月度手工值与单耗目标（单一事务，任一失败整体回滚）' })
+  @ApiOperation({ summary: '保存年度计划、月度计划与单耗上限（单一事务，任一失败整体回滚）' })
   savePlanSettings(@Body() body: PlanSettingsSaveDto) {
     return this.plan.saveSettings(body as never);
   }

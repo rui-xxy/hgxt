@@ -24,6 +24,6 @@ Thumbs.db
 # 本地参照资料
 参照/
 
-# 设计稿 zip 原件（内容已解压进 design/）
+# 设计稿 zip 原件（内容已解压进 design/；** 覆盖任意子目录如 design/plan/）
 HGXT-UI设计稿.zip
-design/*.zip
+design/**/*.zip

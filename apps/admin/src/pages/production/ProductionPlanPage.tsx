@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { App as AntApp } from 'antd';
-import { useQuery } from '@tanstack/react-query';
+import { SlidersHorizontal } from 'lucide-react';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import type {
   PlanCompletionRow,
@@ -11,8 +12,10 @@ import type {
 } from '@hgxt/shared';
 // PlanWeekRow 等行类型由 API 返回值直接推断，此处仅引入图表与状态所需
 import { planBoard } from '../../api/production';
-import { Dash, Seg, fmt } from './dash-ui';
+import { stableViewportStyle } from '../../styles/pagedViewport';
+import { Dash, Stepper, fmt } from './dash-ui';
 import { PlanTasksTable } from './PlanTasksTable';
+import { consumptionTargetComparison, monthPlanTone, yearPlanTone } from './planAppearance';
 import './dash.css';
 
 
@@ -26,7 +29,7 @@ const completionRateText = (actual: number | null, plan: number | null): string 
   if (rate === null) return '—';
   let shown = Math.round(rate * 10) / 10;
   if (actual !== null && plan !== null && actual < plan && shown >= 100) shown = 99.9;
-  return `${Number.isInteger(shown) ? shown.toFixed(0) : shown.toFixed(1)}%`;
+  return `${shown.toFixed(1)}%`;
 };
 const CONSUMPTION_GRID = '120px minmax(0,1.2fr) minmax(0,1fr) 84px 64px 96px 84px 84px 84px minmax(110px,1fr)';
 
@@ -63,12 +66,12 @@ function WeekCard({
   return (
     <div className="week-card">
       <div className="week-card-head">
-        <b>{row.workshop}</b>
+        <b title={row.workshop}>{row.workshop}</b>
         <span className={`week-delta ${change === null ? 'mute' : change >= 0 ? 'up' : 'dn'}`}>{pctText(change)}</span>
       </div>
       <div className="week-card-total">
         <span>{fmt(currentTotal, 1)}<small>t</small></span>
-        <span className="faint">上周同期 {fmt(lastSame, 1)}</span>
+        <span className="faint" title={`上周同期 ${fmt(lastSame, 1)} t`}>上周同期 {fmt(lastSame, 1)}</span>
       </div>
       <div className="week-days" aria-label={`${row.workshop}${metric === 'production' ? '产量' : '销量'}逐日对比`}>
         {days.map((day, i) => {
@@ -89,7 +92,7 @@ function WeekCard({
       </div>
       <div className="week-card-foot">
         <div><span>日均 本周 / 上周</span><b>{fmt(average, 1)}<small>/ {fmt(lastAverage, 1)}</small></b></div>
-        <div><span>{unitLabel}{primary ? ` · ${primary.unit}` : ''}</span><b>{primary?.current === null || primary?.current === undefined ? '—' : primary.current.toFixed(dg(primary.current))}<small>/ {primary?.lastMonth === null || primary?.lastMonth === undefined ? '—' : primary.lastMonth.toFixed(dg(primary.lastMonth))}</small>{unitChange !== null ? <em className={unitChange <= 0 ? 'up' : 'dn'}>{pctText(unitChange)}</em> : null}</b></div>
+        <div><span title={`${unitLabel}${primary ? ` · ${primary.unit}` : ''}`}>{unitLabel}{primary ? ` · ${primary.unit}` : ''}</span><b>{primary?.current === null || primary?.current === undefined ? '—' : primary.current.toFixed(dg(primary.current))}<small>/ {primary?.lastMonth === null || primary?.lastMonth === undefined ? '—' : primary.lastMonth.toFixed(dg(primary.lastMonth))}</small>{unitChange !== null ? <em className={unitChange <= 0 ? 'up' : 'dn'}>{pctText(unitChange)}</em> : null}</b></div>
         <div><span>上周全周</span><b>{fmt(lastFull, 1)}<small>t</small></b></div>
         <div><span>按本周日均推算全周</span><b>{fmt(projected, 0)}<small>t</small>{projectedChange !== null ? <em className={projectedChange >= 0 ? 'up' : 'dn'}>{pctText(projectedChange)}</em> : null}</b></div>
       </div>
@@ -148,12 +151,12 @@ function MonthlyTrend({
                   const actual = month.actual;
                   const planPct = Math.min(100, (plan / max) * 100);
                   const actualPct = actual === null ? 0 : Math.min(100, (actual / max) * 100);
+                  const tone = monthPlanTone(completionRate(actual, month.plan));
                   return (
                     <div className="trend-column" key={month.month} onMouseEnter={() => setHovered(i)}>
-                      {actual !== null ? <i className={month.met ? 'trend-bar plan-bar' : 'trend-bar plan-unmet'} style={{ height: `${actualPct}%` }} />
-                        : plan > 0 ? <i className="trend-bar trend-future" style={{ height: `${planPct}%` }} /> : null}
-                      {plan > 0 ? <i className="trend-plan-line" style={{ bottom: `${planPct}%` }} /> : null}
-                      <span className="trend-value" style={{ bottom: `calc(${Math.max(planPct, actualPct)}% + 7px)` }}>{actual === null ? (plan > 0 ? fmt(plan, 0) : '') : fmt(actual, 0)}</span>
+                      {plan > 0 ? <i className={actual === null ? 'trend-plan-base trend-future' : 'trend-plan-base'} style={{ height: `${planPct}%` }} /> : null}
+                      {actual !== null ? <i className={`trend-bar trend-bar-${tone === 'met' ? 'met' : tone === 'none' ? 'neutral' : 'unmet'}`} style={{ height: `${actualPct}%` }} /> : null}
+                      <span className={actual === null ? 'trend-value trend-value-future' : 'trend-value'} style={{ bottom: `calc(${Math.max(planPct, actualPct)}% + 7px)` }}>{actual === null ? (plan > 0 ? fmt(plan, 0) : '') : fmt(actual, 0)}</span>
                     </div>
                   );
                 })}
@@ -171,7 +174,8 @@ function MonthlyTrend({
             <div className="trend-month-labels">
               {row.months.map((month) => {
                 const rate = completionRate(month.actual, month.plan);
-                return <span key={month.month}>{month.month}月<b className={rate === null ? 'faint' : rate >= 100 ? 'up' : rate >= 90 ? 'warn' : 'dn'}>{completionRateText(month.actual, month.plan)}</b></span>;
+                const tone = monthPlanTone(rate);
+                return <span key={month.month}>{month.month}月<b className={`plan-rate-${tone}`}>{rate === null ? '—' : tone === 'almost' ? `${rate.toFixed(1)}%` : `${Math.round(rate)}%`}</b></span>;
               })}
             </div>
           </div>
@@ -180,15 +184,18 @@ function MonthlyTrend({
       <div className="trend-summary">
         <span className="faint">年度累计 · 截至 {actuals.length || '—'} 月</span>
         <div className="trend-year-total"><b>{fmt(row.yearActual, 0)}</b><span>/ {fmt(row.yearPlan, 0)} t</span></div>
-        <div className="pg trend-progress"><i className={row.status === 'behind' ? 'plan-unmet' : 'plan-bar'} style={{ width: `${Math.min(100, row.yearRate ?? 0)}%` }} />{timeProgress ? <b style={{ left: `${Math.min(100, timeProgress.pct)}%` }} /> : null}</div>
-        <div className="trend-progress-label"><span><b>{row.yearRate?.toFixed(1) ?? '—'}%</b> 完成率</span><span>时间进度 {timeProgress?.pct.toFixed(1) ?? '—'}%</span></div>
+        <div className="pg trend-progress">
+          {timeProgress && row.yearPlan > 0 ? <span className="plan-time-progress" style={{ width: `${Math.min(100, timeProgress.pct)}%` }} /> : null}
+          <i className={`plan-tone-${yearPlanTone(row.statusPoints)}`} style={{ width: `${Math.min(100, row.yearRate ?? 0)}%` }} />
+        </div>
+        <div className="trend-progress-label"><span><b>{row.yearRate === null ? '—' : `${row.yearRate.toFixed(1)}%`}</b> 完成率</span><span><i className="plan-time-swatch" />时间进度 {timeProgress === null ? '—' : `${timeProgress.pct.toFixed(1)}%`}</span></div>
         <div className="trend-stats">
-          <div><span>按当前速度预计全年</span><b>{fmt(forecast, 0)} t</b>{forecast !== null && row.yearPlan > 0 ? <em className={forecast >= row.yearPlan ? 'up' : 'dn'}>{forecast >= row.yearPlan ? '可完成，超 ' : '缺口 '}{fmt(Math.abs(forecast - row.yearPlan), 0)} t（{((forecast / row.yearPlan) * 100).toFixed(1)}%）</em> : null}</div>
-          <div><span>剩余 {remainingMonths} 个月需月均</span><b>{fmt(needMonthly, 0)} t</b><em className="faint">近 {recent.length} 月月均 {fmt(recentAverage, 0)} t</em></div>
+          <div><span>按当前速度预计全年</span><b>{fmt(forecast, 0)} t</b>{forecast !== null && row.yearPlan > 0 ? <em className={forecast >= row.yearPlan ? 'up' : 'dn'} title={`${forecast >= row.yearPlan ? '可完成，超' : '缺口'} ${fmt(Math.abs(forecast - row.yearPlan), 0)} t（${((forecast / row.yearPlan) * 100).toFixed(1)}%）`}><span>{forecast >= row.yearPlan ? '超' : '缺口'} {fmt(Math.abs(forecast - row.yearPlan), 0)} t</span><span>预计达成 {((forecast / row.yearPlan) * 100).toFixed(1)}%</span></em> : <em className="faint"><span>—</span></em>}</div>
+          <div><span>剩余 {remainingMonths} 个月需月均</span><b>{fmt(needMonthly, 0)} t</b><em className="faint"><span>近 {recent.length} 月月均</span><span>{fmt(recentAverage, 0)} t</span></em></div>
         </div>
         <div className="trend-quarters">
           <span className="faint">季度完成</span>
-          {quarters.map((quarter) => <div className="trend-quarter" key={quarter.name}><span>{quarter.name}</span><div className="pg"><i className={quarter.rate !== null && quarter.rate >= 100 ? 'plan-bar' : 'plan-unmet'} style={{ width: `${Math.min(100, quarter.rate ?? 0)}%` }} /><b style={{ left: '100%' }} /></div><b>{quarter.rate === null ? '—' : `${quarter.rate.toFixed(1)}%`}</b></div>)}
+          {quarters.map((quarter) => <div className="trend-quarter" key={quarter.name}><span>{quarter.name}</span><div className="pg"><i className={`plan-tone-${monthPlanTone(quarter.rate)}`} style={{ width: `${Math.min(100, quarter.rate ?? 0)}%` }} /></div><b>{quarter.rate === null ? '—' : `${quarter.rate.toFixed(1)}%`}</b></div>)}
         </div>
       </div>
     </div>
@@ -200,16 +207,21 @@ type ViewKey = 'ps' | 'en' | 'mt';
 export function ProductionPlanPage() {
   const { message } = AntApp.useApp();
   const navigate = useNavigate();
-  const thisYear = new Date().getFullYear();
-  const [year, setYear] = useState(thisYear);
+  const [year, setYear] = useState(() => new Date().getFullYear());
   const [view, setView] = useState<ViewKey>('ps');
   const [wsFilter, setWsFilter] = useState('全部');
   const [weekMetric, setWeekMetric] = useState<'production' | 'sales'>('production');
   const [trendWorkshop, setTrendWorkshop] = useState('硫酸');
+  const consumptionScrollRef = useRef<HTMLDivElement>(null);
 
-  const query = useQuery({ queryKey: ['production', 'plan', year], queryFn: () => planBoard(year) });
+  useLayoutEffect(() => {
+    if (consumptionScrollRef.current) consumptionScrollRef.current.scrollTop = 0;
+  }, [view, wsFilter, year]);
+
+  const query = useQuery({ queryKey: ['production', 'plan', year], queryFn: () => planBoard(year), placeholderData: keepPreviousData });
   useEffect(() => { if (query.error) message.error(query.error.message); }, [query.error, message]);
   const data: ProductionPlanBoardResult | undefined = query.data;
+  const displayYear = data?.year ?? year;
 
   const monthLabel = data?.asOf ? `${Number(data.asOf.slice(5, 7))} 月` : '';
   // 周对比的“同期”窗口：以 asOf 所在周的周一为界（与后端口径一致），明确标出日期区间
@@ -254,11 +266,11 @@ export function ProductionPlanPage() {
   const consumptionRows = (rows: PlanConsumptionRow[]) =>
     rows.map((r, i) => {
       const hiddenName = i > 0 && rows[i - 1].workshop === r.workshop;
-      const vsTarget = r.current !== null && r.lastMonth !== null && r.lastMonth > 0
+      const vsLastMonth = r.current !== null && r.lastMonth !== null && r.lastMonth > 0
         ? +(((r.current - r.lastMonth) / r.lastMonth) * 100).toFixed(1) : null;
-      const dv = r.deviationPct;
-      const targetOk = dv !== null && dv === 0;
-      const m = dv === null ? 0 : Math.min(Math.abs(dv), 10) / 10 * 50;
+      const targetComparison = consumptionTargetComparison(r);
+      const targetDelta = targetComparison.delta;
+      const barWidth = targetDelta === null ? 0 : Math.min(Math.abs(targetDelta), 10) * 5;
       return (
         <div
           className={`trow${i > 0 && rows[i - 1].workshop === r.workshop ? '' : ' gstart'}`}
@@ -271,14 +283,14 @@ export function ProductionPlanPage() {
           <div className="num r" style={{ fontWeight: 600 }}>{r.current === null ? '—' : r.current.toFixed(dg(r.current))}</div>
           <div className="faint">{r.unit}</div>
           <div className="num r muted">{r.target ?? '—'}</div>
-          <div className={`num r ${targetOk ? 'up' : dv !== null ? 'dn' : ''}`}>{dv === null ? '—' : dv === 0 ? '达标' : pctText(dv)}</div>
+          <div className={`num r ${targetDelta === null ? '' : targetComparison.favorable ? 'up' : 'dn'}`}>{targetDelta === null ? '—' : targetDelta === 0 ? '达标' : pctText(targetDelta)}</div>
           <div className="num r muted">{r.lastMonth === null ? '—' : r.lastMonth.toFixed(dg(r.lastMonth))}</div>
-          <div className={`num r ${vsTarget !== null && vsTarget <= 0 ? 'up' : vsTarget !== null ? 'dn' : ''}`}>{pctText(vsTarget)}</div>
+          <div className={`num r ${vsLastMonth !== null && vsLastMonth <= 0 ? 'up' : vsLastMonth !== null ? 'dn' : ''}`}>{pctText(vsLastMonth)}</div>
           <div>
             <div className="ubar">
               <b />
-              {dv !== null ? (
-                <i style={{ left: dv >= 0 ? '50%' : `${50 - m}%`, width: `${m}%`, background: dv === 0 ? 'var(--ok)' : 'var(--danger)' }} />
+              {targetDelta !== null && targetDelta !== 0 ? (
+                <i className={targetComparison.favorable ? 'up' : 'dn'} style={{ left: targetDelta >= 0 ? '50%' : `${50 - barWidth}%`, width: `${barWidth}%` }} />
               ) : null}
             </div>
           </div>
@@ -291,47 +303,49 @@ export function ProductionPlanPage() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '8px 0 16px' }}>
         <div style={{ flex: 1 }}>
           <h1 className="h1" style={{ fontSize: 28, margin: 0 }}>计划与完成</h1>
-          {data?.asOf ? <div className="sub">截至 {data.asOf} {['周日', '周一', '周二', '周三', '周四', '周五', '周六'][new Date(`${data.asOf}T00:00:00Z`).getUTCDay()]}</div> : null}
+          {query.isPlaceholderData ? <div className="sub" role="status">正在加载 {year} 年，当前显示 {displayYear} 年</div>
+            : data?.asOf ? <div className="sub">截至 {data.asOf} {['周日', '周一', '周二', '周三', '周四', '周五', '周六'][new Date(`${data.asOf}T00:00:00Z`).getUTCDay()]}</div>
+              : null}
         </div>
-        <Seg
-          options={[{ label: `${thisYear} 年`, value: String(thisYear) }, { label: `${thisYear - 1} 年`, value: String(thisYear - 1) }]}
-          value={String(year)}
-          onChange={(v) => setYear(Number(v))}
+        <Stepper
+          label={`${year} 年`}
+          onPrev={() => setYear((current) => current - 1)}
+          onNext={() => setYear((current) => current + 1)}
+          prevDisabled={year <= 2020}
+          nextDisabled={year >= 2100}
+          prevLabel="上一年"
+          nextLabel="下一年"
         />
       </div>
 
       {data ? (
-        <div className="kpis enter d1" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+        <div className="kpis plan-overview-kpis enter d1">
           <div className="kpi">
             <div className="kl">年度时间进度</div>
             <div className="kv">{fmt(data.timeProgress?.pct ?? null, 1)}<small>%</small></div>
-            <div className="kd"><span>第 {data.timeProgress?.dayOfYear ?? '—'} 天 / {data.timeProgress?.daysInYear ?? '—'} 天</span></div>
             <div className="pg" style={{ marginTop: 8 }}>
-              <i className="plan-bar" style={{ width: `${data.timeProgress?.pct ?? 0}%` }} />
-              <b style={{ left: '100%' }} />
+              <i className="plan-time-fill" style={{ width: `${data.timeProgress?.pct ?? 0}%` }} />
             </div>
+            <div className="kd plan-kpi-details" style={{ marginTop: 6 }}><span>第 {data.timeProgress?.dayOfYear ?? '—'} 天 / {data.timeProgress?.daysInYear ?? '—'} 天</span></div>
           </div>
           <div className="kpi">
             <div className="kl">年度进度达标车间</div>
             <div className="kv">{ahead.length + onTrack.length}<small>/ {data.completion.length}</small></div>
-            <div className="kd">
-              {onTrack.length ? <span>持平 {onTrack.length}（{onTrack.map((r) => r.workshop).join('、')}）</span> : null}
-              {behind.length ? <span className="dn">滞后 {behind.length}：{behind.map((r) => r.workshop).join('、')}</span> : <span className="faint">无滞后</span>}
+            <div className="kd plan-kpi-details" title={`持平：${onTrack.map((r) => r.workshop).join('、') || '无'}；滞后：${behind.map((r) => r.workshop).join('、') || '无'}`}>
+              <span>持平 {onTrack.length} · </span><span className={behind.length ? 'dn' : 'faint'}>滞后 {behind.length}</span>
             </div>
           </div>
           <div className="kpi">
             <div className="kl">{monthLabel}计划完成车间</div>
             <div className="kv">{monthDone.length}<small>/ {data.completion.filter((r) => r.monthPlan !== null).length}</small></div>
-            <div className="kd">
-              {monthNotDone.length ? (
-                <span className="dn">未完成：{monthNotDone.map((r) => `${r.workshop} ${r.monthRate?.toFixed(1)}%`).join(' · ')}</span>
-              ) : <span className="faint">全部完成或未设计划</span>}
+            <div className="kd plan-kpi-details" title={monthNotDone.map((r) => `${r.workshop} ${r.monthRate?.toFixed(1)}%`).join(' · ')}>
+              {monthNotDone.length ? <span className="dn">未完成 {monthNotDone.length} 个车间</span> : <span className="faint">全部完成或未设计划</span>}
             </div>
           </div>
           <div className="kpi">
             <div className="kl">本周事项</div>
             <div className="kv">{taskCount((t) => t.period === '本周' && t.status === 'done')}<small>/ {taskCount((t) => t.period === '本周')} 已完成</small></div>
-            <div className="kd">
+            <div className="kd plan-kpi-details">
               {/* 口径：本卡为“本周”——逾期/进行中只在周期=本周的事项里统计，历史逾期不混入 */}
               {taskCount((t) => t.period === '本周' && t.status === 'late') ? <span className="dn">{taskCount((t) => t.period === '本周' && t.status === 'late')} 项逾期</span> : null}
               <span>{taskCount((t) => t.period === '本周' && t.status === 'doing')} 项进行中</span>
@@ -342,55 +356,53 @@ export function ProductionPlanPage() {
       ) : null}
 
       {/* 计划完成 */}
-      <div className="card enter d2" style={{ marginTop: 16, padding: '18px 20px 8px' }}>
-        <div className="ct">
+      <div className="card enter d2 plan-completion-card" style={{ marginTop: 16, padding: '18px 20px 8px' }}>
+        <div className="ct plan-section-head">
           <b>计划完成</b>
           <div className="r">
-            <button className="btn secondary sm" onClick={() => navigate('/plan/settings')}>编辑计划</button>
+            <button className="btn secondary sm" onClick={() => navigate('/plan/settings')}><SlidersHorizontal size={14} />编辑计划</button>
           </div>
         </div>
         <div style={{ overflowX: 'auto' }}>
         <div style={{ minWidth: 1080 }}>
-        <div className="ghd" style={{ gridTemplateColumns: '128px 64px 64px minmax(0,1fr) 4px 76px 76px minmax(0,1.2fr) 72px 92px', paddingTop: 6, paddingBottom: 4 }}>
-          <span /><span style={{ gridColumn: 'span 3' }}>{monthLabel}</span><span /><span style={{ gridColumn: 'span 5' }}>{year} 年度</span>
+        <div className="ghd plan-completion-group" style={{ gridTemplateColumns: '128px 64px 64px minmax(0,1fr) 4px 76px 76px minmax(0,1.2fr) 72px 92px', paddingTop: 6, paddingBottom: 4 }}>
+          <span /><span style={{ gridColumn: 'span 3' }}>{monthLabel}</span><span /><span style={{ gridColumn: 'span 5' }}>{displayYear} 年度</span>
         </div>
         <div className="prow phead" style={{ gridTemplateColumns: '128px 64px 64px minmax(0,1fr) 4px 76px 76px minmax(0,1.2fr) 72px 92px' }}>
-          <span>车间 / 产品</span>
+          <span>车间</span>
           <span className="r">计划</span><span className="r">完成</span><span>完成率</span><span />
           <span className="r">年计划</span><span className="r">累计完成</span><span>完成率</span><span className="r">按进度</span><span>较时间进度</span>
         </div>
         {(data?.completion ?? []).map((r) => {
           const tp = data?.timeProgress?.pct ?? null;
+          const monthTone = monthPlanTone(completionRate(r.monthActual, r.monthPlan));
+          const yearTone = yearPlanTone(r.statusPoints);
           return (
             <div className="prow" key={r.workshop} style={{ gridTemplateColumns: '128px 64px 64px minmax(0,1fr) 4px 76px 76px minmax(0,1.2fr) 72px 92px' }}>
+              <div className="plan-actual">{r.workshop}</div>
+              <span className="num r muted">{r.monthPlan === null ? '—' : fmt(r.monthPlan, 0)}</span>
+              <span className="num r plan-actual">{fmt(r.monthActual, 0)}</span>
               <div>
-                <div style={{ fontWeight: 600 }}>{r.workshop}</div>
-                <div className="faint" style={{ fontSize: 11.5 }}>{r.basis}</div>
-              </div>
-              <span className="num r">{r.monthPlan === null ? '—' : fmt(r.monthPlan, 0)}</span>
-              <span className="num r">{fmt(r.monthActual, 0)}</span>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="plan-completion-meter">
                   <div className="pg" style={{ flex: 1 }}>
-                    <i className={r.monthPlan !== null && r.monthActual >= r.monthPlan ? 'plan-bar' : 'plan-unmet'} style={{ width: `${Math.min(100, completionRate(r.monthActual, r.monthPlan) ?? 0)}%` }} />
-                    <b />
+                    <i className={`plan-tone-${monthTone}`} style={{ width: `${Math.min(100, completionRate(r.monthActual, r.monthPlan) ?? 0)}%` }} />
                   </div>
-                  <span className="num" style={{ width: 52, textAlign: 'right' }}>{completionRateText(r.monthActual, r.monthPlan)}</span>
+                  <span className="num plan-actual">{completionRateText(r.monthActual, r.monthPlan)}</span>
                 </div>
               </div>
               <span />
-              <span className="num r">{r.yearPlan > 0 ? fmt(r.yearPlan, 0) : '—'}</span>
-              <span className="num r">{fmt(r.yearActual, 0)}</span>
+              <span className="num r muted">{r.yearPlan > 0 ? fmt(r.yearPlan, 0) : '—'}</span>
+              <span className="num r plan-actual">{fmt(r.yearActual, 0)}</span>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="plan-completion-meter">
                   <div className="pg" style={{ flex: 1 }}>
-                    <i className={r.status === 'behind' ? 'plan-unmet' : 'plan-bar'} style={{ width: `${Math.min(100, completionRate(r.yearActual, r.yearPlan > 0 ? r.yearPlan : null) ?? 0)}%` }} />
-                    {tp !== null ? <b style={{ left: `${Math.min(100, tp)}%` }} /> : null}
+                    {tp !== null && r.yearPlan > 0 ? <span className="plan-time-progress" style={{ width: `${Math.min(100, tp)}%` }} /> : null}
+                    <i className={`plan-tone-${yearTone}`} style={{ width: `${Math.min(100, completionRate(r.yearActual, r.yearPlan > 0 ? r.yearPlan : null) ?? 0)}%` }} />
                   </div>
-                  <span className="num" style={{ width: 52, textAlign: 'right' }}>{completionRateText(r.yearActual, r.yearPlan > 0 ? r.yearPlan : null)}</span>
+                  <span className="num plan-actual">{completionRateText(r.yearActual, r.yearPlan > 0 ? r.yearPlan : null)}</span>
                 </div>
               </div>
-              <span className={`num r ${r.aheadOfProgress !== null && r.aheadOfProgress >= 0 ? 'up' : 'dn'}`}>
+              <span className={`num r ${r.aheadOfProgress === null ? 'faint' : r.aheadOfProgress >= 0 ? 'up' : 'dn'}`}>
                 {r.aheadOfProgress === null ? '—' : r.aheadOfProgress >= 0 ? `超 ${fmt(r.aheadOfProgress, 0)}` : `欠 ${fmt(Math.abs(r.aheadOfProgress), 0)}`}
               </span>
               <div>
@@ -428,21 +440,21 @@ export function ProductionPlanPage() {
       <div className="card enter d4" style={{ marginTop: 16, padding: '18px 20px' }}>
         <div className="ct trend-section-head">
           <b>月度完成趋势</b>
-          <span>{year} 年 · {trendRow?.basis ?? '—'}</span>
+          <span>{displayYear} 年 · {trendRow?.basis ?? '—'}</span>
           <div className="r lg">
-            <span><i className="plan-bar" />达成</span><span><i className="plan-unmet" />未达成</span>
-            <span><i className="ln trend-plan-legend" />月计划</span><span><i className="legend-dashed" />待完成</span>
+            <span><i className="trend-bar-met" />达成</span><span><i className="trend-bar-unmet" />未达成</span>
+            <span><i className="trend-plan-legend" />月计划</span><span><i className="legend-dashed" />待完成</span>
           </div>
         </div>
         <div className="fbar trend-filter">
           {(data?.completion ?? []).map((row) => <button key={row.workshop} className={`chipbtn${trendRow?.workshop === row.workshop ? ' on' : ''}`} onClick={() => setTrendWorkshop(row.workshop)}>{row.workshop}</button>)}
         </div>
-        {trendRow ? <MonthlyTrend row={trendRow} year={year} timeProgress={data?.timeProgress ?? null} /> : <div className="empty">暂无月度数据</div>}
+        {trendRow ? <MonthlyTrend row={trendRow} year={displayYear} timeProgress={data?.timeProgress ?? null} /> : <div className="empty">暂无月度数据</div>}
       </div>
 
       {/* 产销与单耗 */}
       <div className="card enter d5" style={{ marginTop: 16, padding: '18px 20px 8px' }}>
-        <div className="ct">
+        <div className="ct plan-section-head plan-consumption-head">
           <b>产销与单耗</b>
           <div className="tbtabs" role="tablist">
             <button role="tab" className={view === 'ps' ? 'on' : ''} onClick={() => setView('ps')}>产销</button>
@@ -456,7 +468,7 @@ export function ProductionPlanPage() {
             <button key={w} className={`chipbtn${wsFilter === w ? ' on' : ''}`} onClick={() => setWsFilter(w)}>{w}</button>
           ))}
         </div>
-        <div style={{ overflowX: 'auto' }}>
+        <div className="hgxt-stable-viewport plan-consumption-viewport" ref={consumptionScrollRef} style={stableViewportStyle(8, 44, 34)}>
         <div style={{ minWidth: view === 'ps' ? 1080 : 1180 }}>
         <div className="swap" key={view}>
           {view === 'ps' ? (
@@ -495,7 +507,7 @@ export function ProductionPlanPage() {
       </div>
 
       {/* 事项 */}
-      <PlanTasksTable key={year} tasks={tasks} />
+      <PlanTasksTable key={displayYear} tasks={tasks} />
     </Dash>
   );
 }

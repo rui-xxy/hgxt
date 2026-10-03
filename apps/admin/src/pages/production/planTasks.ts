@@ -13,7 +13,7 @@ export type TaskFilters = {
   completionNote: string;
 };
 
-export const TASK_PAGE_SIZE = 20;
+export const TASK_PAGE_SIZE = 15;
 export const EMPTY_TASK_VALUE = '__empty__';
 export const EMPTY_TASK_FILTERS: TaskFilters = {
   status: '', matter: '', department: '', importance: '', owner: '',

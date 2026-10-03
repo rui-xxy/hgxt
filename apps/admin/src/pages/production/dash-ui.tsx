@@ -122,14 +122,14 @@ export function Seg({
 }
 
 /** 月份步进器（‹ 2026 年 9 月 ›） */
-export function Stepper({ label, onPrev, onNext, prevDisabled, nextDisabled }: { label: string; onPrev: () => void; onNext: () => void; prevDisabled?: boolean; nextDisabled?: boolean }) {
+export function Stepper({ label, onPrev, onNext, prevDisabled, nextDisabled, prevLabel = '上一个月', nextLabel = '下一个月' }: { label: string; onPrev: () => void; onNext: () => void; prevDisabled?: boolean; nextDisabled?: boolean; prevLabel?: string; nextLabel?: string }) {
   return (
     <div className="stepper">
-      <button type="button" aria-label="上一个月" onClick={onPrev} disabled={prevDisabled}>
+      <button type="button" aria-label={prevLabel} onClick={onPrev} disabled={prevDisabled}>
         <ChevronLeft size={16} strokeWidth={1.6} />
       </button>
       <span>{label}</span>
-      <button type="button" aria-label="下一个月" onClick={onNext} disabled={nextDisabled}>
+      <button type="button" aria-label={nextLabel} onClick={onNext} disabled={nextDisabled}>
         <ChevronRight size={16} strokeWidth={1.6} />
       </button>
     </div>

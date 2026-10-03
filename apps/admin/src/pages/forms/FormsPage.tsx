@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { App, Button, Card, Input, Segmented, Space, Table } from 'antd';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Role, type FormDTO } from '@hgxt/shared';
 import { listForms } from '../../api/forms';
 import { useMe } from '../../api/hooks';
+import { TablePageFooter } from '../../components/PageNavigator';
 import { PageHeader } from '../../components/PageHeader';
+import { pagedViewportStyle } from '../../styles/pagedViewport';
 import './forms.css';
 
 export function FormsPage() {
@@ -19,11 +21,17 @@ export function FormsPage() {
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const tableRef = useRef<HTMLDivElement>(null);
   const query = useQuery({
     queryKey: ['forms', 'list', page, pageSize, keyword, category],
     queryFn: () => listForms({ page, pageSize, keyword, category }),
+    placeholderData: keepPreviousData,
   });
   useEffect(() => { if (query.error) message.error(query.error.message); }, [query.error, message]);
+  useLayoutEffect(() => {
+    const body = tableRef.current?.querySelector<HTMLElement>('.ant-table-body');
+    if (body) body.scrollTop = 0;
+  }, [page, pageSize, keyword, category]);
 
   return <>
     <PageHeader title="总览" />
@@ -49,9 +57,12 @@ export function FormsPage() {
         />
         <span className="hgxt-toolbar-meta">共 {query.data?.total ?? 0} 个标题</span>
       </div>
-      <Table<FormDTO>
+      <div ref={tableRef}><Table<FormDTO>
+        className="hgxt-paged-table"
+        style={pagedViewportStyle(pageSize, 55)}
         rowKey="id"
-        loading={query.isLoading}
+        loading={query.isFetching}
+        scroll={{ y: 'var(--hgxt-paged-viewport-height)', scrollToFirstRowOnChange: true }}
         dataSource={query.data?.items ?? []}
         columns={[
           { title: '标题', dataIndex: 'title', key: 'title', ellipsis: true, render: (title: string) => <span className="forms-list-title">{title}</span> },
@@ -70,14 +81,10 @@ export function FormsPage() {
             </Space>,
           },
         ]}
-        pagination={{
-          current: page,
-          pageSize,
-          total: query.data?.total ?? 0,
-          showSizeChanger: true,
-          onChange: (nextPage, nextSize) => { setPage(nextPage); setPageSize(nextSize); },
-        }}
-      />
+        pagination={false}
+      /></div>
+      <TablePageFooter page={page} pageSize={pageSize} total={query.data?.total ?? 0}
+        onChange={setPage} onPageSizeChange={(size) => { setPage(1); setPageSize(size); }} />
     </Card>
   </>;
 }

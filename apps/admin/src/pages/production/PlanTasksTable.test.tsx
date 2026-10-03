@@ -18,18 +18,22 @@ describe('计划与完成事项分页', () => {
     }));
   });
 
-  it('本周事项每页只显示 20 条，翻页不离开当前页面', () => {
+  it('本周事项每页最多 15 条，翻页不离开当前页面', () => {
     const { container } = render(<PlanTasksTable tasks={tasks} />);
     expect(screen.queryByRole('tab', { name: /全部/ })).toBeNull();
-    expect(screen.getByText('第 1–20 条 / 共 45 条')).toBeTruthy();
-    expect(screen.getByText('测试事项 20')).toBeTruthy();
-    expect(screen.queryByText('测试事项 21')).toBeNull();
+    expect(screen.getByText('第 1–15 条 / 共 45 条')).toBeTruthy();
+    expect(screen.getByText('测试事项 15')).toBeTruthy();
+    expect(screen.queryByText('测试事项 16')).toBeNull();
 
-    const next = container.querySelector<HTMLButtonElement>('.ant-pagination-next button');
+    const next = screen.getByRole<HTMLButtonElement>('button', { name: /下一页/ });
+    const viewport = container.querySelector<HTMLElement>('.plan-task-table-scroll');
     expect(next).not.toBeNull();
+    expect(viewport).not.toBeNull();
+    viewport!.scrollTop = 120;
     fireEvent.click(next!);
-    expect(screen.getByText('第 21–40 条 / 共 45 条')).toBeTruthy();
-    expect(screen.getByText('测试事项 21')).toBeTruthy();
-    expect(screen.queryByText('测试事项 20')).toBeNull();
+    expect(screen.getByText('第 16–30 条 / 共 45 条')).toBeTruthy();
+    expect(screen.getByText('测试事项 16')).toBeTruthy();
+    expect(screen.queryByText('测试事项 15')).toBeNull();
+    expect(viewport!.scrollTop).toBe(0);
   });
 });

@@ -23,6 +23,79 @@
   color: var(--ink3);
 }
 
+/* Reusable stable region for pagination, filters and tabs with changing row counts. */
+.hgxt-paged-viewport,
+.hgxt-stable-viewport {
+  block-size: var(--hgxt-paged-viewport-height);
+  overflow: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line2) transparent;
+}
+
+.hgxt-paged-table .ant-table-body {
+  block-size: var(--hgxt-paged-viewport-height);
+}
+
+.hgxt-page-nav {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink2);
+  font-size: var(--ui-font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.hgxt-page-nav button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line2);
+  border-radius: var(--r-control);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.hgxt-page-nav button:hover:not(:disabled) { background: var(--hover); }
+.hgxt-page-nav button:disabled { color: var(--ink3); cursor: default; }
+.hgxt-page-nav button:focus-visible,
+.hgxt-page-nav input:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.hgxt-page-nav-position { white-space: nowrap; }
+.hgxt-page-nav-position input {
+  width: 52px;
+  height: 36px;
+  padding: 0 4px;
+  border: 1px solid var(--line2);
+  border-radius: var(--r-control);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.hgxt-table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--line);
+}
+
+.hgxt-table-pagination-count { margin-right: auto; color: var(--ink2); font-size: var(--ui-font-size-sm); }
+.hgxt-table-page-size { height: 36px; padding: 0 8px; border: 1px solid var(--line2); border-radius: var(--r-control); background: var(--bg); color: var(--ink2); font: inherit; font-size: var(--ui-font-size-sm); }
+
+@media (max-width: 600px) {
+  .hgxt-page-nav button { padding: 0 8px; }
+  .hgxt-page-nav button span { display: none; }
+}
+
 /* ① 模块轨 68px */
 .hgxt-rail {
   display: flex;
@@ -295,6 +368,12 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hgxt-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 .hgxt-page {

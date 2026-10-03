@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { App as AntApp } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Bell, Calendar, X } from 'lucide-react';
 import { materialsSummary } from '../../api/production';
+import { stableViewportStyle } from '../../styles/pagedViewport';
 import { Dash, ExportButton, Seg, downloadCsv, fmt } from './dash-ui';
 
 /** 可用天数进度条颜色（design/13：<7 天琥珀、<3 天红） */
@@ -20,6 +21,10 @@ export function MaterialsPage() {
 
   const data = query.data;
   const [filter, setFilter] = useState('all');
+  const rawScrollRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (rawScrollRef.current) rawScrollRef.current.scrollTop = 0;
+  }, [filter]);
   const all = data?.rawMaterials ?? [];
   const raws = all.filter((r) => (filter === 'alert' ? r.alert : true));
   const alertCount = all.filter((r) => r.alert).length;
@@ -58,6 +63,7 @@ export function MaterialsPage() {
             />
           </div>
         </div>
+        <div className="hgxt-stable-viewport" ref={rawScrollRef} style={stableViewportStyle(8, 36, 40)}>
         <table className="dt">
           <thead>
             <tr>
@@ -95,6 +101,7 @@ export function MaterialsPage() {
           </tbody>
         </table>
         {!raws.length ? <div className="empty">{query.isLoading ? '加载中…' : '没有需要预警的物料'}</div> : null}
+        </div>
       </div>
 
       <div className="enter d2" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 16, marginTop: 16, alignItems: 'start' }}>

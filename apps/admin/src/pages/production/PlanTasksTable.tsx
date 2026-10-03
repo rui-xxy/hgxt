@@ -1,7 +1,9 @@
-import { useMemo, useState, type ReactNode } from 'react';
-import { Input, Pagination, Popover } from 'antd';
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Input, Popover } from 'antd';
 import { Filter } from 'lucide-react';
 import type { PlanTask } from '@hgxt/shared';
+import { PageNavigator } from '../../components/PageNavigator';
+import { pagedViewportStyle } from '../../styles/pagedViewport';
 import {
   EMPTY_TASK_FILTERS, EMPTY_TASK_VALUE, TASK_PAGE_SIZE, filterPlanTasks,
   type TaskFilters, type TaskTab,
@@ -60,6 +62,7 @@ export function PlanTasksTable({ tasks }: { tasks: PlanTask[] }) {
   const [filters, setFilters] = useState<TaskFilters>(EMPTY_TASK_FILTERS);
   const [openFilter, setOpenFilter] = useState<FilterColumn | null>(null);
   const [page, setPage] = useState(1);
+  const tableScrollRef = useRef<HTMLDivElement>(null);
   const filtered = useMemo(() => filterPlanTasks(tasks, tab, filters), [tasks, tab, filters]);
   const tabTotal = useMemo(() => filterPlanTasks(tasks, tab, EMPTY_TASK_FILTERS).length, [tasks, tab]);
   const importanceOptions = useMemo(() => optionsFor(tasks, 'importance'), [tasks]);
@@ -68,6 +71,10 @@ export function PlanTasksTable({ tasks }: { tasks: PlanTask[] }) {
   const pageRows = filtered.slice((currentPage - 1) * TASK_PAGE_SIZE, currentPage * TASK_PAGE_SIZE);
   const hasFilters = Object.values(filters).some(Boolean);
   const count = (predicate: (task: PlanTask) => boolean) => tasks.filter(predicate).length;
+
+  useLayoutEffect(() => {
+    if (tableScrollRef.current) tableScrollRef.current.scrollTop = 0;
+  }, [currentPage, tab, filters]);
 
   const update = (patch: Partial<TaskFilters>) => {
     setFilters((previous) => ({ ...previous, ...patch }));
@@ -94,7 +101,7 @@ export function PlanTasksTable({ tasks }: { tasks: PlanTask[] }) {
       </div>
       {hasFilters && <button type="button" className="plan-task-clear-all" onClick={() => { setFilters(EMPTY_TASK_FILTERS); setPage(1); setOpenFilter(null); }}>清除筛选</button>}
     </div>
-    <div className="plan-task-table-scroll">
+    <div className="plan-task-table-scroll hgxt-paged-viewport" ref={tableScrollRef} style={pagedViewportStyle(TASK_PAGE_SIZE, 44, 34)}>
       <div className="plan-task-table-inner">
         <div className="trow th plan-task-table-head" style={{ gridTemplateColumns: TASK_COLUMNS }}>
           {header('status', '状态', Boolean(filters.status), () => update({ status: '' }),
@@ -116,20 +123,19 @@ export function PlanTasksTable({ tasks }: { tasks: PlanTask[] }) {
         </div>
         {pageRows.length ? pageRows.map((task, index) => <div className="trow" key={`${currentPage}-${index}-${task.matter}`} style={{ gridTemplateColumns: TASK_COLUMNS }}>
           <div><span className={`st ${task.status === 'done' ? 'st-ok' : task.status === 'late' ? 'st-bad' : task.status === 'doing' ? 'st-warn' : 'st-mute'}`}>{STATUS_LABELS[task.status]}</span></div>
-          <span className="plan-task-truncate" title={task.matter} style={{ fontWeight: 500 }}>{task.matter}</span>
+          <span className="plan-task-wrap" style={{ fontWeight: 500 }}>{task.matter}</span>
           <span className="muted plan-task-truncate" title={task.department}>{task.department || '—'}</span>
           <span className="muted plan-task-truncate" title={task.importance}>{task.importance || '—'}</span>
           <span className="plan-task-truncate" title={task.owner}>{task.owner || '—'}</span>
           <span className="num">{task.dueDate?.slice(5) ?? '—'}</span>
           <span className="muted plan-task-truncate" title={task.progress}>{task.progress || '—'}</span>
-          <span className="faint plan-task-truncate" title={task.completionNote}>{task.completionNote || '—'}</span>
+          <span className="faint plan-task-wrap">{task.completionNote || '—'}</span>
         </div>) : <div className="empty plan-task-empty">{hasFilters ? '没有符合筛选条件的事项' : '暂无事项'}</div>}
       </div>
     </div>
     <div className="plan-task-footer">
       <span>{filtered.length ? `第 ${(currentPage - 1) * TASK_PAGE_SIZE + 1}–${Math.min(currentPage * TASK_PAGE_SIZE, filtered.length)} 条 / 共 ${filtered.length} 条` : '共 0 条'}{hasFilters ? ` · 筛选前 ${tabTotal} 条` : ''}</span>
-      {filtered.length > TASK_PAGE_SIZE && <Pagination size="small" current={currentPage} pageSize={TASK_PAGE_SIZE} total={filtered.length}
-        showSizeChanger={false} showLessItems onChange={setPage} />}
+      {filtered.length > TASK_PAGE_SIZE && <PageNavigator page={currentPage} pageSize={TASK_PAGE_SIZE} total={filtered.length} onChange={setPage} />}
     </div>
   </div>;
 }

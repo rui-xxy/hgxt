@@ -7,6 +7,7 @@
 3. **技术栈已冻结**（见 docs/architecture.md），不要提议换框架/ORM/数据库。
 4. **测试库是 hgxt_test**（127.0.0.1:5433，Docker 容器 hgxt-postgres）。API 集成测试会清库重建数据，绝不连开发库 hgxt。
 5. 改 schema 后：`npx prisma migrate dev --name <名称>`（在 apps/api 下）+ 重新 generate + 跑全部测试。
+6. **交互切换要保持布局稳定**：对会切换行数的表格、长数字或说明、异步年份切换，按 `docs/layout-stability.md` 预留显示区域并检查长短、空态和窄屏；不要让分页控件或相邻卡片随内容跳动。
 
 ## 项目速览
 

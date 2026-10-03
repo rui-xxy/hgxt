@@ -477,13 +477,13 @@ export interface PlanWorkshopRow {
   basis: string;
   /** 年度计划 t */
   annual: number;
-  /** 12 个月计划 t；manual=false 表示按天数自动拆分 */
-  months: Array<{ value: number; manual: boolean }>;
-  /** 月合计（校验用，≠ annual 时前端标红） */
+  /** 12 个月独立录入的计划 t；null 表示未填写 */
+  months: Array<number | null>;
+  /** 已填写月计划的合计 */
   monthTotal: number;
 }
 
-/** 单耗目标行 */
+/** 每项单耗的上限；空 target 表示不设置 */
 export interface PlanTargetRow {
   workshop: string;
   material: string;
@@ -499,9 +499,9 @@ export interface PlanSettingsResult {
 
 export interface PlanSettingsSaveBody {
   year: number;
-  /** 每车间年度值与 12 个月手工值（null=清除手工、回到自动拆分） */
+  /** 每车间年度值与 12 个月计划值（null=未填写） */
   rows: Array<{ workshop: string; annual: number; months: Array<number | null> }>;
-  /** 单耗目标一并保存：与计划在同一个事务里落库 */
+  /** 单耗上限一并保存：与计划在同一个事务里落库 */
   targets: PlanTargetRow[];
 }
 
@@ -577,13 +577,11 @@ export interface PlanConsumptionRow {
   current: number | null;
   /** 上月单耗 */
   lastMonth: number | null;
-  /** 目标（来自 ConsumptionTarget，区间/上限文本） */
+  /** 单耗上限，用“≤ 数值”展示 */
   target: string | null;
-  /** 目标区间下限数值（"85 – 95" 解析为 85）；单上限（≤ x）为 null */
-  targetMin: number | null;
-  /** 目标上限数值（可解析时），用于偏离计算 */
+  /** 上限数值，用于偏离计算 */
   targetMax: number | null;
-  /** 区间外偏离：超上限为正、低于下限为负、区间内为 0（单上限只看上限） */
+  /** 相对上限偏离：低于上限为负，高于上限为正 */
   deviationPct: number | null;
 }
 
@@ -617,5 +615,6 @@ export interface ProductionPlanBoardResult {
   tasks: PlanTask[];
 }
 
-export { daysInYear, daysInMonth, splitAnnual, parsePlanTarget, planTargetDeviation } from './planning.js';
-export type { PlanTargetRange } from './planning.js';
+export { daysInYear, parsePlanUpperLimit } from './planning.js';
+export { PLAN_TARGET_CATALOG } from './plan-targets.js';
+export type { PlanTargetCategory, PlanTargetMetric } from './plan-targets.js';

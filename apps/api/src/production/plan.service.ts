@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { daysInYear, parsePlanTarget, planTargetDeviation, splitAnnual } from '@hgxt/shared';
+import { daysInYear, parsePlanUpperLimit, PLAN_TARGET_CATALOG } from '@hgxt/shared';
 import type {
   FormData,
   FormField,
@@ -22,8 +22,8 @@ import { OverviewService } from './overview.service';
  * 口径（design/plan/02）：
  *   时间进度 = 已过天数 ÷ 全年天数（已结束年度恒为 100%）；按进度应完成 = 年度计划 × 时间进度
  *   达成 = 累计完成率 ≥ 时间进度（±2 个百分点显示「持平」）
- *   月度自动拆分 = largest-remainder（合计严格等于年度）；手工值覆盖
- *   单耗目标支持区间（85 – 95）与上限（≤ 0.66）：区间内偏离为 0
+ *   年度与月度计划分别录入；未填写的月份没有计划值
+ *   单耗目标只设置上限；旧区间数据沿用其上限
  */
 const PLAN_WORKSHOPS: Array<{ workshop: string; basis: string; code: string }> = [
   { workshop: '硫酸', basis: '折 98% 硫酸', code: 'sulfuric' },
@@ -32,18 +32,6 @@ const PLAN_WORKSHOPS: Array<{ workshop: string; basis: string; code: string }> =
   { workshop: '水滑石', basis: '4 牌号合计', code: 'hydrotalcite' },
   { workshop: '二乙基蒽醌', basis: '精品', code: 'anthraquinone' },
   { workshop: '丰联', basis: '焦磷酸哌嗪', code: 'fenglian' },
-];
-
-/** 单耗目标默认行（design/plan/02；库里无记录时展示，保存后以库为准） */
-const DEFAULT_TARGETS: PlanTargetRow[] = [
-  { workshop: '硫酸', material: '电', unit: 'kWh/t', target: '85 – 95' },
-  { workshop: '硫酸', material: '硫铁矿', unit: 't/t', target: '1.55 – 1.62' },
-  { workshop: '氨基磺酸', material: '尿素', unit: 't/t', target: '≤ 0.660' },
-  { workshop: '氨基磺酸', material: '蒸汽', unit: 't/t', target: '1.35 – 1.55' },
-  { workshop: '硫酸镁', material: '氧化镁', unit: 't/t', target: '≤ 0.200' },
-  { workshop: '水滑石', material: '蒸汽', unit: 't/t', target: '≤ 2.20' },
-  { workshop: '二乙基蒽醌', material: '苯酐', unit: 't/t', target: '≤ 1.10' },
-  { workshop: '丰联', material: '85%磷酸', unit: 't/t', target: '≤ 0.95' },
 ];
 
 const CODE_MATTERS = 'matters_2026';
@@ -72,17 +60,11 @@ export class PlanService {
     workshop: string,
     basis: string,
     plan: { annual: number; months: unknown } | undefined,
-    year: number,
   ): PlanWorkshopRow {
     const annual = plan?.annual ?? 0;
     const monthsRaw = (plan?.months as Record<string, number | null> | null) ?? {};
-    // 自动拆分用 largest-remainder：12 个月合计严格等于年度值（逐月四舍五入会累计误差）
-    const auto = splitAnnual(annual, year);
-    const months = Array.from({ length: 12 }, (_, i) => {
-      const manual = monthsRaw[String(i + 1)] != null;
-      return { value: manual ? Number(monthsRaw[String(i + 1)]) : auto[i], manual };
-    });
-    return { workshop, basis, annual, months, monthTotal: months.reduce((s, m) => s + m.value, 0) };
+    const months = Array.from({ length: 12 }, (_, i) => PlanService.toNum(monthsRaw[String(i + 1)]));
+    return { workshop, basis, annual, months, monthTotal: months.reduce<number>((s, m) => s + (m ?? 0), 0) };
   }
 
   async getSettings(year: number): Promise<PlanSettingsResult> {
@@ -92,17 +74,19 @@ export class PlanService {
     ]);
     const rows = PLAN_WORKSHOPS.map((w) => {
       const plan = plans.find((p) => p.workshop === w.workshop);
-      return this.buildPlanRow(w.workshop, w.basis, plan, year);
+      return this.buildPlanRow(w.workshop, w.basis, plan);
     });
-    const savedTargets = new Map(
-      targets.map((t) => [`${t.workshop}|${t.material}`, { workshop: t.workshop, material: t.material, unit: t.unit, target: t.target }]),
-    );
-    const targetRows: PlanTargetRow[] = DEFAULT_TARGETS.map((t) => savedTargets.get(`${t.workshop}|${t.material}`) ?? { ...t });
-    const defaultKeys = new Set(DEFAULT_TARGETS.map((t) => `${t.workshop}|${t.material}`));
-    for (const t of targets) {
-      const key = `${t.workshop}|${t.material}`;
-      if (!defaultKeys.has(key)) targetRows.push({ workshop: t.workshop, material: t.material, unit: t.unit, target: t.target });
-    }
+    const savedTargets = new Map(targets.map((t) => [`${t.workshop}|${t.material}`, t.target]));
+    const targetRows: PlanTargetRow[] = PLAN_TARGET_CATALOG.map((metric) => {
+      const saved = savedTargets.get(`${metric.workshop}|${metric.material}`);
+      const upper = parsePlanUpperLimit(saved ?? metric.defaultLimit ?? '');
+      return {
+        workshop: metric.workshop,
+        material: metric.material,
+        unit: metric.unit,
+        target: upper !== null && upper > 0 ? String(upper) : '',
+      };
+    });
     return { year, rows, targets: targetRows };
   }
 
@@ -125,12 +109,16 @@ export class PlanService {
         }
       }
     }
+    const targetKeys = new Set<string>();
     for (const t of body.targets ?? []) {
-      const knownWorkshop = known.has(t.workshop);
-      const parsed = typeof t.target === 'string' ? parsePlanTarget(t.target) : { min: null, max: null };
-      if (!knownWorkshop || !t.material || !t.unit || typeof t.target !== 'string' || t.target.length > 40 || parsed.max === null) {
-        throw new BadRequestException('单耗目标格式无效：车间/指标/单位不能为空，目标需为如 ≤ 0.660 或 85 – 95 的数值上限/区间');
+      const key = `${t.workshop}|${t.material}`;
+      const metric = PLAN_TARGET_CATALOG.find((item) => item.workshop === t.workshop && item.material === t.material);
+      const value = typeof t.target === 'string' ? t.target.trim() : '';
+      if (!metric || metric.unit !== t.unit || targetKeys.has(key) || typeof t.target !== 'string' || t.target.length > 40 ||
+        (value !== '' && (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(value) || Number(value) <= 0 || !Number.isFinite(Number(value))))) {
+        throw new BadRequestException('单耗上限必须是对应指标的正数，留空表示不设置');
       }
+      targetKeys.add(key);
     }
   }
 
@@ -152,8 +140,8 @@ export class PlanService {
       for (const t of body.targets ?? []) {
         await tx.consumptionTarget.upsert({
           where: { workshop_material: { workshop: t.workshop, material: t.material } },
-          create: { workshop: t.workshop, material: t.material, unit: t.unit, target: t.target },
-          update: { unit: t.unit, target: t.target },
+          create: { workshop: t.workshop, material: t.material, unit: t.unit, target: t.target.trim() === '' ? '' : String(Number(t.target)) },
+          update: { unit: t.unit, target: t.target.trim() === '' ? '' : String(Number(t.target)) },
         });
       }
     });
@@ -259,11 +247,7 @@ export class PlanService {
         .reduce((s, [, v]) => s + v, 0)
         .toFixed(1);
       const currentMonthPlan = currentMonth ? plan.months[Number(currentMonth.slice(5)) - 1] : undefined;
-      // 月度计划与年度计划是两个独立口径：年度为 0 时，手工填写的月计划仍必须在看板生效。
-      // 未手工填写且年度为 0 的自动 0 值仍视为“未设计划”。
-      const monthPlan = currentMonthPlan && (plan.annual > 0 || currentMonthPlan.manual)
-        ? currentMonthPlan.value
-        : null;
+      const monthPlan = currentMonthPlan ?? null;
       const yearRate = plan.annual > 0 ? +((yearActual / plan.annual) * 100).toFixed(1) : null;
       const expected = plan.annual > 0 && timeProgress ? +((plan.annual * timeProgress.pct) / 100).toFixed(1) : null;
       const statusPoints = yearRate !== null && timeProgress
@@ -271,8 +255,7 @@ export class PlanService {
         : null;
       const months = Array.from({ length: 12 }, (_, i) => {
         const key = `${year}-${String(i + 1).padStart(2, '0')}`;
-        const planMonth = plan.months[i];
-        const planValue = plan.annual > 0 || planMonth.manual ? planMonth.value : null;
+        const planValue = plan.months[i];
         const actual = monthly.has(key) ? +(monthly.get(key)!).toFixed(1) : null;
         return {
           month: i + 1,
@@ -439,8 +422,8 @@ export class PlanService {
       const useLast = usageByMonth.get(lastMonthKey) ?? null;
       const current = useThis !== null && prodThis > 0 ? +(useThis / prodThis).toFixed(3) : null;
       const lastMonth = useLast !== null && prodLast > 0 ? +(useLast / prodLast).toFixed(3) : null;
-      const target = targetOf.get(`${workshop}|${material}`)?.target ?? null;
-      const { min: targetMin, max: targetMaxNumber } = parsePlanTarget(target);
+      const targetValue = targetOf.get(`${workshop}|${material}`)?.target ?? '';
+      const targetMaxNumber = parsePlanUpperLimit(targetValue);
       return {
         workshop,
         material,
@@ -449,10 +432,11 @@ export class PlanService {
         monthUsage: current !== null && prodThis > 0 ? +(current * prodThis).toFixed(1) : useThis !== null ? +useThis.toFixed(1) : null,
         current,
         lastMonth,
-        target,
-        targetMin,
+        target: targetMaxNumber !== null ? `≤ ${targetValue}` : null,
         targetMax: targetMaxNumber,
-        deviationPct: planTargetDeviation(current, { min: targetMin, max: targetMaxNumber }),
+        deviationPct: current !== null && targetMaxNumber !== null
+          ? +(((current / targetMaxNumber) - 1) * 100).toFixed(1)
+          : null,
       };
     };
     const seriesUsageByMonth = (values: Array<number | null>): Map<string, number> =>
@@ -469,7 +453,7 @@ export class PlanService {
     }
     for (const s of energy.water.workshops) {
       const workshop = s.name.replace('·总水表', '') === '蒽醌' ? '二乙基蒽醌' : s.name.replace('·总水表', '');
-      energyConsumption.push(consumptionOf(workshop, '水', 't', 't/t', seriesUsageByMonth(s.values)));
+      energyConsumption.push(consumptionOf(workshop, '水', 'm³', 'm³/t', seriesUsageByMonth(s.values)));
     }
     // 蒽醌天然气（表差 ×1）
     {

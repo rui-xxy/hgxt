@@ -116,7 +116,7 @@ model Meter {
   formCode   String  @default("sulfuric_daily")
 }
 
-// 生产计划：年度计划录入后按天数自动拆到各月，months 存手工值（null=自动拆分）
+// 生产计划：年度计划与各月计划分别录入，months 的 null 表示未填写
 // 计划与完成看板按 year+workshop 取计划，实际值全部从表单现算
 
 model ProductionPlan {
@@ -126,7 +126,7 @@ model ProductionPlan {
   workshop  String
   /// 年度计划（t）
   annual    Float    @default(0)
-  /// 12 个月的手工计划值：{"1": 8600, ...}，缺省/null = 按天数自动拆分
+  /// 12 个月的计划值：{"1": 8600, ...}，缺省/null = 未填写
   months    Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -134,7 +134,7 @@ model ProductionPlan {
   @@unique([year, workshop])
 }
 
-// 单耗目标（对标与预警）：目标值是区间/上限文本（"85 – 95"、"≤ 0.660"），不做数值解析
+// 单耗上限（对标与预警）：旧区间目标仅使用上限值
 
 model ConsumptionTarget {
   id        String   @id @default(uuid())
@@ -143,7 +143,7 @@ model ConsumptionTarget {
   material  String
   /// 单耗单位：kWh/t、t/t、m³/t、kg/t
   unit      String
-  /// 目标文本（区间或上限），原样展示
+  /// 上限数值文本；空字符串表示未设置
   target    String   @default("")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

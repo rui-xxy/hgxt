@@ -20,6 +20,7 @@
 .forms-sheet-notice { padding: 8px 16px; color: var(--ant-color-text-secondary); border-bottom: 1px solid var(--ant-color-border-secondary); font-size: var(--ui-font-size-sm); }
 .forms-sheet-pagination { display: flex; justify-content: flex-end; padding: 10px 16px; border-top: 1px solid var(--ant-color-border-secondary); }
 .forms-sheet-scroll { overflow: auto; max-height: calc(100vh - 300px); }
+.forms-sheet-scroll.hgxt-paged-viewport { max-height: none; }
 .forms-sheet-table { border-spacing: 0; table-layout: fixed; width: 100%; color: var(--ant-color-text); }
 .forms-sheet-table th,
 .forms-sheet-table td { box-sizing: border-box; border-right: 1px solid var(--ant-color-border-secondary); border-bottom: 1px solid var(--ant-color-border-secondary); text-align: center; white-space: nowrap; overflow: hidden; }

@@ -275,7 +275,7 @@ body{margin:0;background:#F6F6F4}
 
 .pg{position:relative;height:8px;border-radius:4px;background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line)}
 .pg>i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
-.pg>b{position:absolute;top:-4px;bottom:-4px;width:2px;border-radius:1px;background:var(--ink)}
+.pg>s{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:repeating-linear-gradient(135deg,#C4C4BE 0 2px,transparent 2px 5px)}
 .prow{display:grid;align-items:center;gap:14px;min-height:54px;padding:0 8px;border-bottom:1px solid var(--line);font-size:13px;font-variant-numeric:tabular-nums}
 .prow:hover{background:var(--hover)}
 .prow>.r{text-align:right}
@@ -315,7 +315,7 @@ body{margin:0;background:#F6F6F4}
 .chipbtn.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .ubar{position:relative;height:6px;border-radius:3px;background:var(--sunken)}
 .ubar i{position:absolute;top:0;bottom:0;border-radius:3px}
-.ubar b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);border-radius:1px}
+.ubar b{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--line2)}
 
 .wkgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .wkc{border:1px solid var(--line);border-radius:14px;padding:16px 16px 12px;background:var(--surface);transition:border-color .14s,box-shadow .14s}
@@ -341,8 +341,8 @@ body{margin:0;background:#F6F6F4}
 .mt .gl{position:absolute;left:44px;right:0;height:1px;background:var(--line)}
 .mt .yl{position:absolute;left:0;width:36px;text-align:right;font-size:11px;color:var(--ink3);transform:translateY(-50%);font-variant-numeric:tabular-nums}
 .mt .mb{position:absolute;border-radius:5px 5px 0 0;transition:background .14s}
-.mt .mp{position:absolute;height:0;border-top:2px solid var(--ink);opacity:.75;pointer-events:none}
-.mt .mg{position:absolute;border:1.5px dashed var(--line2);border-bottom:0;border-radius:5px 5px 0 0;pointer-events:none}
+.mt .mp{position:absolute;border-radius:6px 6px 0 0;background:#EFEFEC;box-shadow:inset 0 0 0 1px var(--line2);pointer-events:none}
+.mt .mg{position:absolute;border:1.5px dashed var(--line2);border-bottom:0;border-radius:6px 6px 0 0;pointer-events:none}
 .mt .mv{position:absolute;transform:translateX(-50%);font-size:11px;font-weight:600;white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums}
 .mt .ml{position:absolute;transform:translateX(-50%);text-align:center;font-size:11.5px;color:var(--ink2);white-space:nowrap;line-height:1.35;pointer-events:none}
 .mt .ml b{display:block;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -381,68 +381,68 @@ body{margin:0;background:#F6F6F4}
   <button class="btn ghost sm"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path><path d="M12 15V3"></path></svg>导出</button>
 </div>
 <div class="kpis enter d1" style="grid-template-columns: repeat(4, minmax(0, 1fr))">
-  <div class="kpi"><div class="kl">年度时间进度</div><div class="kv">74.8<small>%</small></div><div style="margin-top: 8px"><div class="pg"><i style="width: 74.8%; background: var(--ink3)"></i><b style="left: calc(74.8% - 1px)"></b></div></div><div class="kd" style="margin-top: 6px">第 273 天 / 365 天</div></div>
+  <div class="kpi"><div class="kl">年度时间进度</div><div class="kv">74.8<small>%</small></div><div style="margin-top: 8px"><div class="pg"><s style="width: 74.8%"></s><i style="width: 74.8%; background: var(--ink3)"></i></div></div><div class="kd" style="margin-top: 6px">第 273 天 / 365 天</div></div>
   <div class="kpi"><div class="kl">年度进度达标车间</div><div class="kv">3<small>/ 6</small></div><div class="kd" style="margin-top: 6px">持平 1（氨基磺酸）</div><div class="kd">滞后 2：水滑石、丰联</div></div>
   <div class="kpi"><div class="kl">9 月计划完成车间</div><div class="kv">3<small>/ 6</small></div><div class="kd" style="margin-top: 6px">未完成：氨基磺酸 98.0%</div><div class="kd">水滑石 85.0% · 蒽醌 96.0%</div></div>
   <div class="kpi"><div class="kl">本周事项</div><div class="kv">5<small>/ 8 已完成</small></div><div class="kd" style="margin-top: 6px"><span class="dn">1 项逾期</span> · 2 项进行中</div><div class="kd">下周计划 4 项</div></div>
 </div>
 <div class="card enter d2" style="margin-top: 16px; padding: 18px 20px 8px">
-  <div class="ct" style="margin-bottom: 14px"><b style="font-size: 15px">计划完成</b><span>完成率进度条上的黑色竖线：月度为 100%，年度为时间进度 74.8%</span>
+  <div class="ct" style="margin-bottom: 14px"><b style="font-size: 15px">计划完成</b><span>月度满格 = 100%；年度斜纹 = 按时间进度 74.8% 应完成，实色超过斜纹即超前</span>
     <div class="r"><button class="btn secondary sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><path d="M20 7h-9"></path><path d="M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg>编辑计划</button></div></div>
   <div class="ghd" style="grid-template-columns: 128px 64px 64px minmax(0, 1fr) 4px 76px 76px minmax(0, 1.2fr) 72px 92px"><div style="border: 0"></div><div style="grid-column: span 3">9 月</div><div style="border: 0"></div><div style="grid-column: span 5">2026 年度</div></div>
   <div class="prow phead" style="grid-template-columns: 128px 64px 64px minmax(0, 1fr) 4px 76px 76px minmax(0, 1.2fr) 72px 92px"><div>车间 / 产品</div><div class="r">计划</div><div class="r">完成</div><div>完成率</div><div></div><div class="r">年计划</div><div class="r">累计完成</div><div>完成率</div><div class="r">按进度</div><div class="r">较时间进度</div></div>
   <div class="prow" style="grid-template-columns: 128px 64px 64px minmax(0, 1fr) 4px 76px 76px minmax(0, 1.2fr) 72px 92px">
   <div><div style="font-weight: 600">硫酸</div><div class="faint" style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">折 98% 硫酸</div></div>
   <div class="r muted">9,500</div><div class="r" style="font-weight: 600">10,069</div>
-  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 100.0%; background: #2F55A4"></i><b style="left: calc(100.0% - 1px)"></b></div><span class="r" style="font-weight: 600">106.0%</span></div>
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 100.0%; background: #2F55A4"></i></div><span class="r" style="font-weight: 600">106.0%</span></div>
   <div></div>
   <div class="r muted">110,000</div><div class="r" style="font-weight: 600">84,620</div>
-  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 76.9%; background: #2F55A4"></i><b style="left: calc(74.8% - 1px)"></b></div><span class="r" style="font-weight: 600">76.9%</span></div>
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><s style="width: 74.8%"></s><i style="width: 76.9%; background: #2F55A4"></i></div><span class="r" style="font-weight: 600">76.9%</span></div>
   <div class="r up" style="font-size: 12.5px">超 2,346</div>
   <div class="r"><span class="st st-ok"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;transform: rotate(-45deg)"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>超前 2.1</span></div>
 </div><div class="prow" style="grid-template-columns: 128px 64px 64px minmax(0, 1fr) 4px 76px 76px minmax(0, 1.2fr) 72px 92px">
   <div><div style="font-weight: 600">氨基磺酸</div><div class="faint" style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">氨基磺酸</div></div>
   <div class="r muted">800</div><div class="r" style="font-weight: 600">784</div>
-  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 98.0%; background: #C98500"></i><b style="left: calc(100.0% - 1px)"></b></div><span class="r" style="font-weight: 600">98.0%</span></div>
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 98.0%; background: #C98500"></i></div><span class="r" style="font-weight: 600">98.0%</span></div>
   <div></div>
   <div class="r muted">9,600</div><div class="r" style="font-weight: 600">7,050</div>
-  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 73.4%; background: #2F55A4"></i><b style="left: calc(74.8% - 1px)"></b></div><span class="r" style="font-weight: 600">73.4%</span></div>
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><s style="width: 74.8%"></s><i style="width: 73.4%; background: #2F55A4"></i></div><span class="r" style="font-weight: 600">73.4%</span></div>
   <div class="r dn" style="font-size: 12.5px">欠 130</div>
   <div class="r"><span class="st st-mute">持平 -1.4</span></div>
 </div><div class="prow" style="grid-template-columns: 128px 64px 64px minmax(0, 1fr) 4px 76px 76px minmax(0, 1.2fr) 72px 92px">
   <div><div style="font-weight: 600">硫酸镁</div><div class="faint" style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">硫酸镁</div></div>
   <div class="r muted">1,250</div><div class="r" style="font-weight: 600">1,271</div>
-  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 100.0%; background: #2F55A4"></i><b style="left: calc(100.0% - 1px)"></b></div><span class="r" style="font-weight: 600">101.7%</span></div>
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 100.0%; background: #2F55A4"></i></div><span class="r" style="font-weight: 600">101.7%</span></div>
   <div></div>
   <div class="r muted">15,000</div><div class="r" style="font-weight: 600">11,420</div>
-  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 76.1%; background: #2F55A4"></i><b style="left: calc(74.8% - 1px)"></b></div><span class="r" style="font-weight: 600">76.1%</span></div>
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><s style="width: 74.8%"></s><i style="width: 76.1%; background: #2F55A4"></i></div><span class="r" style="font-weight: 600">76.1%</span></div>
   <div class="r up" style="font-size: 12.5px">超 201</div>
   <div class="r"><span class="st st-ok"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;transform: rotate(-45deg)"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>超前 1.3</span></div>
 </div><div class="prow" style="grid-template-columns: 128px 64px 64px minmax(0, 1fr) 4px 76px 76px minmax(0, 1.2fr) 72px 92px">
   <div><div style="font-weight: 600">水滑石</div><div class="faint" style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">4 牌号合计</div></div>
   <div class="r muted">300</div><div class="r" style="font-weight: 600">255</div>
-  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 85.0%; background: var(--danger)"></i><b style="left: calc(100.0% - 1px)"></b></div><span class="r" style="font-weight: 600">85.0%</span></div>
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 85.0%; background: var(--danger)"></i></div><span class="r" style="font-weight: 600">85.0%</span></div>
   <div></div>
   <div class="r muted">3,600</div><div class="r" style="font-weight: 600">2,410</div>
-  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 66.9%; background: var(--danger)"></i><b style="left: calc(74.8% - 1px)"></b></div><span class="r" style="font-weight: 600">66.9%</span></div>
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><s style="width: 74.8%"></s><i style="width: 66.9%; background: var(--danger)"></i></div><span class="r" style="font-weight: 600">66.9%</span></div>
   <div class="r dn" style="font-size: 12.5px">欠 283</div>
   <div class="r"><span class="st st-bad">滞后 7.9</span></div>
 </div><div class="prow" style="grid-template-columns: 128px 64px 64px minmax(0, 1fr) 4px 76px 76px minmax(0, 1.2fr) 72px 92px">
   <div><div style="font-weight: 600">二乙基蒽醌</div><div class="faint" style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">精品</div></div>
   <div class="r muted">100</div><div class="r" style="font-weight: 600">96</div>
-  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 96.0%; background: #C98500"></i><b style="left: calc(100.0% - 1px)"></b></div><span class="r" style="font-weight: 600">96.0%</span></div>
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 96.0%; background: #C98500"></i></div><span class="r" style="font-weight: 600">96.0%</span></div>
   <div></div>
   <div class="r muted">1,200</div><div class="r" style="font-weight: 600">905</div>
-  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 75.4%; background: #2F55A4"></i><b style="left: calc(74.8% - 1px)"></b></div><span class="r" style="font-weight: 600">75.4%</span></div>
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><s style="width: 74.8%"></s><i style="width: 75.4%; background: #2F55A4"></i></div><span class="r" style="font-weight: 600">75.4%</span></div>
   <div class="r up" style="font-size: 12.5px">超 7</div>
   <div class="r"><span class="st st-ok"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;transform: rotate(-45deg)"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>超前 0.6</span></div>
 </div><div class="prow" style="grid-template-columns: 128px 64px 64px minmax(0, 1fr) 4px 76px 76px minmax(0, 1.2fr) 72px 92px">
   <div><div style="font-weight: 600">丰联</div><div class="faint" style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">焦磷酸哌嗪干料</div></div>
   <div class="r muted">150</div><div class="r" style="font-weight: 600">161</div>
-  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 100.0%; background: #2F55A4"></i><b style="left: calc(100.0% - 1px)"></b></div><span class="r" style="font-weight: 600">107.3%</span></div>
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 100.0%; background: #2F55A4"></i></div><span class="r" style="font-weight: 600">107.3%</span></div>
   <div></div>
   <div class="r muted">1,800</div><div class="r" style="font-weight: 600">1,236</div>
-  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><i style="width: 68.7%; background: var(--danger)"></i><b style="left: calc(74.8% - 1px)"></b></div><span class="r" style="font-weight: 600">68.7%</span></div>
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center"><div class="pg"><s style="width: 74.8%"></s><i style="width: 68.7%; background: var(--danger)"></i></div><span class="r" style="font-weight: 600">68.7%</span></div>
   <div class="r dn" style="font-size: 12.5px">欠 110</div>
   <div class="r"><span class="st st-bad">滞后 6.1</span></div>
 </div>
@@ -472,16 +472,15 @@ body{margin:0;background:#F6F6F4}
 </div>
 <div class="card enter d4" style="margin-top: 16px; padding: 18px 20px">
   <div class="ct" style="align-items: center; margin-bottom: 12px"><b style="font-size: 15px">月度完成趋势</b><span>2026 年 · {{ mt.prod }}</span>
-    <div class="r lg"><span><i style="background: #2F55A4"></i>达成</span><span><i style="background: #9FB3DC"></i>未达成</span><span><i style="width: 12px; height: 0; border-top: 2px solid var(--ink); border-radius: 0; vertical-align: 3px"></i>月计划</span><span><i style="background: transparent; border: 1px dashed var(--line2)"></i>待完成</span></div></div>
+    <div class="r lg"><span><i style="background: #2F55A4"></i>达成</span><span><i style="background: #9FB3DC"></i>未达成</span><span><i style="width: 12px; height: 10px; background: var(--sunken); box-shadow: inset 0 0 0 1px var(--line); border-radius: 3px 3px 0 0"></i>月计划（底柱）</span><span><i style="background: transparent; border: 1px dashed var(--line2)"></i>待完成</span></div></div>
   <div class="fbar" style="margin-bottom: 16px"><sc-for list="{{ mtf }}" as="f" hint-placeholder-count="6"><button class="chipbtn {{ f.cls }}" onClick="{{ f.pick }}">{{ f.name }}</button></sc-for></div>
   <div class="split">
     <div class="left">
       <div class="mt" style="width: {{ mt.W }}px; height: {{ mt.H }}px" onMouseLeave="{{ mtOff }}">
         <sc-for list="{{ mt.grid }}" as="g"><div class="gl" style="top: {{ g.y }}px"></div><div class="yl" style="top: {{ g.y }}px">{{ g.l }}</div></sc-for>
         <sc-for list="{{ mt.bars }}" as="b">
-          <sc-if value="{{ b.done }}" hint-placeholder-val="{{ true }}"><div class="mb" style="left: {{ b.x }}px; top: {{ b.y }}px; width: {{ b.w }}px; height: {{ b.h }}px; background: {{ b.bg }}"></div><div class="mv" style="left: {{ b.cx }}px; top: {{ b.vy }}px; color: {{ b.vc }}">{{ b.v }}</div></sc-if>
-          <sc-if value="{{ b.fut }}" hint-placeholder-val="{{ false }}"><div class="mg" style="left: {{ b.x }}px; top: {{ b.py }}px; width: {{ b.w }}px; height: {{ b.ph }}px"></div><div class="mv" style="left: {{ b.cx }}px; top: {{ b.gy }}px; color: var(--ink3); font-weight: 400">{{ b.gv }}</div></sc-if>
-          <div class="mp" style="left: {{ b.px }}px; width: {{ b.pw }}px; top: {{ b.py }}px"></div>
+          <sc-if value="{{ b.done }}" hint-placeholder-val="{{ true }}"><div class="mp" style="left: {{ b.px }}px; width: {{ b.pw }}px; top: {{ b.py }}px; height: {{ b.ph }}px"></div><div class="mb" style="left: {{ b.x }}px; top: {{ b.y }}px; width: {{ b.w }}px; height: {{ b.h }}px; background: {{ b.bg }}"></div><div class="mv" style="left: {{ b.cx }}px; top: {{ b.vy }}px; color: {{ b.vc }}">{{ b.v }}</div></sc-if>
+          <sc-if value="{{ b.fut }}" hint-placeholder-val="{{ false }}"><div class="mg" style="left: {{ b.px }}px; top: {{ b.py }}px; width: {{ b.pw }}px; height: {{ b.ph }}px"></div><div class="mv" style="left: {{ b.cx }}px; top: {{ b.gy }}px; color: var(--ink3); font-weight: 400">{{ b.gv }}</div></sc-if>
           <div class="ml" style="left: {{ b.cx }}px; top: {{ mt.ly }}px">{{ b.m }}<b class="{{ b.rc }}">{{ b.r }}</b></div>
         </sc-for>
         <sc-for list="{{ mt.hits }}" as="h"><div class="hit" style="left: {{ h.x }}px; width: {{ h.w }}px; height: {{ mt.ih }}px" onMouseEnter="{{ h.enter }}"></div></sc-for>
@@ -496,15 +495,15 @@ body{margin:0;background:#F6F6F4}
     <div class="right">
       <div class="faint" style="font-size: 12px">年度累计 · 截至 9 月</div>
       <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 2px"><span class="kv" style="font-size: 28px">{{ mt.ya }}</span><span class="faint" style="font-size: 13px">/ {{ mt.yp }} t</span></div>
-      <div style="margin: 12px 0 6px"><div class="pg" style="height: 10px"><i style="width: {{ mt.yr }}%; background: {{ mt.yc }}"></i><b style="left: calc({{ mt.tp }}% - 1px)"></b></div></div>
-      <div style="display: flex; justify-content: space-between; font-size: 12px"><span><b class="num" style="font-size: 13px">{{ mt.yrt }}</b> <span class="faint">完成率</span></span><span class="faint">时间进度 {{ mt.tpt }}</span></div>
+      <div style="margin: 12px 0 6px"><div class="pg" style="height: 10px"><s style="width: {{ mt.tp }}%"></s><i style="width: {{ mt.yr }}%; background: {{ mt.yc }}"></i></div></div>
+      <div style="display: flex; justify-content: space-between; font-size: 12px"><span><b class="num" style="font-size: 13px">{{ mt.yrt }}</b> <span class="faint">完成率</span></span><span class="faint"><i style="display: inline-block; width: 14px; height: 8px; border-radius: 2px; vertical-align: 0; margin-right: 5px; background: repeating-linear-gradient(135deg, #C4C4BE 0 2px, transparent 2px 5px)"></i>时间进度 {{ mt.tpt }}</span></div>
       <div class="stats" style="margin-top: 16px">
         <div><div class="sl">按当前速度预计全年</div><div class="sv">{{ mt.fc }} t</div><div class="{{ mt.fcc }}" style="font-size: 12px">{{ mt.fcr }}</div></div>
         <div><div class="sl">剩余 3 个月需月均</div><div class="sv">{{ mt.need }} t</div><div class="faint" style="font-size: 12px">近 3 月月均 {{ mt.r3 }} t</div></div>
       </div>
       <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line)">
         <div class="faint" style="font-size: 12px; margin-bottom: 4px">季度完成</div>
-        <sc-for list="{{ mt.q }}" as="q"><div class="qt"><span class="muted">{{ q.n }}</span><div class="pg"><i style="width: {{ q.w }}%; background: {{ q.c }}"></i><b style="left: calc(100% - 1px)"></b></div><span style="text-align: right; font-weight: 600">{{ q.r }}</span></div></sc-for>
+        <sc-for list="{{ mt.q }}" as="q"><div class="qt"><span class="muted">{{ q.n }}</span><div class="pg"><i style="width: {{ q.w }}%; background: {{ q.c }}"></i></div><span style="text-align: right; font-weight: 600">{{ q.r }}</span></div></sc-for>
       </div>
     </div>
   </div>
@@ -597,7 +596,7 @@ class Component extends DCLogic {
     });
     // ===== 月度完成趋势 =====
     const mw = st.mw || '硫酸'; const M = MON[mw];
-    const MW = 700, MH = 380, PL = 44, PT = 26, PB = 44, PR = 6, ih = MH - PT - PB, slot = (MW - PL - PR) / 12, bw = Math.min(30, slot - 16);
+    const MW = 700, MH = 380, PL = 44, PT = 26, PB = 44, PR = 6, ih = MH - PT - PB, slot = (MW - PL - PR) / 12, bw = Math.min(22, slot - 26);
     const mmx = (() => { const v = Math.max.apply(null, M.plan.concat(M.act)) * 1.15; const e = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * e >= v) return m * e; return v; })();
     const Y = (v) => PT + ih - v / mmx * ih;
     const DMs = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -606,7 +605,7 @@ class Component extends DCLogic {
       const a = done ? M.act[i] : 0; if (done) cum += a; const r = done ? a / pl * 100 : 0; const hov = st.mh === i;
       return { x, w: bw, cx, done, fut: !done, y: Y(a), h: PT + ih - Y(a), v: done ? nf(a, a >= 1000 ? 0 : 0) : '', vy: Y(Math.max(a, pl)) - 17, vc: hov ? 'var(--ink)' : 'var(--ink2)',
         bg: !done ? 'transparent' : (r >= 100 ? (hov ? '#243F7C' : '#2F55A4') : (hov ? '#7F99D0' : '#9FB3DC')),
-        px: x - 5, pw: bw + 10, py: Y(pl), ph: PT + ih - Y(pl), m: (i + 1) + ' 月', r: done ? r.toFixed(0) + '%' : '—', rc: done ? (r >= 100 ? 'ok2' : (r >= 90 ? 'am2' : 'bd2')) : 'faint', gv: done ? '' : nf(pl, 0), gy: Y(pl) - 17 }; });
+        px: x - 9, pw: bw + 18, py: Y(pl), ph: PT + ih - Y(pl), m: (i + 1) + ' 月', r: done ? r.toFixed(0) + '%' : '—', rc: done ? (r >= 100 ? 'ok2' : (r >= 90 ? 'am2' : 'bd2')) : 'faint', gv: done ? '' : nf(pl, 0), gy: Y(pl) - 17 }; });
     const ya = sumA(M.act), yp = M.yp, tp = 273 / 365 * 100, yr = ya / yp * 100;
     const fc = ya / 273 * 365, need = (yp - ya) / 3, r3 = sumA(M.act.slice(-3)) / 3;
     const q = [0, 1, 2, 3].map(k => { const ps = sumA(M.plan.slice(k * 3, k * 3 + 3)); const as = k < 3 ? sumA(M.act.slice(k * 3, k * 3 + 3)) : 0; const rr = as / ps * 100;

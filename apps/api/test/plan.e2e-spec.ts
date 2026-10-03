@@ -2,14 +2,14 @@ import { beforeAll, afterAll, describe, expect, it } from 'vitest';
 import type { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/database/prisma.service';
 import { createTestApp, http, loginOk, resetDbWithAdmin } from './utils';
-import { parsePlanTarget, planTargetDeviation } from '@hgxt/shared';
+import { parsePlanUpperLimit, PLAN_TARGET_CATALOG } from '@hgxt/shared';
 
 /**
  * 计划与完成的口径护栏：
  * 1. 年度坐标系：查 2025 时 asOf / 当月实际 / 周对比必须落在 2025，绝不混入 2026 最新数据
- * 2. 自动拆分：月合计严格等于年度计划（largest-remainder）
+ * 2. 年度与月度计划分别录入，未填写的月份保持为空
  * 3. 保存是单事务：非法行整体 400 且库里不留半截
- * 4. 单耗目标区间（85 – 95）：低于下限、高于上限、区间内三种偏离
+ * 4. 单耗指标覆盖看板全部能源与原辅料，上限独立设置；旧区间只取上限
  */
 describe('production 计划与完成', () => {
   let app: INestApplication;
@@ -97,7 +97,7 @@ describe('production 计划与完成', () => {
     expect(res.body.asOf).toBe('2025-12-28');
     expect(amino.monthActual).toBe(21); // 12 月两天 10+11，不含 2026-01-02 的 99
     expect(amino.yearActual).toBe(21);
-    expect(amino.monthPlan).toBe(10); // 120 × 31/365 → largest-remainder
+    expect(amino.monthPlan).toBeNull(); // 年度计划不会自动生成月度计划
     expect(res.body.timeProgress.pct).toBe(100); // 已结束年度
     const aminoSales = res.body.sales.find((r: { workshop: string }) => r.workshop === '氨基磺酸');
     expect(aminoSales.sales).toBe(4); // 12-29 填报归属 12-28；2026-01-02 的 400 不得混入
@@ -119,14 +119,34 @@ describe('production 计划与完成', () => {
     expect(amino.yearActual).toBe(99);
   });
 
-  it('自动拆分：12 个月合计严格等于年度计划', async () => {
+  it('年度计划不自动拆到月份；只汇总已填写的月计划', async () => {
     const res = await http(app).get('/api/production/plan/settings?year=2025')
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
     const row = res.body.rows.find((r: { workshop: string }) => r.workshop === '氨基磺酸');
-    expect(row.months.every((m: { manual: boolean }) => !m.manual)).toBe(true);
-    expect(row.monthTotal).toBe(120);
-    expect(row.months.reduce((s: number, m: { value: number }) => s + m.value, 0)).toBe(120);
+    expect(row.annual).toBe(120);
+    expect(row.months).toEqual(Array.from({ length: 12 }, () => null));
+    expect(row.monthTotal).toBe(0);
+
+    const months = Array.from({ length: 12 }, () => null) as Array<number | null>;
+    months[0] = 12;
+    months[11] = 20;
+    const saved = await http(app).post('/api/production/plan/settings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ year: 2025, rows: [{ workshop: '氨基磺酸', annual: 240, months }], targets: [] })
+      .expect(201);
+    const updated = saved.body.rows.find((r: { workshop: string }) => r.workshop === '氨基磺酸');
+    expect(updated.annual).toBe(240);
+    expect(updated.months).toEqual(months);
+    expect(updated.monthTotal).toBe(32);
+
+    const board = await http(app).get('/api/production/plan?year=2025')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    const amino = board.body.completion.find((r: { workshop: string }) => r.workshop === '氨基磺酸');
+    expect(amino.monthPlan).toBe(20);
+    expect(amino.months[0].plan).toBe(12);
+    expect(amino.months[1].plan).toBeNull();
   });
 
   it('月计划独立生效：年度计划为 0 时，手工月计划仍进入计划与完成', async () => {
@@ -172,45 +192,59 @@ describe('production 计划与完成', () => {
     expect(await prisma.productionPlan.count()).toBe(before); // 校验失败的行一条都没落库
   });
 
-  it('单耗目标区间语义：区间内偏离 0、超上限为正、低于下限为负', async () => {
-    const range = parsePlanTarget('85 – 95');
-    expect(range).toEqual({ min: 85, max: 95 });
-    expect(planTargetDeviation(90, range)).toBe(0);
-    expect(planTargetDeviation(100, range)).toBe(5.3);
-    expect(planTargetDeviation(80, range)).toBe(-5.9);
-    expect(parsePlanTarget('乱填 abc')).toEqual({ min: null, max: null });
+  it('每车间列出实际单耗指标，只保存正数上限，旧区间仅使用上限', async () => {
+    expect(parsePlanUpperLimit('85 – 95')).toBe(95);
+    expect(parsePlanUpperLimit('≤ 0.660')).toBe(0.66);
+    expect(parsePlanUpperLimit('乱填 abc')).toBeNull();
 
-    await http(app).post('/api/production/plan/settings')
+    const saveLimit = (target: string) => http(app).post('/api/production/plan/settings')
       .set('Authorization', `Bearer ${token}`)
       .send({
         year: 2026,
         rows: [{ workshop: '硫酸', annual: 1000, months: Array.from({ length: 12 }, () => null) }],
-        targets: [{ workshop: '硫酸', material: '电', unit: 'kWh/t', target: '85 – 95' }],
-      })
-      .expect(201);
+        targets: [{ workshop: '硫酸', material: '电', unit: 'kWh/t', target }],
+      });
+    await saveLimit('92').expect(201);
+    await saveLimit('85 – 95').expect(400);
+    await saveLimit('0').expect(400);
 
-    await http(app).post('/api/production/plan/settings')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        year: 2026,
-        rows: [{ workshop: '硫酸', annual: 1000, months: Array.from({ length: 12 }, () => null) }],
-        targets: [{ workshop: '硫酸', material: '电', unit: 'kWh/t', target: '乱填 abc' }],
-      })
-      .expect(400);
-
-    const res = await http(app).get('/api/production/plan?year=2026')
+    const board = await http(app).get('/api/production/plan?year=2026')
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
-    const electricity = res.body.energyConsumption.find(
+    const electricity = board.body.energyConsumption.find(
       (r: { workshop: string; material: string }) => r.workshop === '硫酸' && r.material === '电',
     );
-    expect(electricity.targetMin).toBe(85);
-    expect(electricity.targetMax).toBe(95);
+    expect(electricity.target).toBe('≤ 92');
+    expect(electricity.targetMax).toBe(92);
+    const keyOf = (row: { workshop: string; material: string }) => `${row.workshop}|${row.material}`;
+    expect(new Set([...board.body.energyConsumption, ...board.body.materialConsumption].map(keyOf)))
+      .toEqual(new Set(PLAN_TARGET_CATALOG.map(keyOf)));
 
     const settings = await http(app).get('/api/production/plan/settings?year=2026')
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
-    expect(settings.body.targets.find((t: { workshop: string; material: string }) => t.workshop === '硫酸' && t.material === '电').target).toBe('85 – 95');
-    expect(settings.body.targets.some((t: { workshop: string; material: string }) => t.workshop === '氨基磺酸' && t.material === '尿素')).toBe(true);
+    expect(settings.body.targets.map(keyOf)).toEqual(PLAN_TARGET_CATALOG.map(keyOf));
+    expect(settings.body.targets.find((t: { workshop: string; material: string }) => t.workshop === '硫酸' && t.material === '电').target).toBe('92');
+    expect(settings.body.targets.find((t: { workshop: string; material: string }) => t.workshop === '氨基磺酸' && t.material === '发烟硫酸').target).toBe('');
+
+    await prisma.consumptionTarget.update({ where: { workshop_material: { workshop: '硫酸', material: '电' } }, data: { target: '85 – 95' } });
+    const legacy = await http(app).get('/api/production/plan/settings?year=2026')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(legacy.body.targets.find((t: { workshop: string; material: string }) => t.workshop === '硫酸' && t.material === '电').target).toBe('95');
+    const legacyBoard = await http(app).get('/api/production/plan?year=2026')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(legacyBoard.body.energyConsumption.find((row: { workshop: string; material: string }) => row.workshop === '硫酸' && row.material === '电').targetMax).toBe(95);
+
+    await saveLimit('').expect(201);
+    const cleared = await http(app).get('/api/production/plan/settings?year=2026')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(cleared.body.targets.find((t: { workshop: string; material: string }) => t.workshop === '硫酸' && t.material === '电').target).toBe('');
+    const clearedBoard = await http(app).get('/api/production/plan?year=2026')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(clearedBoard.body.energyConsumption.find((row: { workshop: string; material: string }) => row.workshop === '硫酸' && row.material === '电').target).toBeNull();
   });
 });

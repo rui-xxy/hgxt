@@ -1,9 +1,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { App, Button, Empty, Pagination, Popconfirm, Select, Space } from 'antd';
+import { App, Button, Empty, Popconfirm, Select, Space } from 'antd';
 import { Download, Plus, Save, Trash2, Undo2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { parseDepartmentNames, type FormData, type FormField, type FormSubmissionDTO, type SaveFormSubmissionsBody } from '@hgxt/shared';
 import { saveSubmissions } from '../../../api/forms';
+import { PageNavigator } from '../../../components/PageNavigator';
+import { pagedViewportStyle } from '../../../styles/pagedViewport';
 import { ParkingEditor } from './ParkingEditor';
 import { parseParking, serializeParking } from './parking';
 import { cellValuesEqual, displaySheetCell, parseSheetCell, sheetDataEqual } from './sheetValues';
@@ -248,7 +250,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
       </Space>
     </div>
     {total > submissions.length && <div className="forms-sheet-notice">{onPageChange ? `当前显示第 ${(page - 1) * pageSize + 1}—${(page - 1) * pageSize + submissions.length} 条，共 ${total} 条记录。${dirty ? '请先保存或撤销本页修改，再翻页。' : ''}` : `当前显示最近 ${submissions.length} 条，共 ${total} 条记录。`}</div>}
-    <div className="forms-sheet-scroll" ref={scrollRef} aria-busy={mutation.isPending} onScroll={(event) => { scrollPositionRef.current = { left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop }; }}>
+    <div className={`forms-sheet-scroll${onPageChange && total > pageSize ? ' hgxt-paged-viewport' : ''}`} style={onPageChange && total > pageSize ? pagedViewportStyle(pageSize, 44, 68) : undefined} ref={scrollRef} aria-busy={mutation.isPending} onScroll={(event) => { scrollPositionRef.current = { left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop }; }}>
       <table className="forms-sheet-table" style={{ minWidth: leadingWidth + fieldWidths.reduce((a, b) => a + b, 0) + (showLiveRemaining ? remainingWidth : 0) }}>
         <colgroup><col style={{ width: rowNoWidth }} />{includeParking && <col style={{ width: parkingWidth }} />}<col style={{ width: actionWidth }} />{fieldWidths.map((width, index) => <col key={schema[index].id} style={{ width }} />)}{showLiveRemaining && <col style={{ width: remainingWidth }} />}</colgroup>
         <thead><tr>
@@ -284,7 +286,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
         </tbody>
       </table>
     </div>
-    {onPageChange && total > pageSize && <div className="forms-sheet-pagination"><Pagination size="small" current={page} pageSize={pageSize} total={total} showSizeChanger={false} disabled={dirty || mutation.isPending} onChange={onPageChange} /></div>}
+    {onPageChange && total > pageSize && <div className="forms-sheet-pagination"><PageNavigator page={page} pageSize={pageSize} total={total} disabled={dirty || mutation.isPending} onChange={onPageChange} /></div>}
     {parkingRow && <ParkingEditor key={parkingRow.key} initial={parseParking(parkingRow.data.parkingRecords, String(parkingRow.data[primaryDateField(schema)?.id ?? ''] ?? ''))} date={String(parkingRow.data[primaryDateField(schema)?.id ?? ''] ?? '')} onClose={() => setParkingKey(null)} onSave={(records) => { const value = serializeParking(records); if (value !== parkingRow.data.parkingRecords) { replaceRows(rowsRef.current.map((row) => row.key === parkingRow.key ? { ...row, data: { ...row.data, parkingRecords: value } } : row)); setSaved(false); } setParkingKey(null); }} />}
   </div>;
 }
