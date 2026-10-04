@@ -60,7 +60,8 @@ async function importForms(): Promise<Map<string, string>> {
   const idByCode = new Map<string, string>();
   for (const entry of manifest) {
     const schema = (SCHEMAS as Record<string, unknown>)[entry.code];
-    if (!schema) throw new Error(`_schemas.json 缺少 ${entry.code}`);
+    // manifest 持续新增独立表单；旧库快照只负责导入当时存在的 code。
+    if (!schema) continue;
     const existing = (await prisma.form.findUnique({ where: { code: entry.code } }))
       ?? (await prisma.form.findFirst({ where: { title: entry.title } }));
     const form = existing

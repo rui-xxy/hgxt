@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { App as AntApp, DatePicker } from 'antd';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import dayjs from 'dayjs';
 import type { DetailedWorkshopCode, SulfuricDaySummary } from '@hgxt/shared';
-import { aminoSummary, detailedWorkshopSummary, sulfuricSummary, tankLevels, thermalSummary, workshopOverview } from '../../api/production';
+import { ChevronLeftIcon, ChevronRightIcon, FlaskIcon, ProductionChartIcon } from '../../components/icons';
+import { aminoSummary, detailedWorkshopSummary, fenglianSummary, sulfuricSummary, tankLevels, thermalSummary, workshopOverview } from '../../api/production';
 import { Dash, ExportButton, Kpi, MonthBars, PALETTE, Seg, downloadCsv, fmt, pctChange } from './dash-ui';
-import { DetailedWorkshopPanel, DetailedWorkshopStockCards, DetailedWorkshopTable, detailMetricColor, downloadDetailedWorkshopCsv } from './DetailedWorkshopView';
+import { DetailedWorkshopPanel, DetailedWorkshopStockCards, DetailedWorkshopTable, detailMetricColor, detailMetricDigits, downloadDetailedWorkshopCsv } from './DetailedWorkshopView';
+import { FenglianPanel, FenglianStockCards, FenglianTable, fenglianVisibleFields, type FenglianSelection } from './FenglianWorkshopView';
 import { SulfuricCalculationModal } from './SulfuricCalculationModal';
+import { SulfuricControlPanel, SulfuricControlPeek } from './SulfuricControlPanel';
 import { ThermalPanel, ThermalTable } from './ThermalWorkshopView';
 
 const WEEK = ['日', '一', '二', '三', '四', '五', '六'];
@@ -19,6 +21,7 @@ const TITLES: Record<string, string> = {
   magnesium: '硫酸镁车间',
   hydrotalcite: '水滑石车间',
   anthraquinone: '二乙基蒽醌车间',
+  fenglian: '丰联车间',
   thermal: '热电车间',
 };
 
@@ -87,16 +90,20 @@ export function WorkshopBoardPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [panelMode, setPanelMode] = useState<'day' | 'month'>('day');
   const [tab, setTab] = useState<DetailTab>('prod');
+  const [workshopView, setWorkshopView] = useState<'board' | 'control'>('board');
   const [calcDate, setCalcDate] = useState<string | null>(null);
+  const [fenglianSelection, setFenglianSelection] = useState<FenglianSelection>({ group: '' });
   const otherCode: DetailedWorkshopCode | null = code === 'magnesium' || code === 'hydrotalcite' || code === 'anthraquinone' ? code : null;
 
   const overview = useQuery({ queryKey: ['production', 'workshops', 0], queryFn: () => workshopOverview(0) });
-  const sulfuric = useQuery({ queryKey: ['production', 'sulfuric', 0], queryFn: () => sulfuricSummary(0), enabled: code === 'sulfuric' });
-  const amino = useQuery({ queryKey: ['production', 'amino', 0], queryFn: () => aminoSummary(0), enabled: code === 'aminosulfonic' });
-  const detailed = useQuery({ queryKey: ['production', 'detail', otherCode, 0], queryFn: () => detailedWorkshopSummary(otherCode!, 0), enabled: Boolean(otherCode) });
-  const thermal = useQuery({ queryKey: ['production', 'thermal', 0], queryFn: () => thermalSummary(0), enabled: code === 'thermal' });
+  const sulfuric = useQuery({ queryKey: ['production', 'sulfuric', 0], queryFn: () => sulfuricSummary(0), enabled: workshopView === 'board' && code === 'sulfuric' });
+  const amino = useQuery({ queryKey: ['production', 'amino', 0], queryFn: () => aminoSummary(0), enabled: workshopView === 'board' && code === 'aminosulfonic' });
+  const fenglian = useQuery({ queryKey: ['production', 'fenglian', 0], queryFn: () => fenglianSummary(0), enabled: workshopView === 'board' && code === 'fenglian' });
+  const detailed = useQuery({ queryKey: ['production', 'detail', otherCode, 0], queryFn: () => detailedWorkshopSummary(otherCode!, 0), enabled: workshopView === 'board' && Boolean(otherCode) });
+  const thermal = useQuery({ queryKey: ['production', 'thermal', 0], queryFn: () => thermalSummary(0), enabled: workshopView === 'board' && code === 'thermal' });
   useEffect(() => { if (overview.error) message.error(overview.error.message); }, [overview.error, message]);
   useEffect(() => { if (amino.error) message.error(amino.error.message); }, [amino.error, message]);
+  useEffect(() => { if (fenglian.error) message.error(fenglian.error.message); }, [fenglian.error, message]);
   useEffect(() => { if (detailed.error) message.error(detailed.error.message); }, [detailed.error, message]);
   useEffect(() => { if (thermal.error) message.error(thermal.error.message); }, [thermal.error, message]);
 
@@ -105,7 +112,9 @@ export function WorkshopBoardPage() {
   const allDates = useMemo(() => overview.data?.dates ?? [], [overview.data]);
   const isSulfuric = code === 'sulfuric';
   const isAmino = code === 'aminosulfonic';
+  const isFenglian = code === 'fenglian';
   const isOther = otherCode !== null;
+  const isAnthra = code === 'anthraquinone';
   const isThermal = code === 'thermal';
 
   const latestMonth = allDates[allDates.length - 1]?.slice(0, 7) ?? dayjs().format('YYYY-MM');
@@ -130,7 +139,7 @@ export function WorkshopBoardPage() {
   const validSeries = series.filter((s) => s.value !== null) as Array<{ label: string; value: number }>;
   const fallbackDate = validSeries[validSeries.length - 1]?.label ?? series[series.length - 1]?.label ?? null;
   const activeDate = selected && series.some((s) => s.label === selected) ? selected : fallbackDate;
-  const tanks = useQuery({ queryKey: ['production', 'tanks', activeDate], queryFn: () => tankLevels(activeDate ?? undefined), enabled: isSulfuric && Boolean(activeDate) });
+  const tanks = useQuery({ queryKey: ['production', 'tanks', activeDate], queryFn: () => tankLevels(activeDate ?? undefined), enabled: workshopView === 'board' && isSulfuric && Boolean(activeDate) });
   const activeIdx = validSeries.findIndex((s) => s.label === activeDate);
   const activeValue = activeIdx >= 0 ? validSeries[activeIdx].value : null;
   const prevValue = activeIdx > 0 ? validSeries[activeIdx - 1].value : null;
@@ -148,6 +157,11 @@ export function WorkshopBoardPage() {
   const aDay = activeDate ? aminoMap.get(activeDate) : undefined;
   const aPrevDay = activeIdx > 0 ? aminoMap.get(validSeries[activeIdx - 1].label) : undefined;
   const aDays = series.map((s) => aminoMap.get(s.label));
+  const fenglianMap = useMemo(() => new Map((fenglian.data?.days ?? []).map((day) => [day.date, day])), [fenglian.data]);
+  const fDay = activeDate ? fenglianMap.get(activeDate) : undefined;
+  const fPrevDay = activeIdx > 0 ? fenglianMap.get(validSeries[activeIdx - 1].label) : undefined;
+  const fDays = series.map((s) => fenglianMap.get(s.label));
+  const fValue = (day: typeof fDay, field: string) => day?.values[field] ?? null;
   const otherMap = useMemo(() => new Map((detailed.data?.days ?? []).map((day) => [day.date, day])), [detailed.data]);
   const oDay = activeDate ? otherMap.get(activeDate) : undefined;
   const oPrevDay = activeIdx > 0 ? otherMap.get(validSeries[activeIdx - 1].label) : undefined;
@@ -187,6 +201,16 @@ export function WorkshopBoardPage() {
 
   // 柱状图悬浮信息与右侧面板沿用同一份产量和内部领用数据。
   const tooltipOf = (label: string) => {
+    if (isFenglian) {
+      const day = fenglianMap.get(label);
+      if (!day) return null;
+      return [
+        { name: '干料打包', value: `${fmt(fValue(day, 'field_204'), 3)} t`, color: PALETTE.brand },
+        { name: '湿料产量', value: `${fmt(fValue(day, 'field_201'), 3)} t`, color: PALETTE.acid93 },
+        { name: '干料销量', value: `${fmt(fValue(day, 'field_205'), 3)} t`, color: PALETTE.reagent },
+        { name: '天然气耗用', value: `${fmt(fValue(day, 'field_gas_consumption'), 3)} m³`, color: PALETTE.fuming },
+      ];
+    }
     if (isThermal) {
       const day = thermalMap.get(label);
       if (!day) return null;
@@ -201,10 +225,10 @@ export function WorkshopBoardPage() {
       const day = otherMap.get(label);
       if (!day || !detailed.data) return null;
       return [
-        { name: detailed.data.productionLabel, value: day.production === null ? '—' : `${fmt(day.production, 1)} t`, color: PALETTE.brand },
+        { name: detailed.data.productionLabel, value: day.production === null ? '—' : `${fmt(day.production, isAnthra ? 2 : 1)} t`, color: PALETTE.brand },
         ...detailed.data.metrics.filter((metric) => metric.featured).map((metric, index) => ({
           name: metric.name,
-          value: day.metrics[metric.key] === null || day.metrics[metric.key] === undefined ? '—' : `${fmt(day.metrics[metric.key], metric.unit === 'kWh' ? 0 : 1)} ${metric.unit}`,
+          value: day.metrics[metric.key] === null || day.metrics[metric.key] === undefined ? '—' : `${fmt(day.metrics[metric.key], detailMetricDigits(detailed.data!.code, metric))} ${metric.unit}`,
           color: detailMetricColor(metric, index, detailed.data!.metrics),
         })),
       ];
@@ -293,6 +317,12 @@ export function WorkshopBoardPage() {
         ['消耗归属日', ...meterColumns.map((meter) => `${meter.name} kWh`), '用电合计 kWh', '双氧水耗用 t', '工业用水 m³'],
         ...sDays.map((day, i) => [series[i].label, ...meterColumns.map((meter) => day?.electricity?.meters.find((value) => value.fieldId === meter.fieldId)?.usage ?? null), day?.electricity?.total ?? null, day?.peroxide ?? null, day?.water ?? null]),
       ]);
+    } else if (isFenglian && fenglian.data) {
+      const fields = fenglianVisibleFields(fenglian.data.fields, fenglianSelection);
+      downloadCsv(`丰联车间-${fields[0]?.group ?? '三车间'}-${fields[0]?.section ?? '产成品'}-${filenamePeriod}.csv`, [
+        ['日期', ...fields.map((field) => `${field.title}${field.unit ? ` ${field.unit}` : ''}`)],
+        ...fDays.map((day, i) => [series[i].label, ...fields.map((field) => day?.values[field.id] ?? null)]),
+      ]);
     } else if (isThermal && thermal.data) {
       const outlets = thermal.data.outlets;
       downloadCsv(`热电车间-供汽与计量-${filenamePeriod}.csv`, [
@@ -320,8 +350,9 @@ export function WorkshopBoardPage() {
     }
   };
 
-  const kpiCount = isSulfuric || isAmino || isOther || isThermal ? 6 : 4;
+  const kpiCount = isSulfuric || isAmino || isOther || isThermal || isFenglian ? 6 : 4;
   const aPanelDays = panelMode === 'day' ? [aDay] : aDays;
+  const fPanelDays = panelMode === 'day' ? [fDay] : fDays;
   const detailDates = range
     ? allDates.filter((d) => d >= range[0] && d <= range[1])
     : allDates.filter((d) => d.startsWith(monthKey));
@@ -358,7 +389,13 @@ export function WorkshopBoardPage() {
   };
 
   return (
-    <Dash>
+    <Dash className="workshop-board-dash">
+      <div className="workshop-view-layout">
+        <nav className="workshop-view-rail" aria-label="车间视图">
+          <button type="button" className={workshopView === 'board' ? 'on' : ''} onClick={() => setWorkshopView('board')} aria-label="生产看板" title="生产看板"><ProductionChartIcon width={18} height={18} /></button>
+          <div className="workshop-view-rail-item"><button type="button" className={workshopView === 'control' ? 'on' : ''} onClick={() => setWorkshopView('control')} aria-label="中控数据" title="中控数据"><FlaskIcon width={18} height={18} /></button>{workshopView === 'board' && isSulfuric && <SulfuricControlPeek />}</div>
+        </nav>
+        <div className="workshop-view-content">
       <div className="enter" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div className="wstabs" role="tablist" aria-label="车间">
           {workshops.map((w) => (
@@ -368,17 +405,17 @@ export function WorkshopBoardPage() {
           ))}
         </div>
         <div className="pager">
-          <button type="button" className="iconbtn" aria-label="上一个车间" onClick={() => step(-1)}><ChevronLeft size={16} strokeWidth={1.6} /></button>
+          <button type="button" className="iconbtn" aria-label="上一个车间" onClick={() => step(-1)}><ChevronLeftIcon width={16} height={16} /></button>
           <span className="num">{idxOfCode + 1} / {workshops.length}</span>
-          <button type="button" className="iconbtn" aria-label="下一个车间" onClick={() => step(1)}><ChevronRight size={16} strokeWidth={1.6} /></button>
+          <button type="button" className="iconbtn" aria-label="下一个车间" onClick={() => step(1)}><ChevronRightIcon width={16} height={16} /></button>
         </div>
       </div>
 
       <div className="enter" style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '22px 0 16px' }}>
         <h1 className="h1" style={{ fontSize: 28, flex: 1 }}>{TITLES[code] ?? '车间版面'}</h1>
-        <button type="button" className={`btn sm ${range || monthKey !== currentMonth ? 'ghost' : 'secondary'}`} onClick={() => { setMonth(currentMonth); setRange(null); setSelected(null); setDetailPage(0); }}>本月</button>
+        {workshopView === 'board' && <><button type="button" className={`btn sm ${range || monthKey !== currentMonth ? 'ghost' : 'secondary'}`} onClick={() => { setMonth(currentMonth); setRange(null); setSelected(null); setDetailPage(0); }}>本月</button>
         <div className="range-nav">
-          <button type="button" className="iconbtn" aria-label="上一个月" onClick={() => changeMonth(-1)}><ChevronLeft size={16} strokeWidth={1.6} /></button>
+          <button type="button" className="iconbtn" aria-label="上一个月" onClick={() => changeMonth(-1)}><ChevronLeftIcon width={16} height={16} /></button>
           <DatePicker.RangePicker
             aria-label="选择起止日期"
             className="workshop-range"
@@ -392,19 +429,21 @@ export function WorkshopBoardPage() {
               setDetailPage(0);
             }}
           />
-          <button type="button" className="iconbtn" aria-label="下一个月" onClick={() => changeMonth(1)}><ChevronRight size={16} strokeWidth={1.6} /></button>
+          <button type="button" className="iconbtn" aria-label="下一个月" onClick={() => changeMonth(1)}><ChevronRightIcon width={16} height={16} /></button>
         </div>
-        <ExportButton onClick={exportCsv} />
+        <ExportButton onClick={exportCsv} /></>}
       </div>
+
+        {workshopView === 'control' ? (isSulfuric ? <SulfuricControlPanel /> : <div className="workshop-control-blank" aria-label={`${TITLES[code] ?? '车间'}中控数据`} />) : <>
 
       {workshop ? (
         <div className="kpis enter d1" style={{ gridTemplateColumns: `repeat(${kpiCount}, minmax(0, 1fr))` }}>
           <Kpi
-            label={`${isSulfuric ? '折 98% 产量' : isThermal ? '总供汽' : '日产量'} · ${activeDate?.slice(5) ?? '—'}`}
-            value={fmt(activeValue, 1)}
+            label={`${isSulfuric ? '折 98% 产量' : isThermal ? '总供汽' : isFenglian ? '干料打包' : '日产量'} · ${activeDate?.slice(5) ?? '—'}`}
+            value={fmt(activeValue, isFenglian ? 3 : isAnthra ? 2 : 1)}
             unit="t"
             delta={pctChange(activeValue, prevValue)}
-            sub={`${range ? '区间' : '月'}累计 ${fmt(validSeries.length ? total : null, 0)} t`}
+            sub={`${range ? '区间' : '月'}累计 ${fmt(validSeries.length ? total : null, isFenglian ? 3 : isAnthra ? 2 : 0)} t`}
             spark={series.map((s) => s.value)}
           />
           {isSulfuric ? (
@@ -423,6 +462,12 @@ export function WorkshopBoardPage() {
             <Kpi label="自发电" value={fmt(tDay?.generation.value, 0)} unit="kWh" delta={pctChange(tDay?.generation.value, tPrevDay?.generation.value)} spark={tDays.map((day) => day?.generation.value ?? null)} />
             <Kpi label="总水表供水" value={fmt(tDay?.water.value, 0)} unit="m³" delta={pctChange(tDay?.water.value, tPrevDay?.water.value)} spark={tDays.map((day) => day?.water.value ?? null)} />
             <Kpi label="蒸汽总表" value={fmt(tDay?.steamMeter.value, 1)} unit="t" delta={pctChange(tDay?.steamMeter.value, tPrevDay?.steamMeter.value)} spark={tDays.map((day) => day?.steamMeter.value ?? null)} />
+          </> : isFenglian ? <>
+            <Kpi label="湿料产量" value={fmt(fValue(fDay, 'field_201'), 3)} unit="t" delta={pctChange(fValue(fDay, 'field_201'), fValue(fPrevDay, 'field_201'))} spark={fDays.map((day) => fValue(day, 'field_201'))} />
+            <Kpi label="干料销量" value={fmt(fValue(fDay, 'field_205'), 3)} unit="t" delta={pctChange(fValue(fDay, 'field_205'), fValue(fPrevDay, 'field_205'))} spark={fDays.map((day) => fValue(day, 'field_205'))} />
+            <Kpi label="干料期末库存" value={fmt(fValue(fDay, 'field_206'), 3)} unit="t" delta={pctChange(fValue(fDay, 'field_206'), fValue(fPrevDay, 'field_206'))} spark={fDays.map((day) => fValue(day, 'field_206'))} />
+            <Kpi label="天然气耗用" value={fmt(fValue(fDay, 'field_gas_consumption'), 3)} unit="m³" spark={fDays.map((day) => fValue(day, 'field_gas_consumption'))} />
+            <Kpi label="电表累计读数" value={fmt(fValue(fDay, 'field_electricity_cumulative'), 3)} spark={fDays.map((day) => fValue(day, 'field_electricity_cumulative'))} />
           </> : isAmino ? <>
             {AMINO_METRICS.map((metric) => {
               const value = aDay?.[metric.key] ?? null;
@@ -436,7 +481,7 @@ export function WorkshopBoardPage() {
             {featuredMetrics.map((metric) => {
               const value = oDay?.metrics[metric.key] ?? null;
               const rate = value !== null && oDay?.production && oDay.production > 0 ? value / oDay.production : null;
-              return <Kpi key={metric.key} label={metric.name} value={fmt(value, metric.unit === 'kWh' ? 0 : 1)} unit={metric.unit}
+              return <Kpi key={metric.key} label={metric.name} value={fmt(value, detailMetricDigits(detailed.data!.code, metric))} unit={metric.unit}
                 delta={pctChange(value, oPrevDay?.metrics[metric.key])} good="down"
                 sub={rate === null ? '' : `单耗 ${fmt(rate, metric.unit === 'kWh' ? 1 : 2)} ${metric.unit}/t`}
                 spark={oDays.map((day) => day?.metrics[metric.key] ?? null)} />;
@@ -453,13 +498,13 @@ export function WorkshopBoardPage() {
           <div className="split">
             <div className="left">
               <div className="ct" style={{ marginBottom: 14 }}>
-                <b>{isThermal ? '日供汽量' : '日产量'}</b>
+                <b>{isThermal ? '日供汽量' : isFenglian ? '干料打包数' : '日产量'}</b>
                 <div className="r lg">
-                  <span><i style={{ width: 12, height: 0, borderTop: '1px dashed var(--ink3)', borderRadius: 0, verticalAlign: 3 }} />月均 {fmt(avg, 0)}</span>
+                  <span><i style={{ width: 12, height: 0, borderTop: '1px dashed var(--ink3)', borderRadius: 0, verticalAlign: 3 }} />月均 {fmt(avg, isFenglian ? 3 : isAnthra ? 2 : 0)}</span>
                   <span><i style={{ background: 'var(--brand)' }} />选中日</span>
                 </div>
               </div>
-              <MonthBars data={series} unit={workshop.unit} tooltipOf={tooltipOf} selected={activeDate} onSelect={setSelected} />
+              <MonthBars data={series} unit={workshop.unit} tooltipOf={tooltipOf} selected={activeDate} onSelect={setSelected} valueDigits={isFenglian ? 3 : isAnthra ? 2 : 0} />
             </div>
             <div className="right">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -467,9 +512,9 @@ export function WorkshopBoardPage() {
                 <Seg options={[{ label: '当日', value: 'day' }, { label: range ? '区间' : '本月', value: 'month' }]} value={panelMode} onChange={(v) => setPanelMode(v as 'day' | 'month')} />
               </div>
               <div style={{ marginTop: 12 }}>
-                <div className="faint" style={{ fontSize: 13 }}>{isSulfuric ? '折 98% 合计' : isThermal ? '总供汽' : panelMode === 'day' ? detailed.data?.productionLabel ?? '日产量' : range ? '区间合计' : '本月合计'}</div>
+                <div className="faint" style={{ fontSize: 13 }}>{isSulfuric ? '折 98% 合计' : isThermal ? '总供汽' : isFenglian ? '干料打包数' : panelMode === 'day' ? detailed.data?.productionLabel ?? '日产量' : range ? '区间合计' : '本月合计'}</div>
                 <div className="kv" style={{ fontSize: 28 }}>
-                  {fmt(isSulfuric ? (panelHasData ? panelTotal : null) : panelMode === 'day' ? activeValue : validSeries.length ? total : null, 1)}
+                  {fmt(isSulfuric ? (panelHasData ? panelTotal : null) : panelMode === 'day' ? activeValue : validSeries.length ? total : null, isFenglian ? 3 : isAnthra ? 2 : 1)}
                   <small>t</small>
                 </div>
               </div>
@@ -499,6 +544,8 @@ export function WorkshopBoardPage() {
                 </div>
               ) : isThermal && thermal.data ? (
                 <ThermalPanel data={thermal.data} days={panelMode === 'day' ? [tDay] : tDays} />
+              ) : isFenglian ? (
+                <FenglianPanel days={fPanelDays} />
               ) : isAmino ? (
                 <div className="amino-panel">
                   {(['能源', '原辅料'] as const).map((category) => <div key={category} className="amino-panel-group">
@@ -590,6 +637,13 @@ export function WorkshopBoardPage() {
         </div>
       )}
 
+      {isFenglian && fenglian.data && (
+        <div className="card enter d3" style={{ marginTop: 16, padding: '18px 20px' }}>
+          <div className="ct" style={{ marginBottom: 14 }}><b>期末库存 · {activeDate ? dayLabel(activeDate) : '—'}</b></div>
+          <FenglianStockCards day={fDay} />
+        </div>
+      )}
+
       {isOther && detailed.data && (
         <div className="card enter d3" style={{ marginTop: 16, padding: '18px 20px' }}>
           <div className="ct" style={{ marginBottom: 14 }}><b>期末库存 · {activeDate ? dayLabel(activeDate) : '—'}</b></div>
@@ -615,13 +669,17 @@ export function WorkshopBoardPage() {
             <Seg className="tbtabs" options={[{ label: '供汽去向', value: 'prod' }, { label: '电水计量', value: 'consumption' }]} value={tab} onChange={(v) => setTab(v as DetailTab)} />
           ) : null}
           <div className="r detail-pager">
-            <span>{periodLabel} · {isSulfuric && tab === 'levels' ? '%' : (isSulfuric && tab === 'consumption') || ((isAmino || isOther) && tab === 'prod') || (isThermal && tab === 'consumption') ? 'kWh · t · m³' : 't'}</span>
-            <button type="button" className="iconbtn" aria-label="翻到更早的明细" disabled={!canPageOlder} onClick={() => turnDetailPage('older')}><ChevronLeft size={16} strokeWidth={1.6} /></button>
+            <span>{periodLabel} · {isFenglian ? 't · kg · m³ · 表读数' : isSulfuric && tab === 'levels' ? '%' : (isSulfuric && tab === 'consumption') || ((isAmino || isOther) && tab === 'prod') || (isThermal && tab === 'consumption') ? 'kWh · t · m³' : 't'}</span>
+            <button type="button" className="iconbtn" aria-label="翻到更早的明细" disabled={!canPageOlder} onClick={() => turnDetailPage('older')}><ChevronLeftIcon width={16} height={16} /></button>
             <span>{currentDetailPage + 1} / {detailPageCount}</span>
-            <button type="button" className="iconbtn" aria-label="翻到更新的明细" disabled={!canPageNewer} onClick={() => turnDetailPage('newer')}><ChevronRight size={16} strokeWidth={1.6} /></button>
+            <button type="button" className="iconbtn" aria-label="翻到更新的明细" disabled={!canPageNewer} onClick={() => turnDetailPage('newer')}><ChevronRightIcon width={16} height={16} /></button>
           </div>
         </div>
-        {isThermal ? (
+        {isFenglian ? (
+          fenglian.data
+            ? <FenglianTable data={fenglian.data} entries={pageEntries} activeDate={activeDate} onSelect={onSelectDetailDate} selection={fenglianSelection} onSelectionChange={setFenglianSelection} />
+            : <div className="scrolltbl"><div className="empty">加载中…</div></div>
+        ) : isThermal ? (
           thermal.data
             ? <ThermalTable data={thermal.data} tab={tab === 'consumption' ? 'consumption' : 'prod'} entries={pageEntries} activeDate={activeDate} onSelect={onSelectDetailDate} />
             : <div className="scrolltbl"><div className="empty">加载中…</div></div>
@@ -820,6 +878,9 @@ export function WorkshopBoardPage() {
             </tbody>
           </table>
         </div>}
+      </div>
+        </>}
+        </div>
       </div>
       <SulfuricCalculationModal day={calcDate ? dayMap.get(calcDate) ?? null : null} onClose={() => setCalcDate(null)} />
     </Dash>

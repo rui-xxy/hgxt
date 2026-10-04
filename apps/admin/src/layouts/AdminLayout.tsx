@@ -1,20 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, Dropdown } from 'antd';
-import {
-  BarChart3,
-  CalendarRange,
-  FlaskConical,
-  Home,
-  LogOut,
-  Moon,
-  Package,
-  Settings,
-  SlidersHorizontal,
-  Sun,
-  Users,
-  Zap,
-  type LucideIcon,
-} from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Role } from '@hgxt/shared';
@@ -23,23 +8,36 @@ import { listForms } from '../api/forms';
 import { useMe } from '../api/hooks';
 import { tokenStore } from '../api/client';
 import { queryClient } from '../api/queryClient';
+import {
+  DashboardIcon,
+  FactoryIcon,
+  FormsNavIcon,
+  LogoutIcon,
+  MoonIcon,
+  PackageIcon,
+  SlidersIcon,
+  SunIcon,
+  SystemNavIcon,
+  TargetIcon,
+  UsersIcon,
+} from '../components/icons';
 import { useThemeMode } from '../theme/ThemeProvider';
 
 interface ModuleItem {
   label: string;
   path: string;
-  icon: LucideIcon;
+  icon: typeof DashboardIcon;
 }
 
 interface ModuleSection {
-  label: string;
+  label?: string;
   items: ModuleItem[];
 }
 
 interface ModuleDef {
   key: string;
   label: string;
-  icon: LucideIcon;
+  icon: typeof DashboardIcon;
   /** 二级面板标题 */
   title: string;
   /** 模块入口 */
@@ -55,50 +53,50 @@ const MODULES: ModuleDef[] = [
   {
     key: 'home',
     label: '首页',
-    icon: Home,
-    title: '生产',
+    icon: DashboardIcon,
+    title: '首页',
     path: '/',
     match: (p) =>
       p === '/' || p.startsWith('/board') || p.startsWith('/energy') || p.startsWith('/materials') || p.startsWith('/plan'),
     sections: [
-      { label: '页面', items: [{ label: '概览', path: '/', icon: Home }] },
+      { items: [{ label: '工作台', path: '/', icon: DashboardIcon }] },
       {
-        label: '生产',
+        label: '生产看板',
         items: [
-          { label: '车间版面', path: '/board', icon: BarChart3 },
-          { label: '能源中心', path: '/energy', icon: Zap },
-          { label: '物料与库存', path: '/materials', icon: Package },
-          { label: '计划与完成', path: '/plan', icon: CalendarRange },
-          { label: '生产计划设置', path: '/plan/settings', icon: SlidersHorizontal },
+          { label: '车间版面', path: '/board', icon: FactoryIcon },
+          { label: '计划与完成', path: '/plan', icon: TargetIcon },
         ],
       },
+      { label: '能源消耗', items: [{ label: '能源中心', path: '/energy', icon: SunIcon }] },
+      { label: '库存', items: [{ label: '物料与库存', path: '/materials', icon: PackageIcon }] },
+      { label: '计划管理', items: [{ label: '生产计划设置', path: '/plan/settings', icon: SlidersIcon }] },
     ],
   },
   {
     key: 'production',
     label: '表单',
-    icon: FlaskConical,
+    icon: FormsNavIcon,
     title: '表单',
     path: '/forms',
     match: (p) => p.startsWith('/forms'),
-    sections: [{ label: '页面', items: [{ label: '总览', path: '/forms', icon: FlaskConical }] }],
+    sections: [{ items: [{ label: '全部表单', path: '/forms', icon: FormsNavIcon }] }],
   },
   {
     key: 'system',
     label: '系统',
-    icon: Settings,
+    icon: SystemNavIcon,
     title: '系统',
     path: '/users',
     match: (p) => p.startsWith('/users'),
     adminOnly: true,
-    sections: [{ label: '页面', items: [{ label: '成员', path: '/users', icon: Users }] }],
+    sections: [{ items: [{ label: '成员管理', path: '/users', icon: UsersIcon }] }],
   },
 ];
 
 /** 顶部路径栏的页面名 */
 function pageName(pathname: string): string {
-  if (pathname === '/') return '概览';
-  if (pathname === '/forms') return '总览';
+  if (pathname === '/') return '工作台';
+  if (pathname === '/forms') return '全部表单';
   if (pathname.startsWith('/forms/')) return '数据';
   if (pathname.startsWith('/board')) return '车间版面';
   if (pathname.startsWith('/energy')) return '能源中心';
@@ -106,7 +104,7 @@ function pageName(pathname: string): string {
   if (pathname === '/plan') return '计划与完成';
   if (pathname.startsWith('/plan/settings')) return '生产计划设置';
   if (pathname.startsWith('/plan')) return '计划与完成';
-  if (pathname.startsWith('/users')) return '成员';
+  if (pathname.startsWith('/users')) return '成员管理';
   return 'HGXT';
 }
 
@@ -144,7 +142,7 @@ export function AdminLayout() {
   const current = MODULES.find((m) => m.match(location.pathname)) ?? MODULES[0];
   const flyout = modules.find((m) => m.key === hoverKey) ?? null;
   const itemActive = (path: string) =>
-    path === '/' || path === '/forms' ? location.pathname === path : location.pathname.startsWith(path);
+    path === '/' || path === '/forms' || path === '/plan' ? location.pathname === path : location.pathname.startsWith(path);
 
   const logoutMutation = useMutation({
     mutationFn: () => logoutApi(tokenStore.getRefreshToken() ?? ''),
@@ -157,7 +155,7 @@ export function AdminLayout() {
   });
 
   const themeLabel = mode === 'dark' ? '浅色模式' : '深色模式';
-  const ThemeIcon = mode === 'dark' ? Sun : Moon;
+  const ThemeIcon = mode === 'dark' ? SunIcon : MoonIcon;
 
   const accountPanel = (
     <div className="hgxt-acct-menu">
@@ -177,7 +175,7 @@ export function AdminLayout() {
           toggleMode({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
         }}
       >
-        <ThemeIcon size={16} strokeWidth={1.6} />
+        <ThemeIcon width={16} height={16} strokeWidth={1.6} />
         {themeLabel}
       </button>
       <button
@@ -187,7 +185,7 @@ export function AdminLayout() {
           logoutMutation.mutate();
         }}
       >
-        <LogOut size={16} strokeWidth={1.6} />
+        <LogoutIcon width={16} height={16} strokeWidth={1.6} />
         退出登录
       </button>
     </div>
@@ -199,18 +197,21 @@ export function AdminLayout() {
         <Link to="/" className="hgxt-mark" aria-label="HGXT 首页">
           化
         </Link>
-        {modules.map((m) => (
-          <Link
+        {modules.map((m) => {
+          const isActive = m.key === current.key;
+          const RailIcon = m.icon;
+          return <Link
             key={m.key}
             to={m.path}
             aria-label={m.label}
-            className={`hgxt-rail-link${m.key === current.key ? ' is-on' : ''}`}
+            aria-current={isActive ? 'page' : undefined}
+            className={`hgxt-rail-link${isActive ? ' is-on' : ''}`}
             onMouseEnter={() => openFlyout(m.key)}
             onFocus={() => openFlyout(m.key)}
           >
-            <m.icon size={20} strokeWidth={1.6} />
-          </Link>
-        ))}
+            <RailIcon width={20} height={20} strokeWidth={1.6} />
+          </Link>;
+        })}
         <div className="hgxt-rail-foot">
           <Dropdown
             open={accountOpen}
@@ -237,8 +238,8 @@ export function AdminLayout() {
         >
           <div className="hgxt-flyout-title">{flyout.title}</div>
           {flyout.sections.map((section) => (
-            <div key={section.label} className="hgxt-flyout-section">
-              <div className="hgxt-flyout-label">{section.label}</div>
+            <div key={section.label ?? section.items[0]?.path ?? flyout.key} className="hgxt-flyout-section">
+              {section.label ? <div className="hgxt-flyout-label">{section.label}</div> : null}
               <div className="hgxt-flyout-nav">
                 {section.items.map((item) => (
                   <Link
@@ -248,7 +249,7 @@ export function AdminLayout() {
                     onClick={() => setHoverKey(null)}
                     className={`hgxt-flyout-link${itemActive(item.path) ? ' is-on' : ''}`}
                   >
-                    <item.icon size={18} strokeWidth={1.6} />
+                    <item.icon width={17} height={17} strokeWidth={1.6} />
                     <span>{item.label}</span>
                   </Link>
                 ))}

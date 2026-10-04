@@ -30,7 +30,7 @@ const PLAN_WORKSHOPS: Array<{ workshop: string; basis: string; code: string }> =
   { workshop: '氨基磺酸', basis: '单日汇总', code: 'aminosulfonic' },
   { workshop: '硫酸镁', basis: '单日汇总', code: 'magnesium' },
   { workshop: '水滑石', basis: '4 牌号合计', code: 'hydrotalcite' },
-  { workshop: '二乙基蒽醌', basis: '精品', code: 'anthraquinone' },
+  { workshop: '二乙基蒽醌', basis: '总产量', code: 'anthraquinone' },
   { workshop: '丰联', basis: '焦磷酸哌嗪', code: 'fenglian' },
 ];
 
@@ -39,6 +39,11 @@ const CODE_SALES = 'sales_daily';
 const CODE_FINISHED = 'finished_products_daily';
 
 const monthKey = (date: string): string => date.slice(0, 7);
+const dayBefore = (date: string): string => {
+  const day = new Date(`${date}T00:00:00Z`);
+  day.setUTCDate(day.getUTCDate() - 1);
+  return day.toISOString().slice(0, 10);
+};
 
 @Injectable()
 export class PlanService {
@@ -224,8 +229,6 @@ export class PlanService {
       hydrotalcite: ['HG-200销量', 'HG-201销量', 'HG-300销量', 'HG-205销量']
         .map(fieldByTitle)
         .filter((x): x is string => !!x),
-      anthraquinone: ['field_fine_sales'],
-      fenglian: ['field_205'],
     };
     for (const [date, data] of finishedForm) {
       for (const [code, fields] of Object.entries(productSales)) {
@@ -235,28 +238,38 @@ export class PlanService {
         }
       }
     }
+    for (const [date, data] of fenglianForm) {
+      const value = PlanService.toNum(data.field_205);
+      if (value !== null) pushSales('fenglian', date, value);
+    }
+    for (const [date, data] of anthraquinoneForm) {
+      for (const field of ['field_crude_sales', 'field_fine_sales']) {
+        const value = PlanService.toNum(data[field]);
+        if (value !== null) pushSales('anthraquinone', date, value);
+      }
+    }
 
     // ── 计划完成 + 月度趋势 ──
     const planByWorkshop = new Map(settings.rows.map((r) => [r.workshop, r]));
     const completion: PlanCompletionRow[] = PLAN_WORKSHOPS.map((w) => {
       const plan = planByWorkshop.get(w.workshop)!;
       const monthly = productionByCode.get(w.code) ?? new Map();
-      const monthActual = +(monthly.get(currentMonth) ?? 0).toFixed(1);
+      const monthActual = +(monthly.get(currentMonth) ?? 0).toFixed(3);
       const yearActual = +[...monthly.entries()]
         .filter(([k]) => k.startsWith(String(year)))
         .reduce((s, [, v]) => s + v, 0)
-        .toFixed(1);
+        .toFixed(3);
       const currentMonthPlan = currentMonth ? plan.months[Number(currentMonth.slice(5)) - 1] : undefined;
       const monthPlan = currentMonthPlan ?? null;
       const yearRate = plan.annual > 0 ? +((yearActual / plan.annual) * 100).toFixed(1) : null;
-      const expected = plan.annual > 0 && timeProgress ? +((plan.annual * timeProgress.pct) / 100).toFixed(1) : null;
+      const expected = plan.annual > 0 && timeProgress ? +((plan.annual * timeProgress.pct) / 100).toFixed(2) : null;
       const statusPoints = yearRate !== null && timeProgress
         ? +(yearRate - timeProgress.pct).toFixed(1)
         : null;
       const months = Array.from({ length: 12 }, (_, i) => {
         const key = `${year}-${String(i + 1).padStart(2, '0')}`;
         const planValue = plan.months[i];
-        const actual = monthly.has(key) ? +(monthly.get(key)!).toFixed(1) : null;
+        const actual = monthly.has(key) ? +(monthly.get(key)!).toFixed(3) : null;
         return {
           month: i + 1,
           plan: planValue,
@@ -274,7 +287,7 @@ export class PlanService {
         yearActual,
         yearRate,
         expectedByProgress: expected,
-        aheadOfProgress: expected !== null ? +(yearActual - expected).toFixed(1) : null,
+        aheadOfProgress: expected !== null ? +(yearActual - expected).toFixed(2) : null,
         status: statusPoints === null ? null : statusPoints > 2 ? 'ahead' : statusPoints < -2 ? 'behind' : 'onTrack',
         statusPoints,
         months,
@@ -292,10 +305,10 @@ export class PlanService {
       const series = overview.workshops.find((s) => s.code === w.code);
       const productionAt = (date: string): number => {
         const i = dateIndex.get(date);
-        return i === undefined ? 0 : +(series?.values[i] ?? 0).toFixed(1);
+        return i === undefined ? 0 : +(series?.values[i] ?? 0).toFixed(3);
       };
-      const salesAt = (date: string): number => +(salesOfDay.get(w.code)?.get(date) ?? 0).toFixed(1);
-      const sum = (values: Array<number | null>): number => +values.reduce<number>((s, v) => s + (v ?? 0), 0).toFixed(1);
+      const salesAt = (date: string): number => +(salesOfDay.get(w.code)?.get(date) ?? 0).toFixed(3);
+      const sum = (values: Array<number | null>): number => +values.reduce<number>((s, v) => s + (v ?? 0), 0).toFixed(3);
       if (!asOf) {
         return {
           workshop: w.workshop,
@@ -360,8 +373,13 @@ export class PlanService {
       const hydrotalciteStocks = ['HG-200库存', 'HG-201库存', 'HG-300库存', 'HG-205库存']
         .map(stockByTitle)
         .filter((v): v is number => v !== null);
-      if (hydrotalciteStocks.length) inventoryOf.set('hydrotalcite', +hydrotalciteStocks.reduce((s, v) => s + v, 0).toFixed(1));
-      setIfNumber('anthraquinone', PlanService.toNum(anthraquinoneForm.get(asOf)?.field_fine_stock));
+      if (hydrotalciteStocks.length) inventoryOf.set('hydrotalcite', +hydrotalciteStocks.reduce((s, v) => s + v, 0).toFixed(3));
+      const anthraStock = anthraquinoneForm.get(asOf);
+      const crudeStock = PlanService.toNum(anthraStock?.field_crude_stock);
+      const fineStock = PlanService.toNum(anthraStock?.field_fine_stock);
+      setIfNumber('anthraquinone', crudeStock === null && fineStock === null
+        ? null
+        : (crudeStock ?? 0) + (fineStock ?? 0));
       setIfNumber('fenglian', PlanService.toNum(fenglianForm.get(asOf)?.field_206));
 
       // 硫酸库存来自汇总服务的最新罐区快照；只有它与当前看板 asOf 完全一致时才展示。
@@ -386,18 +404,18 @@ export class PlanService {
       const lastMonthProduction = monthly.get(lastMonthKey) ?? null;
       let salesSum = 0;
       for (const [d, v] of salesOfDay.get(w.code) ?? []) if (monthKey(d) === currentMonth) salesSum += v;
-      salesSum = +salesSum.toFixed(1);
+      salesSum = +salesSum.toFixed(3);
       const inventory = inventoryOf.get(w.code) ?? null;
       return {
         workshop: w.workshop,
-        production: +production.toFixed(1),
+        production: +production.toFixed(3),
         sales: salesSum,
         salesRatio: production > 0 ? Math.round((salesSum / production) * 100) : null,
         inventory,
         inventoryDays: inventory !== null && salesSum > 0 && elapsedDaysInMonth > 0
           ? +(inventory / (salesSum / elapsedDaysInMonth)).toFixed(1)
           : null,
-        lastMonthProduction: lastMonthProduction !== null ? +lastMonthProduction.toFixed(1) : null,
+        lastMonthProduction: lastMonthProduction !== null ? +lastMonthProduction.toFixed(3) : null,
         productionDelta:
           production !== null && lastMonthProduction && lastMonthProduction > 0
             ? +(((production - lastMonthProduction) / lastMonthProduction) * 100).toFixed(1)
@@ -429,7 +447,7 @@ export class PlanService {
         material,
         usageUnit,
         unit,
-        monthUsage: current !== null && prodThis > 0 ? +(current * prodThis).toFixed(1) : useThis !== null ? +useThis.toFixed(1) : null,
+        monthUsage: useThis !== null ? +useThis.toFixed(2) : null,
         current,
         lastMonth,
         target: targetMaxNumber !== null ? `≤ ${targetValue}` : null,
@@ -455,17 +473,21 @@ export class PlanService {
       const workshop = s.name.replace('·总水表', '') === '蒽醌' ? '二乙基蒽醌' : s.name.replace('·总水表', '');
       energyConsumption.push(consumptionOf(workshop, '水', 'm³', 'm³/t', seriesUsageByMonth(s.values)));
     }
-    // 蒽醌天然气（表差 ×1）
+    // 蒽醌天然气优先取报表耗用；旧数据按结余与购入反推。
     {
       const usage = new Map<string, number>();
-      const sorted = [...anthraquinoneForm.keys()].sort();
-      for (const date of sorted) {
-        const prev = sorted[sorted.indexOf(date) - 1];
-        if (!prev) continue;
-        const a = PlanService.toNum(anthraquinoneForm.get(prev)!.field_gas_meter);
-        const b = PlanService.toNum(anthraquinoneForm.get(date)!.field_gas_meter);
-        if (a !== null && b !== null && b >= a) {
-          usage.set(monthKey(date), (usage.get(monthKey(date)) ?? 0) + (b - a));
+      for (const [date, data] of anthraquinoneForm) {
+        let amount = PlanService.toNum(data.field_gas_consumption);
+        if (amount === null) {
+          const previous = PlanService.toNum(anthraquinoneForm.get(dayBefore(date))?.field_gas_meter);
+          const current = PlanService.toNum(data.field_gas_meter);
+          const purchase = PlanService.toNum(data.field_gas_recharge) ?? 0;
+          if (previous !== null && current !== null && previous + purchase >= current) {
+            amount = previous + purchase - current;
+          }
+        }
+        if (amount !== null) {
+          usage.set(monthKey(date), (usage.get(monthKey(date)) ?? 0) + amount);
         }
       }
       energyConsumption.push(consumptionOf('二乙基蒽醌', '天然气', 'm³', 'm³/t', usage));

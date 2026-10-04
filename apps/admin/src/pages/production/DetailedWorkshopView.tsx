@@ -22,6 +22,15 @@ export function detailMetricColor(metric: WorkshopMetricDefinition, index: numbe
   return colors[(position < 0 ? index : position) % colors.length];
 }
 
+export function detailMetricDigits(code: DetailedWorkshopResult['code'], metric: WorkshopMetricDefinition): number {
+  if (code === 'anthraquinone') {
+    if (metric.key === 'electricity') return 0;
+    if (metric.key === 'water') return 1;
+    return 2;
+  }
+  return metric.unit === 'kWh' ? 0 : 1;
+}
+
 function stockColor(item: WorkshopStockDefinition, index: number, items: WorkshopStockDefinition[]): string {
   const peers = items.filter((stock) => stock.kind === item.kind);
   const position = peers.findIndex((stock) => stock.key === item.key);
@@ -57,7 +66,7 @@ export function DetailedWorkshopPanel({ data, days }: {
           const color = detailMetricColor(metric, 0, data.metrics);
           return <div className="amino-panel-row" key={metric.key} style={accent(color)}>
             <span className="amino-panel-name"><i style={{ background: color }} />{metric.name}</span>
-            <strong>{quantity(used, metric.unit, metric.unit === 'kWh' ? 0 : 1)}</strong>
+            <strong>{quantity(used, metric.unit, detailMetricDigits(data.code, metric))}</strong>
           </div>;
         })}
       </div>;
@@ -66,6 +75,7 @@ export function DetailedWorkshopPanel({ data, days }: {
 }
 
 export function DetailedWorkshopStockCards({ data, day }: { data: DetailedWorkshopResult; day: DetailedWorkshopDay | undefined }) {
+  const digits = data.code === 'anthraquinone' ? 2 : 1;
   return <>
     {(['finished', 'raw'] as const).map((kind) => {
       const items = data.stockItems.filter((item) => item.kind === kind);
@@ -77,10 +87,10 @@ export function DetailedWorkshopStockCards({ data, day }: { data: DetailedWorksh
             const value = day?.stocks[item.key];
             return <div key={item.key} className="amino-stock" style={accent(stockColor(item, 0, data.stockItems))}>
               <span>{item.name}</span>
-              <strong>{quantity(value?.closing, item.unit)}</strong>
+              <strong>{quantity(value?.closing, item.unit, digits)}</strong>
               <div className="amino-stock-flows">
-                <span>{item.incomingLabel} <b>{quantity(value?.incoming, item.unit)}</b></span>
-                <span>{item.outgoingLabel} <b>{quantity(value?.outgoing, item.unit)}</b></span>
+                <span>{item.incomingLabel} <b>{quantity(value?.incoming, item.unit, digits)}</b></span>
+                <span>{item.outgoingLabel} <b>{quantity(value?.outgoing, item.unit, digits)}</b></span>
               </div>
               {item.note ? <div className="detailed-stock-note">{item.note}</div> : null}
             </div>;
@@ -103,6 +113,7 @@ export function DetailedWorkshopTable({ data, tab, entries, activeDate, onSelect
   const raw = data.metrics.filter((metric) => metric.category === 'raw');
   const finished = data.stockItems.filter((item) => item.kind === 'finished');
   const stockRaw = data.stockItems.filter((item) => item.kind === 'raw');
+  const isAnthra = data.code === 'anthraquinone';
   const showDay = (entry: Entry) => entry.kind === 'day' ? dayMap.get(entry.date) : undefined;
   const cellStyle = (color: string) => ({ className: 'band-cell', style: accent(color) });
   return <div className="scrolltbl">
@@ -144,11 +155,11 @@ export function DetailedWorkshopTable({ data, tab, entries, activeDate, onSelect
             onClick={entry.kind === 'day' ? () => onSelect(entry.date) : undefined}>
             <td>{entry.kind === 'summary' ? '合计' : entry.date.slice(5)}</td>
             {tab === 'prod' ? <>
-              <td>{fmt(production, 1)}</td>
+              <td>{fmt(production, isAnthra ? 2 : 1)}</td>
               {data.metrics.flatMap((metric) => {
                 const used = sumOrNull(days.map((item) => item?.metrics[metric.key]));
                 const color = detailMetricColor(metric, 0, data.metrics);
-                return [<td key={`${metric.key}-used`} {...cellStyle(color)}>{fmt(used, metric.unit === 'kWh' ? 0 : 1)}</td>,
+                return [<td key={`${metric.key}-used`} {...cellStyle(color)}>{fmt(used, detailMetricDigits(data.code, metric))}</td>,
                   <td key={`${metric.key}-rate`} {...cellStyle(color)}>{fmt(rateOf(used, production), metric.unit === 'kWh' ? 1 : 2)}</td>];
               })}
             </> : data.stockItems.flatMap((item) => {
@@ -157,9 +168,9 @@ export function DetailedWorkshopTable({ data, tab, entries, activeDate, onSelect
               const outgoing = entry.kind === 'summary' ? sumOrNull(monthDays.map((itemDay) => itemDay.stocks[item.key]?.outgoing)) : values?.outgoing ?? null;
               const closing = entry.kind === 'summary' ? latestStock(item.key) : values?.closing ?? null;
               const color = stockColor(item, 0, data.stockItems);
-              return [<td key={`${item.key}-in`} {...cellStyle(color)}>{fmt(incoming, 1)}</td>,
-                <td key={`${item.key}-out`} {...cellStyle(color)}>{fmt(outgoing, 1)}</td>,
-                <td key={`${item.key}-stock`} {...cellStyle(color)}>{fmt(closing, 1)}</td>];
+              return [<td key={`${item.key}-in`} {...cellStyle(color)}>{fmt(incoming, isAnthra ? 2 : 1)}</td>,
+                <td key={`${item.key}-out`} {...cellStyle(color)}>{fmt(outgoing, isAnthra ? 2 : 1)}</td>,
+                <td key={`${item.key}-stock`} {...cellStyle(color)}>{fmt(closing, isAnthra ? 2 : 1)}</td>];
             })}
           </tr>;
         })}

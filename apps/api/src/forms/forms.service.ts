@@ -78,6 +78,11 @@ function cleanData(form: Form, input: unknown, previousData?: FormData): FormDat
     if (raw === undefined && field.hidden && field.type === 'date') {
       raw = todayStr();
     }
+    // 编辑历史行时只校验改动的字段；原有数据可能来自 Excel，类型或长度与现行表单不同。
+    if (previousData && raw === previousData[field.id] && (raw === null || typeof raw === 'string' || typeof raw === 'number')) {
+      data[field.id] = raw;
+      continue;
+    }
     if (raw === undefined || raw === null || raw === '') {
       if (field.required) throw new BadRequestException(`${field.title}为必填项`);
       data[field.id] = null;
@@ -126,6 +131,11 @@ function cleanData(form: Form, input: unknown, previousData?: FormData): FormDat
   return data;
 }
 
+function sparseControlData(data: FormData): FormData {
+  return Object.fromEntries(Object.entries(data).filter(([key, value]) =>
+    key === 'field_date' || (value !== null && value !== '')));
+}
+
 @Injectable()
 export class FormsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -164,6 +174,7 @@ export class FormsService {
     return {
       items: forms.map((form): FormDTO => ({
         id: form.id,
+        code: form.code,
         title: form.title,
         category: form.category,
         entryMode: form.entryMode === 'sheet' ? 'sheet' : 'form',
@@ -190,6 +201,7 @@ export class FormsService {
     }
     return {
       id: form.id,
+      code: form.code,
       title: form.title,
       category: form.category,
       entryMode: form.entryMode === 'sheet' ? 'sheet' : 'form',
@@ -275,6 +287,32 @@ export class FormsService {
     const form = await this.findForm(id);
     if (form.entryMode === 'sheet') throw new BadRequestException('此表格仅支持在数据页维护');
     const data = cleanData(form, input);
+    if (form.code?.startsWith('sulfuric_control_')) {
+      const date = data.field_date as string;
+      const patch = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== 'field_date' && value !== null && value !== ''));
+      if (!Object.keys(patch).length) throw new BadRequestException('请至少填写一项中控数据或生产情况记录');
+      return this.prisma.$transaction(async (tx) => {
+        // 同一天由不同岗位分别填写时，串行查找并合并字段，避免产生重复日期或覆盖其他岗位的值。
+        await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtext(${id}), hashtext(${date}))`;
+        const [existing] = await tx.$queryRaw<{ id: string }[]>`
+          SELECT id FROM "FormSubmission"
+          WHERE "formId" = ${id} AND data->>'field_date' = ${date}
+          ORDER BY "createdAt" DESC LIMIT 1 FOR UPDATE
+        `;
+        if (!existing) {
+          return asSubmission(await tx.formSubmission.create({
+            data: { formId: id, data: sparseControlData(data) as Prisma.InputJsonValue, submitterId },
+          }));
+        }
+        const [updated] = await tx.$queryRaw<FormSubmission[]>`
+          UPDATE "FormSubmission"
+          SET data = data || ${JSON.stringify(patch)}::jsonb, "updatedAt" = NOW()
+          WHERE id = ${existing.id} AND "formId" = ${id}
+          RETURNING *
+        `;
+        return asSubmission(updated);
+      });
+    }
     return asSubmission(await this.prisma.formSubmission.create({
       data: { formId: id, data: data as Prisma.InputJsonValue, submitterId },
     }));
@@ -288,7 +326,10 @@ export class FormsService {
     if (body.created.length + body.updated.length + body.deleted.length > 1000) {
       throw new BadRequestException('单次最多保存 1000 行');
     }
-    const created = body.created.map((row) => cleanData(form, row));
+    const created = body.created.map((row) => {
+      const data = cleanData(form, row);
+      return form.code?.startsWith('sulfuric_control_') ? sparseControlData(data) : data;
+    });
     const updated = body.updated.map((row) => {
       if (!row || typeof row.id !== 'string') throw new BadRequestException('记录 ID 无效');
       return { id: row.id, data: row.data };

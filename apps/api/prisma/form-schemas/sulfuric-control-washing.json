@@ -1,0 +1,89 @@
+[
+  {
+    "id": "field_date",
+    "title": "日期",
+    "type": "date",
+    "required": true,
+    "group": "矿样·干吸·风机",
+    "hidden": true
+  },
+  {
+    "id": "field_AA",
+    "title": "砷（mg/l)",
+    "type": "text",
+    "group": "动力波·水洗塔",
+    "section": "动力波",
+    "subgroup": "洗涤塔",
+    "width": 170
+  },
+  {
+    "id": "field_AB",
+    "title": "氟（mg/l)",
+    "type": "number",
+    "group": "动力波·水洗塔",
+    "section": "动力波",
+    "subgroup": "洗涤塔",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AC",
+    "title": "砷（mg/l)",
+    "type": "number",
+    "group": "动力波·水洗塔",
+    "section": "动力波",
+    "subgroup": "动力 波",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AD",
+    "title": "氟（mg/l)",
+    "type": "number",
+    "group": "动力波·水洗塔",
+    "section": "动力波",
+    "subgroup": "动力 波",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AE",
+    "title": "未命名列 AE",
+    "type": "number",
+    "group": "动力波·水洗塔",
+    "section": "动力波",
+    "subgroup": "动力 波",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AF",
+    "title": "动力波排量",
+    "type": "number",
+    "group": "动力波·水洗塔",
+    "section": "动力波",
+    "subgroup": "动力波排量",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AT",
+    "title": "酸浓%",
+    "type": "number",
+    "group": "动力波·水洗塔",
+    "section": "水洗塔",
+    "subgroup": "水洗塔稀酸",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AU",
+    "title": "双氧水含量%",
+    "type": "number",
+    "group": "动力波·水洗塔",
+    "section": "水洗塔",
+    "subgroup": "水洗塔稀酸",
+    "width": 136,
+    "step": 0.01
+  }
+]

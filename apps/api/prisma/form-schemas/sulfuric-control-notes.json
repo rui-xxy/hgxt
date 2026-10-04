@@ -1,0 +1,19 @@
+[
+  {
+    "id": "field_date",
+    "title": "日期",
+    "type": "date",
+    "required": true,
+    "group": "生产情况记录",
+    "hidden": true
+  },
+  {
+    "id": "field_notes",
+    "title": "生产情况记录",
+    "type": "text",
+    "group": "生产情况记录",
+    "section": "生产情况记录",
+    "subgroup": "生产情况记录",
+    "width": 440
+  }
+]

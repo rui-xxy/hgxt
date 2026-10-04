@@ -99,6 +99,10 @@ export interface FormField {
   title: string;
   type: FormFieldType;
   group?: string;
+  /** A switchable table category inside a form group. */
+  section?: string;
+  /** A product or material switch inside a table category. */
+  subgroup?: string;
   options?: { label: string; value: string }[];
   /** 多选字段按逗号分隔的文本存储；options 是新记录的可选项。 */
   multiple?: boolean;
@@ -117,6 +121,7 @@ export interface FormField {
 export type FormData = Record<string, string | number | null>;
 export interface FormDTO {
   id: string;
+  code?: string | null;
   title: string;
   category: string;
   entryMode: 'form' | 'sheet';
@@ -261,6 +266,24 @@ export interface SulfuricSummaryResult {
   days: SulfuricDaySummary[];
 }
 
+export type SulfuricControlMetricKey =
+  | 's_raw' | 's_feed' | 'h2o' | 's_cyc' | 's_belt' | 's_slag'
+  | 'dry' | 'a1' | 'a2' | 'fum' | 'tail' | 'h2o2' | 'reag' | 'so2';
+
+export interface SulfuricControlDay {
+  date: string;
+  values: Record<SulfuricControlMetricKey, number | null>;
+  notes: string[];
+}
+
+export interface SulfuricControlResult {
+  formId: string | null;
+  month: string;
+  latestDate: string | null;
+  availableMonths: string[];
+  days: SulfuricControlDay[];
+}
+
 // ═══════════════════════════════════════════════════════════
 // 车间版面 / 能源中心 / 物料与库存 —— 读取时现算，不改写表单数据
 // ═══════════════════════════════════════════════════════════
@@ -339,6 +362,12 @@ export interface DetailedWorkshopResult {
   metrics: WorkshopMetricDefinition[];
   stockItems: WorkshopStockDefinition[];
   days: DetailedWorkshopDay[];
+}
+
+/** 丰联日报原值；水、电为累计表读数，不在接口中推算日耗。 */
+export interface FenglianSummaryResult {
+  fields: FormField[];
+  days: Array<{ date: string; values: Record<string, number | null> }>;
 }
 
 /** 热电日报的连续两次填报读数；缺少连续读数时不生成日量，回退视为清零重计。 */
@@ -473,7 +502,7 @@ export interface TankLevelsResult {
 export interface PlanWorkshopRow {
   /** 车间名（与表单/计划表一致） */
   workshop: string;
-  /** 产量口径副标题（折 98% 硫酸 / 4 牌号合计 / 精品 / 焦磷酸哌嗪…） */
+  /** 产量口径副标题（折 98% 硫酸 / 4 牌号合计 / 总产量 / 焦磷酸哌嗪…） */
   basis: string;
   /** 年度计划 t */
   annual: number;

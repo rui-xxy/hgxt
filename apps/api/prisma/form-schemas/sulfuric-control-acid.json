@@ -1,0 +1,109 @@
+[
+  {
+    "id": "field_date",
+    "title": "日期",
+    "type": "date",
+    "required": true,
+    "group": "矿样·干吸·风机",
+    "hidden": true
+  },
+  {
+    "id": "field_AP",
+    "title": "酸浓%",
+    "type": "number",
+    "group": "预干燥·酸浓缩·尾吸·试剂酸",
+    "section": "预干燥塔",
+    "subgroup": "预干燥塔",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AQ",
+    "title": "酸水接水",
+    "type": "number",
+    "group": "预干燥·酸浓缩·尾吸·试剂酸",
+    "section": "预干燥塔",
+    "subgroup": "酸水接水",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AR",
+    "title": "一效酸浓%",
+    "type": "number",
+    "group": "预干燥·酸浓缩·尾吸·试剂酸",
+    "section": "酸浓缩",
+    "subgroup": "酸浓缩稀酸",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AS",
+    "title": "二效酸浓%",
+    "type": "number",
+    "group": "预干燥·酸浓缩·尾吸·试剂酸",
+    "section": "酸浓缩",
+    "subgroup": "酸浓缩稀酸",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AV",
+    "title": "酸浓%",
+    "type": "number",
+    "group": "预干燥·酸浓缩·尾吸·试剂酸",
+    "section": "尾吸塔",
+    "subgroup": "尾吸塔稀酸",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AW",
+    "title": "双氧水含量%",
+    "type": "number",
+    "group": "预干燥·酸浓缩·尾吸·试剂酸",
+    "section": "尾吸塔",
+    "subgroup": "尾吸塔稀酸",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AX",
+    "title": "酸浓(%)",
+    "type": "number",
+    "group": "预干燥·酸浓缩·尾吸·试剂酸",
+    "section": "试剂酸",
+    "subgroup": "试剂酸质量(中间槽)",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AY",
+    "title": "铁（%）",
+    "type": "text",
+    "group": "预干燥·酸浓缩·尾吸·试剂酸",
+    "section": "试剂酸",
+    "subgroup": "试剂酸质量(中间槽)",
+    "width": 170
+  },
+  {
+    "id": "field_AZ",
+    "title": "还原高锰酸钾物质（%）",
+    "type": "number",
+    "group": "预干燥·酸浓缩·尾吸·试剂酸",
+    "section": "试剂酸",
+    "subgroup": "试剂酸质量(中间槽)",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_BA",
+    "title": "色度，黑曾单位",
+    "type": "number",
+    "group": "预干燥·酸浓缩·尾吸·试剂酸",
+    "section": "试剂酸",
+    "subgroup": "试剂酸质量(中间槽)",
+    "width": 136,
+    "step": 0.01
+  }
+]

@@ -73,6 +73,12 @@ const dark: Palette = {
   pop: '0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 40px -8px rgba(0, 0, 0, 0.6)',
 };
 
+/** 中控趋势图的系列配色；与设计稿一致，并为暗色主题提供对应亮度。 */
+export const controlChartPalette = {
+  light: { blue: light.brand, paleBlue: '#9DB1DA', amber: '#EDA100', orange: '#EB6834', green: '#1BAF7A' },
+  dark: { blue: dark.brand, paleBlue: '#7186B4', amber: dark.amber, orange: dark.danger, green: dark.ok },
+} as const;
+
 const fontFamily =
   "'Geist', 'Noto Sans SC', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif";
 

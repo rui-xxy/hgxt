@@ -1,4 +1,8 @@
 .forms-category-bar { padding: 12px 16px; overflow-x: auto; border-bottom: 1px solid var(--ant-color-border-secondary); }
+.forms-sheet-section-tabs { display: grid; gap: 8px; padding: 12px 16px; }
+.forms-sheet-section-nav { overflow-x: auto; scrollbar-width: none; }
+.forms-sheet-section-nav::-webkit-scrollbar { display: none; }
+.forms-sheet-section-nav .ant-segmented { width: max-content; white-space: nowrap; }
 .forms-sheet-filters { display: flex; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--ant-color-border-secondary); }
 .forms-sheet-search { max-width: 340px; }
 .forms-sheet-progress { min-width: 132px; }
@@ -28,6 +32,8 @@
 .forms-sheet-table thead tr:first-child th { height: 24px; }
 .forms-sheet-table thead tr:nth-child(2) th { top: 24px; height: 44px; }
 .forms-sheet-table thead th[rowspan] { height: 68px; }
+.forms-sheet-table.forms-sheet-sectioned thead tr:first-child th.forms-sheet-product-tone-0 { background: var(--hg-side); color: var(--hg-ink); }
+.forms-sheet-table.forms-sheet-sectioned thead tr:first-child th.forms-sheet-product-tone-1 { background: var(--hg-line); color: var(--hg-ink); }
 .forms-sheet-table .forms-sheet-sticky { position: sticky; z-index: 10; background: var(--ant-color-bg-container); }
 .forms-sheet-table thead .forms-sheet-sticky { z-index: 30; background: var(--ant-color-bg-container); }
 .forms-sheet-table .forms-sheet-sticky-0 { left: 0; }
@@ -41,6 +47,8 @@
 .forms-sheet-field small { margin-left: 3px; color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); font-weight: 400; }
 .forms-sheet-table tbody td { height: 44px; font-size: var(--ui-font-size-base); }
 .forms-sheet-table tbody tr:hover td:not(.forms-sheet-sticky) { background: var(--ant-color-fill-quaternary); }
+.forms-sheet-table tbody tr.forms-sheet-spacer td,
+.forms-sheet-table tbody tr.forms-sheet-spacer:hover td { padding: 0; border: 0; background: var(--hg-bg); }
 .forms-sheet-rowno { font-family: var(--font-mono); color: var(--ant-color-text-tertiary); font-variant-numeric: tabular-nums; }
 .forms-sheet-cell { font-family: var(--font-mono); cursor: text; padding: 0 8px; font-variant-numeric: tabular-nums; }
 .forms-sheet-cell.forms-sheet-changed { color: var(--ant-color-warning); background: var(--ant-color-warning-bg); }
@@ -91,6 +99,9 @@
 .forms-fill-entry-date input { width: 140px; text-align: left; }
 .forms-fill-entry-select select { width: 140px; text-align: left; }
 .forms-fill-entry input::placeholder { color: var(--ant-color-text-tertiary); }
+.forms-fill-entry-notes{min-width:0;flex:1}
+.forms-fill-entry-notes textarea{box-sizing:border-box;width:100%;min-height:112px;padding:8px;border:1px solid var(--hg-line2);border-radius:var(--hg-radius-control);background:var(--hg-surface);color:var(--hg-ink);font:inherit;resize:vertical}
+.forms-fill-entry-notes textarea:focus{outline:2px solid var(--hg-brand);outline-offset:-2px}
 .forms-fill-entry input:hover,
 .forms-fill-entry select:hover { border-color: var(--ink3); }
 .forms-fill-entry input:focus,
@@ -114,5 +125,50 @@
   .forms-fill-entry-date input,
   .forms-fill-entry-select select { width: 100%; }
   .forms-fill-entry-number input { width: 120px; }
+}
+
+/* 中控分析的字段类型各异，固定三列与控件宽度，切换指标时位置保持一致。 */
+.forms-fill-panel-control .forms-fill-row:not(.forms-fill-row-notes) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5rem 10rem;
+  min-height: 4.5rem;
+}
+.forms-fill-panel-control .forms-fill-label strong {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.4;
+}
+.forms-fill-panel-control .forms-fill-entry {
+  min-width: 0;
+  width: 100%;
+}
+.forms-fill-panel-control .forms-fill-entry input,
+.forms-fill-panel-control .forms-fill-entry select {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  text-align: right;
+}
+.forms-fill-panel-control .forms-fill-row-notes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5rem;
+  gap: 0.75rem;
+  align-items: start;
+}
+.forms-fill-panel-control .forms-fill-row-notes .forms-fill-entry {
+  grid-column: 1 / -1;
+}
+.forms-fill-panel-control .forms-fill-row-notes .forms-fill-last strong {
+  max-width: 5rem;
+}
+@media (max-width: 480px) {
+  .forms-fill-panel-control .forms-fill-row:not(.forms-fill-row-notes) {
+    grid-template-columns: minmax(0, 1fr) 5rem;
+  }
+  .forms-fill-panel-control .forms-fill-row:not(.forms-fill-row-notes) .forms-fill-entry {
+    grid-column: 1 / -1;
+  }
 }
 

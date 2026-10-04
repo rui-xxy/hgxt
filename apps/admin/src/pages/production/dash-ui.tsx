@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon } from '../../components/icons';
 import './dash.css';
 
 /** 设计稿 11-13 的内容区包装 */
-export function Dash({ children }: { children: ReactNode }) {
-  return <div className="dash">{children}</div>;
+export function Dash({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <div className={`dash ${className}`.trim()}>{children}</div>;
 }
 
 /** 酸类 / 分组的固定色板（design/11） */
@@ -126,11 +126,11 @@ export function Stepper({ label, onPrev, onNext, prevDisabled, nextDisabled, pre
   return (
     <div className="stepper">
       <button type="button" aria-label={prevLabel} onClick={onPrev} disabled={prevDisabled}>
-        <ChevronLeft size={16} strokeWidth={1.6} />
+        <ChevronLeftIcon width={16} height={16} />
       </button>
       <span>{label}</span>
       <button type="button" aria-label={nextLabel} onClick={onNext} disabled={nextDisabled}>
-        <ChevronRight size={16} strokeWidth={1.6} />
+        <ChevronRightIcon width={16} height={16} />
       </button>
     </div>
   );
@@ -152,7 +152,7 @@ export function downloadCsv(filename: string, rows: Array<Array<string | number 
 export function ExportButton({ onClick, label = '导出' }: { onClick: () => void; label?: string }) {
   return (
     <button type="button" className="btn ghost sm" onClick={onClick}>
-      <Download size={15} strokeWidth={1.6} />
+      <DownloadIcon width={15} height={15} />
       {label}
     </button>
   );
@@ -183,6 +183,7 @@ export function MonthBars({
   selected,
   onSelect,
   height = 400,
+  valueDigits = 0,
 }: {
   data: BarDatum[];
   unit: string;
@@ -190,6 +191,7 @@ export function MonthBars({
   selected: string | null;
   onSelect: (label: string) => void;
   height?: number;
+  valueDigits?: number;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(720);
@@ -219,7 +221,7 @@ export function MonthBars({
   const avg = values.length ? values.reduce((s, v) => s + v, 0) / values.length : 0;
   const gridLines = Array.from({ length: 5 }, (_, i) => {
     const v = (max / 4) * i;
-    return { v, y: yOf(v), label: Math.round(v).toLocaleString() };
+    return { v, y: yOf(v), label: valueDigits ? fmt(v, valueDigits) : Math.round(v).toLocaleString() };
   });
   const active = hover;
   const activeItem = data.find((d) => d.label === active);
@@ -255,7 +257,7 @@ export function MonthBars({
                   />
                   {slot >= 15 || isSel ? (
                     <div className="bv" style={{ left: x + barW / 2, top: yOf(d.value) - 16, color: isSel ? 'var(--ink)' : 'var(--ink2)', fontWeight: isSel ? 600 : 400 }}>
-                      {Math.round(d.value).toLocaleString()}
+                      {fmt(d.value, valueDigits)}
                     </div>
                   ) : null}
                 </>
@@ -288,7 +290,7 @@ export function MonthBars({
                 </div>
               ))
             ) : (
-              <div className="tr"><span className="muted">{unit}</span><b>{fmt(activeItem.value, 1)}</b></div>
+              <div className="tr"><span className="muted">{unit}</span><b>{fmt(activeItem.value, valueDigits || 1)}</b></div>
             )}
           </div>
         ) : null}

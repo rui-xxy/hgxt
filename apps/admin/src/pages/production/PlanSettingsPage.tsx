@@ -174,7 +174,7 @@ export function PlanSettingsPage() {
                     }}
                   />
                 ))}
-                <span className="num r muted">{fmt(monthTotal(r), 0)}</span>
+                <span className="num r muted">{fmt(monthTotal(r), 2)}</span>
             </div>
           ))}
         </div>

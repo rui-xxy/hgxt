@@ -84,6 +84,52 @@ describe('forms 表单填写与数据表格', () => {
     const res = await http(app).post(`/api/forms/${formId}/submissions`).set('Authorization', auth()).send({ data: { tank: 66 } }).expect(201);
     expect(res.body.data.field_date).toBe(new Date().toISOString().slice(0, 10));
   });
+
+  it('硫酸中控不同岗位同时填写同一天时合并成一条记录', async () => {
+    const control = await prisma.form.create({ data: {
+      title: '硫酸中控｜矿样·干吸·风机', code: 'sulfuric_control_assay', category: '品质', schema: [
+        { id: 'field_date', title: '日期', type: 'date', required: true, hidden: true },
+        { id: 'field_AK', title: '干燥酸浓', type: 'number' },
+        { id: 'field_AC', title: '动力波砷', type: 'number' },
+        { id: 'field_notes', title: '生产情况记录', type: 'text' },
+      ],
+    } });
+    const submit = (data: Record<string, unknown>) => http(app).post(`/api/forms/${control.id}/submissions`)
+      .set('Authorization', auth()).send({ data: { field_date: '2026-09-28', ...data } }).expect(201);
+    const [first, second] = await Promise.all([submit({ field_AK: 94.48 }), submit({ field_AC: 0.31 })]);
+    expect(first.body.id).toBe(second.body.id);
+    const third = await submit({ field_notes: '生产正常' });
+    expect(third.body.id).toBe(first.body.id);
+    expect(third.body.data).toMatchObject({ field_date: '2026-09-28', field_AK: 94.48, field_AC: 0.31, field_notes: '生产正常' });
+    expect(await prisma.formSubmission.count({ where: { formId: control.id } })).toBe(1);
+    await http(app).post(`/api/forms/${control.id}/submissions`).set('Authorization', auth())
+      .send({ data: { field_date: '2026-09-28' } }).expect(400);
+  });
+
+  it('编辑导入行时保留未修改的数字型文本和较长的历史记录', async () => {
+    const legacy = await prisma.form.create({ data: { title: '混合字段历史报表', schema: [
+      { id: 'field_date', title: '日期', type: 'date', required: true, hidden: true },
+      { id: 'effectiveSulfur', title: '有效硫（%）', type: 'text' },
+      { id: 'metric', title: '浓度', type: 'number' },
+      { id: 'notes', title: '生产情况记录', type: 'text' },
+    ] } });
+    const historicalNote = '原始记录'.repeat(260);
+    const row = await prisma.formSubmission.create({ data: { formId: legacy.id, data: {
+      field_date: '2026-09-25', effectiveSulfur: 36.3, metric: 94.2, notes: historicalNote,
+    } } });
+    await http(app).post(`/api/forms/${legacy.id}/submissions/batch`).set('Authorization', auth()).send({
+      created: [], updated: [{ id: row.id, data: {
+        field_date: '2026-09-25', effectiveSulfur: 36.3, metric: 94.4, notes: historicalNote,
+      } }], deleted: [],
+    }).expect(201);
+    const saved = await prisma.formSubmission.findUniqueOrThrow({ where: { id: row.id } });
+    expect(saved.data).toMatchObject({ effectiveSulfur: 36.3, metric: 94.4, notes: historicalNote });
+    await http(app).post(`/api/forms/${legacy.id}/submissions/batch`).set('Authorization', auth()).send({
+      created: [], updated: [{ id: row.id, data: {
+        field_date: '2026-09-25', effectiveSulfur: 37, metric: 94.4, notes: historicalNote,
+      } }], deleted: [],
+    }).expect(400);
+  });
 });
 
 describe('forms 权限模型（USER 只能填报，数据管理仅管理员）', () => {

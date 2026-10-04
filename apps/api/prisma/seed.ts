@@ -3,6 +3,10 @@ import { PrismaClient } from '../src/generated/prisma/client';
 import { hashPassword } from '../src/common/utils/argon';
 import manifest from './form-schemas/manifest.json';
 import sulfuricSchema from './form-schemas/sulfuric.json';
+import sulfuricControlAssaySchema from './form-schemas/sulfuric-control-assay.json';
+import sulfuricControlWashingSchema from './form-schemas/sulfuric-control-washing.json';
+import sulfuricControlAcidSchema from './form-schemas/sulfuric-control-acid.json';
+import sulfuricControlNotesSchema from './form-schemas/sulfuric-control-notes.json';
 import aminosulfonicSchema from './form-schemas/aminosulfonic.json';
 import magnesiumSchema from './form-schemas/magnesium.json';
 import hydrotalciteSchema from './form-schemas/hydrotalcite.json';
@@ -18,6 +22,10 @@ import { importMatters } from './import-matters';
 // manifest 是唯一的表单配置源：新增表单只需加一行 manifest + 对应 JSON 文件
 const SCHEMA_MAP: Record<string, unknown> = {
   'sulfuric.json': sulfuricSchema,
+  'sulfuric-control-assay.json': sulfuricControlAssaySchema,
+  'sulfuric-control-washing.json': sulfuricControlWashingSchema,
+  'sulfuric-control-acid.json': sulfuricControlAcidSchema,
+  'sulfuric-control-notes.json': sulfuricControlNotesSchema,
   'aminosulfonic.json': aminosulfonicSchema,
   'magnesium.json': magnesiumSchema,
   'hydrotalcite.json': hydrotalciteSchema,
@@ -79,12 +87,14 @@ async function main(): Promise<void> {
       console.error(`manifest 引用了 ${entry.file} 但没有对应 import`);
       continue;
     }
-    const existingForm = await prisma.form.findFirst({ where: { title: entry.title } });
+    const existingForm = await prisma.form.findUnique({ where: { code: entry.code } })
+      ?? await prisma.form.findFirst({ where: { title: entry.title } });
     if (existingForm) {
       // 已有：补 code / 更新 parking / 不改 schema（保留用户已有的真实数据）
       await prisma.form.update({
         where: { id: existingForm.id },
         data: {
+          title: entry.title,
           code: entry.code,
           category: 'category' in entry ? entry.category : '生产',
           entryMode: 'entryMode' in entry ? entry.entryMode : 'form',

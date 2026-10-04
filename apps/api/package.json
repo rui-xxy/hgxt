@@ -14,7 +14,10 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
     "db:import-legacy": "tsx --env-file=.env prisma/scripts/import-legacy.ts",
-    "db:import-matters": "tsx --env-file=.env prisma/scripts/import-matters.ts"
+    "db:import-matters": "tsx --env-file=.env prisma/scripts/import-matters.ts",
+    "db:import-anthraquinone": "tsx --env-file=.env prisma/scripts/import-anthraquinone.ts",
+    "db:import-fenglian": "tsx --env-file=.env prisma/scripts/import-fenglian.ts",
+    "db:import-sulfuric-control": "tsx --env-file=.env prisma/scripts/import-sulfuric-control.ts"
   },
   "prisma": {
     "seed": "tsx --env-file=.env prisma/seed.ts"

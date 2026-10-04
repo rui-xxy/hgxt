@@ -15,7 +15,9 @@
     "type": "number",
     "group": "产成品",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_crude_sales",
@@ -23,7 +25,9 @@
     "type": "number",
     "group": "产成品",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_crude_anti_solvent",
@@ -31,7 +35,9 @@
     "type": "number",
     "group": "产成品",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_crude_stock",
@@ -39,7 +45,9 @@
     "type": "number",
     "group": "产成品",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_fine_output",
@@ -47,7 +55,9 @@
     "type": "number",
     "group": "产成品",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_fine_sales",
@@ -55,13 +65,57 @@
     "type": "number",
     "group": "产成品",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_fine_stock",
     "title": "二乙基蒽醌精品库存",
     "type": "number",
     "group": "产成品",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
+  },
+  {
+    "id": "field_dilute_output",
+    "title": "稀酸产量",
+    "type": "number",
+    "group": "稀酸",
+    "unit": "t",
+    "suffix": "t",
+    "step": 0.001,
+    "precision": 3
+  },
+  {
+    "id": "field_dilute_out_v2006",
+    "title": "稀酸出库 V2006",
+    "type": "number",
+    "group": "稀酸",
+    "unit": "t",
+    "suffix": "t",
+    "step": 0.001,
+    "precision": 3
+  },
+  {
+    "id": "field_dilute_out_v2009b",
+    "title": "稀酸出库 V2009b",
+    "type": "number",
+    "group": "稀酸",
+    "unit": "t",
+    "suffix": "t",
+    "step": 0.001,
+    "precision": 3
+  },
+  {
+    "id": "field_dilute_stock",
+    "title": "稀酸库存",
+    "type": "number",
+    "group": "稀酸",
+    "unit": "t",
+    "suffix": "t",
     "step": 0.001,
     "precision": 3
   },
@@ -71,7 +125,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_toluene_consumption",
@@ -79,7 +135,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_toluene_stock",
@@ -87,7 +145,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_ethylbenzene_purchase",
@@ -95,7 +155,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_ethylbenzene_consumption",
@@ -103,7 +165,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_ethylbenzene_stock",
@@ -111,7 +175,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_chlorobenzene_purchase",
@@ -119,7 +185,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_chlorobenzene_consumption",
@@ -127,7 +195,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_chlorobenzene_stock",
@@ -135,7 +205,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_phthalic_anhydride_purchase",
@@ -143,7 +215,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_phthalic_anhydride_consumption",
@@ -151,7 +225,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_phthalic_anhydride_stock",
@@ -159,7 +235,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_alcl3_purchase",
@@ -167,7 +245,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_alcl3_consumption",
@@ -175,7 +255,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_alcl3_stock",
@@ -183,7 +265,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_carbon_purchase",
@@ -191,7 +275,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_carbon_consumption",
@@ -199,7 +285,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_carbon_stock",
@@ -207,7 +295,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_lye_purchase",
@@ -215,7 +305,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_lye_consumption",
@@ -223,7 +315,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_lye_stock",
@@ -231,7 +325,9 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_flake_caustic_purchase",
@@ -239,70 +335,318 @@
     "type": "number",
     "group": "原辅料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_flake_caustic_consumption",
     "title": "片碱消耗",
     "type": "number",
     "group": "原辅料",
-    "step": 0.001,
-    "precision": 3
+    "step": 0.0001,
+    "precision": 4,
+    "unit": "t",
+    "suffix": "t"
   },
   {
     "id": "field_flake_caustic_stock",
     "title": "片碱库存",
     "type": "number",
     "group": "原辅料",
-    "step": 0.001,
-    "precision": 3
+    "step": 0.0001,
+    "precision": 4,
+    "unit": "t",
+    "suffix": "t"
+  },
+  {
+    "id": "field_granular_caustic_purchase",
+    "title": "粒碱购入",
+    "type": "number",
+    "group": "原辅料",
+    "unit": "t",
+    "suffix": "t",
+    "step": 0.0001,
+    "precision": 4
+  },
+  {
+    "id": "field_granular_caustic_consumption",
+    "title": "粒碱消耗",
+    "type": "number",
+    "group": "原辅料",
+    "unit": "t",
+    "suffix": "t",
+    "step": 0.0001,
+    "precision": 4
+  },
+  {
+    "id": "field_granular_caustic_stock",
+    "title": "粒碱库存",
+    "type": "number",
+    "group": "原辅料",
+    "unit": "t",
+    "suffix": "t",
+    "step": 0.0001,
+    "precision": 4
   },
   {
     "id": "field_fuming_sulfuric_flow",
     "title": "发烟硫酸流量计",
     "type": "number",
-    "group": "流量计及仪表",
+    "group": "公用计量",
     "step": 0.001,
-    "precision": 3
-  },
-  {
-    "id": "field_water_meter",
-    "title": "水表",
-    "type": "number",
-    "group": "流量计及仪表",
-    "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "m³",
+    "suffix": "m³"
   },
   {
     "id": "field_steam_meter",
     "title": "蒸汽表",
     "type": "number",
-    "group": "流量计及仪表",
+    "group": "公用计量",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t",
+    "suffix": "t"
   },
   {
-    "id": "field_gas_meter",
-    "title": "天然气表",
+    "id": "field_water_meter",
+    "title": "水表",
     "type": "number",
-    "group": "流量计及仪表",
+    "group": "公用计量",
     "step": 0.001,
-    "precision": 3
-  },
-  {
-    "id": "field_gas_recharge",
-    "title": "天然气充值",
-    "type": "number",
-    "group": "流量计及仪表",
-    "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "m³",
+    "suffix": "m³"
   },
   {
     "id": "field_electricity_meter",
     "title": "电表",
     "type": "number",
-    "group": "流量计及仪表",
+    "group": "公用计量",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "表值",
+    "suffix": "表值"
+  },
+  {
+    "id": "field_aluminum_water_meter",
+    "title": "铝水累计量",
+    "type": "number",
+    "group": "公用计量",
+    "unit": "m³",
+    "suffix": "m³",
     "step": 0.001,
     "precision": 3
+  },
+  {
+    "id": "field_bag_25kg_purchase",
+    "title": "25kg包装袋购入",
+    "type": "number",
+    "group": "包材",
+    "unit": "个",
+    "suffix": "个",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_bag_25kg_consumption",
+    "title": "25kg包装袋耗用",
+    "type": "number",
+    "group": "包材",
+    "unit": "个",
+    "suffix": "个",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_bag_25kg_stock",
+    "title": "25kg包装袋库存",
+    "type": "number",
+    "group": "包材",
+    "unit": "个",
+    "suffix": "个",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_bag_500kg_purchase",
+    "title": "500kg包装袋购入",
+    "type": "number",
+    "group": "包材",
+    "unit": "个",
+    "suffix": "个",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_bag_500kg_consumption",
+    "title": "500kg包装袋耗用",
+    "type": "number",
+    "group": "包材",
+    "unit": "个",
+    "suffix": "个",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_bag_500kg_stock",
+    "title": "500kg包装袋库存",
+    "type": "number",
+    "group": "包材",
+    "unit": "个",
+    "suffix": "个",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_pallet_purchase",
+    "title": "托盘购入",
+    "type": "number",
+    "group": "包材",
+    "unit": "个",
+    "suffix": "个",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_pallet_consumption",
+    "title": "托盘耗用",
+    "type": "number",
+    "group": "包材",
+    "unit": "个",
+    "suffix": "个",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_pallet_stock",
+    "title": "托盘库存",
+    "type": "number",
+    "group": "包材",
+    "unit": "个",
+    "suffix": "个",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_gas_recharge",
+    "title": "天然气购入",
+    "type": "number",
+    "group": "天然气",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "m³",
+    "suffix": "m³"
+  },
+  {
+    "id": "field_gas_consumption",
+    "title": "天然气耗用",
+    "type": "number",
+    "group": "天然气",
+    "unit": "m³",
+    "suffix": "m³",
+    "step": 0.001,
+    "precision": 3
+  },
+  {
+    "id": "field_gas_meter",
+    "title": "天然气库存",
+    "type": "number",
+    "group": "天然气",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "m³",
+    "suffix": "m³"
+  },
+  {
+    "id": "field_empty_drum_purchase",
+    "title": "空吨桶购入",
+    "type": "number",
+    "group": "干化",
+    "unit": "个",
+    "suffix": "个",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_empty_drum_consumption",
+    "title": "空吨桶耗用",
+    "type": "number",
+    "group": "干化",
+    "unit": "个",
+    "suffix": "个",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_empty_drum_stock",
+    "title": "空吨桶库存",
+    "type": "number",
+    "group": "干化",
+    "unit": "个",
+    "suffix": "个",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_waste_alkali_drum_output",
+    "title": "废碱渣桶生产",
+    "type": "number",
+    "group": "干化",
+    "unit": "桶",
+    "suffix": "桶",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_waste_alkali_drum_outbound",
+    "title": "废碱渣桶出库",
+    "type": "number",
+    "group": "干化",
+    "unit": "桶",
+    "suffix": "桶",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_waste_alkali_drum_stock",
+    "title": "废碱渣桶库存",
+    "type": "number",
+    "group": "干化",
+    "unit": "桶",
+    "suffix": "桶",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_defoamer_purchase",
+    "title": "消泡剂（35kg/桶）购入",
+    "type": "number",
+    "group": "干化",
+    "unit": "桶",
+    "suffix": "桶",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_defoamer_consumption",
+    "title": "消泡剂（35kg/桶）耗用",
+    "type": "number",
+    "group": "干化",
+    "unit": "桶",
+    "suffix": "桶",
+    "step": 1,
+    "precision": 0
+  },
+  {
+    "id": "field_defoamer_stock",
+    "title": "消泡剂（35kg/桶）库存",
+    "type": "number",
+    "group": "干化",
+    "unit": "桶",
+    "suffix": "桶",
+    "step": 1,
+    "precision": 0
   }
 ]

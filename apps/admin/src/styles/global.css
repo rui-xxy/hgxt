@@ -45,6 +45,50 @@
   --ui-font-size-sm: 13.5px; /* 辅助 */
   --ui-font-size-xs: 12.5px; /* 徽标级元数据 */
 
+  /* design/plan/01 的导航字号层级 */
+  --hg-nav-title-size: var(--ui-font-size-base);
+  --hg-nav-section-size: var(--ui-font-size-xs);
+  --hg-nav-item-size: var(--ui-font-size-caption);
+  /* 自定义组件的主题别名：新页面只引用 --hg-*，浅暗色由原有令牌同步切换。 */
+  --hg-bg: var(--bg);
+  --hg-side: var(--side);
+  --hg-surface: var(--surface);
+  --hg-sunken: var(--sunken);
+  --hg-ink: var(--ink);
+  --hg-ink2: var(--ink2);
+  --hg-ink3: var(--ink3);
+  --hg-line: var(--line);
+  --hg-line2: var(--line2);
+  --hg-hover: var(--hover);
+  --hg-active: var(--active);
+  --hg-brand: var(--brand);
+  --hg-brand-soft: var(--brand-soft);
+  --hg-danger: var(--danger);
+  --hg-danger-soft: var(--danger-soft);
+  --hg-amber: var(--amber);
+  --hg-amber-soft: var(--amber-soft);
+  --hg-ok: var(--ok);
+  --hg-ok-soft: var(--ok-soft);
+  --hg-control-alert: color-mix(in srgb, var(--amber) 54%, var(--danger));
+  --hg-control-alert-soft: color-mix(in srgb, var(--amber-soft) 52%, var(--danger-soft));
+  --hg-pop: var(--pop);
+  --hg-radius-control: var(--r-control);
+  --hg-radius-container: var(--r-container);
+  --hg-radius-pop: var(--r-pop);
+  --hg-radius-tag: var(--r-tag);
+  --hg-font-serif: var(--font-serif);
+  --hg-font-mono: var(--font-mono);
+  --hg-font-size-xl: var(--ui-font-size-xl);
+  --hg-font-size-lg: var(--ui-font-size-lg);
+  --hg-font-size-sm: var(--ui-font-size-sm);
+  --hg-font-size-xs: var(--ui-font-size-xs);
+  /* 中控设计稿的局部字号等级，供同一视图的卡片和图表复用。 */
+  --hg-control-title-size: 24px;
+  --hg-control-value-size: 21px;
+  --hg-control-section-size: 14px;
+  --hg-control-meta-size: 12px;
+  --hg-control-axis-size: 11px;
+
   --font-sans: 'Geist', 'Noto Sans SC', system-ui, -apple-system, 'PingFang SC',
     'Microsoft YaHei', sans-serif;
   --font-serif: 'Newsreader', 'Noto Serif SC', Georgia, serif;

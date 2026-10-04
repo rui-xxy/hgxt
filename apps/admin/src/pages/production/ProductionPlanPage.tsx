@@ -31,6 +31,8 @@ const completionRateText = (actual: number | null, plan: number | null): string 
   if (actual !== null && plan !== null && actual < plan && shown >= 100) shown = 99.9;
   return `${shown.toFixed(1)}%`;
 };
+const fmtAmount = (value: number | null | undefined): string => fmt(value, 2);
+const COMPLETION_GRID = '128px 10ch 10ch minmax(0,1fr) 4px 12ch 12ch minmax(0,1.2fr) 13ch 92px';
 const CONSUMPTION_GRID = '120px minmax(0,1.2fr) minmax(0,1fr) 84px 64px 96px 84px 84px 84px minmax(110px,1fr)';
 
 const deltaPct = (current: number, previous: number): number | null => previous > 0 ? ((current / previous) - 1) * 100 : null;
@@ -70,8 +72,8 @@ function WeekCard({
         <span className={`week-delta ${change === null ? 'mute' : change >= 0 ? 'up' : 'dn'}`}>{pctText(change)}</span>
       </div>
       <div className="week-card-total">
-        <span>{fmt(currentTotal, 1)}<small>t</small></span>
-        <span className="faint" title={`上周同期 ${fmt(lastSame, 1)} t`}>上周同期 {fmt(lastSame, 1)}</span>
+        <span>{fmtAmount(currentTotal)}<small>t</small></span>
+        <span className="faint" title={`上周同期 ${fmtAmount(lastSame)} t`}>上周同期 {fmtAmount(lastSame)}</span>
       </div>
       <div className="week-days" aria-label={`${row.workshop}${metric === 'production' ? '产量' : '销量'}逐日对比`}>
         {days.map((day, i) => {
@@ -80,7 +82,7 @@ function WeekCard({
           const previousHeight = Math.max(previous > 0 ? 4 : 0, (previous / max) * 100);
           const currentHeight = current === null ? previousHeight : Math.max(current > 0 ? 4 : 0, (current / max) * 100);
           return (
-            <div className="week-day" key={day} title={`周${day} · ${current === null ? '本周未到' : `本周 ${fmt(current, 1)} t`} · 上周 ${fmt(previous, 1)} t`}>
+            <div className="week-day" key={day} title={`周${day} · ${current === null ? '本周未到' : `本周 ${fmtAmount(current)} t`} · 上周 ${fmtAmount(previous)} t`}>
               <div className="week-day-bars">
                 <i className="last" style={{ height: `${previousHeight}%` }} />
                 <i className={current === null ? 'future' : 'current'} style={{ height: `${currentHeight}%` }} />
@@ -91,10 +93,10 @@ function WeekCard({
         })}
       </div>
       <div className="week-card-foot">
-        <div><span>日均 本周 / 上周</span><b>{fmt(average, 1)}<small>/ {fmt(lastAverage, 1)}</small></b></div>
+        <div><span>日均 本周 / 上周</span><b>{fmtAmount(average)}<small>/ {fmtAmount(lastAverage)}</small></b></div>
         <div><span title={`${unitLabel}${primary ? ` · ${primary.unit}` : ''}`}>{unitLabel}{primary ? ` · ${primary.unit}` : ''}</span><b>{primary?.current === null || primary?.current === undefined ? '—' : primary.current.toFixed(dg(primary.current))}<small>/ {primary?.lastMonth === null || primary?.lastMonth === undefined ? '—' : primary.lastMonth.toFixed(dg(primary.lastMonth))}</small>{unitChange !== null ? <em className={unitChange <= 0 ? 'up' : 'dn'}>{pctText(unitChange)}</em> : null}</b></div>
-        <div><span>上周全周</span><b>{fmt(lastFull, 1)}<small>t</small></b></div>
-        <div><span>按本周日均推算全周</span><b>{fmt(projected, 0)}<small>t</small>{projectedChange !== null ? <em className={projectedChange >= 0 ? 'up' : 'dn'}>{pctText(projectedChange)}</em> : null}</b></div>
+        <div><span>上周全周</span><b>{fmtAmount(lastFull)}<small>t</small></b></div>
+        <div><span>按本周日均推算全周</span><b>{fmtAmount(projected)}<small>t</small>{projectedChange !== null ? <em className={projectedChange >= 0 ? 'up' : 'dn'}>{pctText(projectedChange)}</em> : null}</b></div>
       </div>
     </div>
   );
@@ -156,7 +158,7 @@ function MonthlyTrend({
                     <div className="trend-column" key={month.month} onMouseEnter={() => setHovered(i)}>
                       {plan > 0 ? <i className={actual === null ? 'trend-plan-base trend-future' : 'trend-plan-base'} style={{ height: `${planPct}%` }} /> : null}
                       {actual !== null ? <i className={`trend-bar trend-bar-${tone === 'met' ? 'met' : tone === 'none' ? 'neutral' : 'unmet'}`} style={{ height: `${actualPct}%` }} /> : null}
-                      <span className={actual === null ? 'trend-value trend-value-future' : 'trend-value'} style={{ bottom: `calc(${Math.max(planPct, actualPct)}% + 7px)` }}>{actual === null ? (plan > 0 ? fmt(plan, 0) : '') : fmt(actual, 0)}</span>
+                      <span className={actual === null ? 'trend-value trend-value-future' : 'trend-value'} style={{ bottom: `calc(${Math.max(planPct, actualPct)}% + 7px)` }}>{actual === null ? (plan > 0 ? fmtAmount(plan) : '') : fmtAmount(actual)}</span>
                     </div>
                   );
                 })}
@@ -164,8 +166,8 @@ function MonthlyTrend({
               {hoveredMonth ? (
                 <div className="trend-tip" style={{ left: `${Math.min(72, hovered! * (100 / 12) + 5)}%` }}>
                   <b>{year} 年 {hoveredMonth.month} 月</b>
-                  <span><i>计划</i><strong>{fmt(hoveredMonth.plan, 0)} t</strong></span>
-                  <span><i>实际</i><strong>{fmt(hoveredMonth.actual, 0)} t</strong></span>
+                  <span><i>计划</i><strong>{fmtAmount(hoveredMonth.plan)} t</strong></span>
+                  <span><i>实际</i><strong>{fmtAmount(hoveredMonth.actual)} t</strong></span>
                   <span><i>完成率</i><strong>{hoveredMonth.actual !== null && hoveredMonth.plan ? `${((hoveredMonth.actual / hoveredMonth.plan) * 100).toFixed(1)}%` : '—'}</strong></span>
                   <span><i>年累计完成率</i><strong>{cumulativeAtHover !== null && row.yearPlan > 0 ? `${((cumulativeAtHover / row.yearPlan) * 100).toFixed(1)}%` : '—'}</strong></span>
                 </div>
@@ -183,15 +185,15 @@ function MonthlyTrend({
       </div>
       <div className="trend-summary">
         <span className="faint">年度累计 · 截至 {actuals.length || '—'} 月</span>
-        <div className="trend-year-total"><b>{fmt(row.yearActual, 0)}</b><span>/ {fmt(row.yearPlan, 0)} t</span></div>
+        <div className="trend-year-total"><b>{fmtAmount(row.yearActual)}</b><span>/ {fmtAmount(row.yearPlan)} t</span></div>
         <div className="pg trend-progress">
           {timeProgress && row.yearPlan > 0 ? <span className="plan-time-progress" style={{ width: `${Math.min(100, timeProgress.pct)}%` }} /> : null}
           <i className={`plan-tone-${yearPlanTone(row.statusPoints)}`} style={{ width: `${Math.min(100, row.yearRate ?? 0)}%` }} />
         </div>
         <div className="trend-progress-label"><span><b>{row.yearRate === null ? '—' : `${row.yearRate.toFixed(1)}%`}</b> 完成率</span><span><i className="plan-time-swatch" />时间进度 {timeProgress === null ? '—' : `${timeProgress.pct.toFixed(1)}%`}</span></div>
         <div className="trend-stats">
-          <div><span>按当前速度预计全年</span><b>{fmt(forecast, 0)} t</b>{forecast !== null && row.yearPlan > 0 ? <em className={forecast >= row.yearPlan ? 'up' : 'dn'} title={`${forecast >= row.yearPlan ? '可完成，超' : '缺口'} ${fmt(Math.abs(forecast - row.yearPlan), 0)} t（${((forecast / row.yearPlan) * 100).toFixed(1)}%）`}><span>{forecast >= row.yearPlan ? '超' : '缺口'} {fmt(Math.abs(forecast - row.yearPlan), 0)} t</span><span>预计达成 {((forecast / row.yearPlan) * 100).toFixed(1)}%</span></em> : <em className="faint"><span>—</span></em>}</div>
-          <div><span>剩余 {remainingMonths} 个月需月均</span><b>{fmt(needMonthly, 0)} t</b><em className="faint"><span>近 {recent.length} 月月均</span><span>{fmt(recentAverage, 0)} t</span></em></div>
+          <div><span>按当前速度预计全年</span><b>{fmtAmount(forecast)} t</b>{forecast !== null && row.yearPlan > 0 ? <em className={forecast >= row.yearPlan ? 'up' : 'dn'} title={`${forecast >= row.yearPlan ? '可完成，超' : '缺口'} ${fmtAmount(Math.abs(forecast - row.yearPlan))} t（${((forecast / row.yearPlan) * 100).toFixed(1)}%）`}><span>{forecast >= row.yearPlan ? '超' : '缺口'} {fmtAmount(Math.abs(forecast - row.yearPlan))} t</span><span>预计达成 {((forecast / row.yearPlan) * 100).toFixed(1)}%</span></em> : <em className="faint"><span>—</span></em>}</div>
+          <div><span>剩余 {remainingMonths} 个月需月均</span><b>{fmtAmount(needMonthly)} t</b><em className="faint"><span>近 {recent.length} 月月均</span><span>{fmtAmount(recentAverage)} t</span></em></div>
         </div>
         <div className="trend-quarters">
           <span className="faint">季度完成</span>
@@ -279,7 +281,7 @@ export function ProductionPlanPage() {
         >
           <div className={hiddenName ? 'wsn dim' : 'wsn'}>{r.workshop}</div>
           <div>{r.material}</div>
-          <div className="num r">{fmt(r.monthUsage, 1)}{r.monthUsage === null ? null : <span className="faint" style={{ fontSize: 11, marginLeft: 4 }}>{r.usageUnit}</span>}</div>
+          <div className="num r">{fmt(r.monthUsage, r.material === '电' ? 0 : r.material === '水' ? 1 : 2)}{r.monthUsage === null ? null : <span className="faint" style={{ fontSize: 11, marginLeft: 4 }}>{r.usageUnit}</span>}</div>
           <div className="num r" style={{ fontWeight: 600 }}>{r.current === null ? '—' : r.current.toFixed(dg(r.current))}</div>
           <div className="faint">{r.unit}</div>
           <div className="num r muted">{r.target ?? '—'}</div>
@@ -365,10 +367,10 @@ export function ProductionPlanPage() {
         </div>
         <div style={{ overflowX: 'auto' }}>
         <div style={{ minWidth: 1080 }}>
-        <div className="ghd plan-completion-group" style={{ gridTemplateColumns: '128px 64px 64px minmax(0,1fr) 4px 76px 76px minmax(0,1.2fr) 72px 92px', paddingTop: 6, paddingBottom: 4 }}>
+        <div className="ghd plan-completion-group" style={{ gridTemplateColumns: COMPLETION_GRID, paddingTop: 6, paddingBottom: 4 }}>
           <span /><span style={{ gridColumn: 'span 3' }}>{monthLabel}</span><span /><span style={{ gridColumn: 'span 5' }}>{displayYear} 年度</span>
         </div>
-        <div className="prow phead" style={{ gridTemplateColumns: '128px 64px 64px minmax(0,1fr) 4px 76px 76px minmax(0,1.2fr) 72px 92px' }}>
+        <div className="prow phead" style={{ gridTemplateColumns: COMPLETION_GRID }}>
           <span>车间</span>
           <span className="r">计划</span><span className="r">完成</span><span>完成率</span><span />
           <span className="r">年计划</span><span className="r">累计完成</span><span>完成率</span><span className="r">按进度</span><span>较时间进度</span>
@@ -378,10 +380,10 @@ export function ProductionPlanPage() {
           const monthTone = monthPlanTone(completionRate(r.monthActual, r.monthPlan));
           const yearTone = yearPlanTone(r.statusPoints);
           return (
-            <div className="prow" key={r.workshop} style={{ gridTemplateColumns: '128px 64px 64px minmax(0,1fr) 4px 76px 76px minmax(0,1.2fr) 72px 92px' }}>
+            <div className="prow" key={r.workshop} style={{ gridTemplateColumns: COMPLETION_GRID }}>
               <div className="plan-actual">{r.workshop}</div>
-              <span className="num r muted">{r.monthPlan === null ? '—' : fmt(r.monthPlan, 0)}</span>
-              <span className="num r plan-actual">{fmt(r.monthActual, 0)}</span>
+              <span className="num r muted">{fmtAmount(r.monthPlan)}</span>
+              <span className="num r plan-actual">{fmtAmount(r.monthActual)}</span>
               <div>
                 <div className="plan-completion-meter">
                   <div className="pg" style={{ flex: 1 }}>
@@ -391,8 +393,8 @@ export function ProductionPlanPage() {
                 </div>
               </div>
               <span />
-              <span className="num r muted">{r.yearPlan > 0 ? fmt(r.yearPlan, 0) : '—'}</span>
-              <span className="num r plan-actual">{fmt(r.yearActual, 0)}</span>
+              <span className="num r muted">{r.yearPlan > 0 ? fmtAmount(r.yearPlan) : '—'}</span>
+              <span className="num r plan-actual">{fmtAmount(r.yearActual)}</span>
               <div>
                 <div className="plan-completion-meter">
                   <div className="pg" style={{ flex: 1 }}>
@@ -403,7 +405,7 @@ export function ProductionPlanPage() {
                 </div>
               </div>
               <span className={`num r ${r.aheadOfProgress === null ? 'faint' : r.aheadOfProgress >= 0 ? 'up' : 'dn'}`}>
-                {r.aheadOfProgress === null ? '—' : r.aheadOfProgress >= 0 ? `超 ${fmt(r.aheadOfProgress, 0)}` : `欠 ${fmt(Math.abs(r.aheadOfProgress), 0)}`}
+                {r.aheadOfProgress === null ? '—' : r.aheadOfProgress >= 0 ? `超 ${fmtAmount(r.aheadOfProgress)}` : `欠 ${fmtAmount(Math.abs(r.aheadOfProgress))}`}
               </span>
               <div>
                 {r.status === 'ahead' ? <span className="st st-ok">超前 {r.statusPoints}</span>
@@ -480,12 +482,12 @@ export function ProductionPlanPage() {
               {(data?.sales ?? []).filter((r) => inWs(r.workshop)).map((r) => (
                 <div className="trow" key={r.workshop} style={{ gridTemplateColumns: 'minmax(0,1.2fr) repeat(7, minmax(0,1fr))' }}>
                   <div className="wsn">{r.workshop}</div>
-                  <span className="num r">{fmt(r.production, 0)}</span>
-                  <span className="num r">{fmt(r.sales, 0)}</span>
+                  <span className="num r">{fmtAmount(r.production)}</span>
+                  <span className="num r">{fmtAmount(r.sales)}</span>
                   <span className="num r">{r.salesRatio === null ? '—' : `${r.salesRatio}%`}</span>
-                  <span className="num r">{fmt(r.inventory, 1)}</span>
+                  <span className="num r">{fmtAmount(r.inventory)}</span>
                   <span className={`num r${r.inventoryDays !== null && r.inventoryDays < 5 ? ' warn' : ''}`}>{r.inventoryDays === null ? '—' : `${r.inventoryDays} 天`}</span>
-                  <span className="num r muted">{fmt(r.lastMonthProduction, 0)}</span>
+                  <span className="num r muted">{fmtAmount(r.lastMonthProduction)}</span>
                   <span className={`num r ${(r.productionDelta ?? 0) >= 0 ? 'up' : 'dn'}`}>{pctText(r.productionDelta)}</span>
                 </div>
               ))}

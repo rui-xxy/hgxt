@@ -1,6 +1,7 @@
 import { beforeAll, afterAll, describe, expect, it } from 'vitest';
 import type { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/database/prisma.service';
+import { OverviewService } from '../src/production/overview.service';
 import { createTestApp, http, loginOk, resetDbWithAdmin } from './utils';
 import { parsePlanUpperLimit, PLAN_TARGET_CATALOG } from '@hgxt/shared';
 
@@ -246,5 +247,91 @@ describe('production 计划与完成', () => {
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
     expect(clearedBoard.body.energyConsumption.find((row: { workshop: string; material: string }) => row.workshop === '硫酸' && row.material === '电').target).toBeNull();
+  });
+
+  it('蒽醌计划的产量、销量和库存都汇总粗品与精品', async () => {
+    const anthra = await prisma.form.create({
+      data: {
+        title: '蒽醌生产部生产报表',
+        code: 'anthraquinone_daily',
+        schema: [
+          { id: 'field_date', title: '日期', type: 'date', hidden: true, required: true },
+          { id: 'field_crude_output', title: '粗品产量', type: 'number' },
+          { id: 'field_crude_sales', title: '粗品销量', type: 'number' },
+          { id: 'field_crude_stock', title: '粗品库存', type: 'number' },
+          { id: 'field_fine_output', title: '精品产量', type: 'number' },
+          { id: 'field_fine_sales', title: '精品销量', type: 'number' },
+          { id: 'field_fine_stock', title: '精品库存', type: 'number' },
+        ] as never,
+      },
+    });
+    await prisma.formSubmission.create({
+      data: {
+        formId: anthra.id,
+        data: {
+          field_date: '2026-09-10',
+          field_crude_output: 14,
+          field_crude_sales: 3,
+          field_crude_stock: 7,
+          field_fine_output: 68.995,
+          field_fine_sales: 20,
+          field_fine_stock: 8,
+        },
+      },
+    });
+
+    const res = await http(app).get('/api/production/plan?year=2026')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    const completion = res.body.completion.find((row: { workshop: string }) => row.workshop === '二乙基蒽醌');
+    const week = res.body.week.find((row: { workshop: string }) => row.workshop === '二乙基蒽醌');
+    const sales = res.body.sales.find((row: { workshop: string }) => row.workshop === '二乙基蒽醌');
+    expect(res.body.asOf).toBe('2026-09-10');
+    expect(completion.basis).toBe('总产量');
+    expect(completion.months[8].actual).toBe(82.995);
+    expect(completion.yearActual).toBe(82.995);
+    expect(week.productionThis).toBe(82.995);
+    expect(sales.production).toBe(82.995);
+    expect(sales.sales).toBe(23);
+    expect(sales.inventory).toBe(15);
+  });
+
+  it('丰联按 Excel 行日期统计干料打包数、销量和库存', async () => {
+    const fenglian = await prisma.form.create({
+      data: { title: '丰联报表', code: 'fenglian_daily', schema: [
+        { id: 'field_date', title: '日期', type: 'date', hidden: true, required: true },
+        { id: 'field_204', title: '焦磷酸哌嗪打包数', type: 'number' },
+        { id: 'field_205', title: '焦磷酸哌嗪销量', type: 'number' },
+        { id: 'field_206', title: '焦磷酸哌嗪成品库存', type: 'number' },
+      ] as never },
+    });
+    await prisma.formSubmission.create({
+      data: { formId: fenglian.id, data: {
+        field_date: '2026-09-11', field_204: 9, field_205: 28, field_206: 43.9,
+      } },
+    });
+    await prisma.formSubmission.create({
+      data: { formId: fenglian.id, data: { field_date: '2026-05-13', field_005: 14 } },
+    });
+    const byDate = await app.get(OverviewService).byDate('fenglian_daily');
+    expect(byDate.has('2026-05-12')).toBe(true);
+    expect(byDate.has('2026-09-11')).toBe(true);
+    const res = await http(app).get('/api/production/plan?year=2026')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    const completion = res.body.completion.find((row: { workshop: string }) => row.workshop === '丰联');
+    const sales = res.body.sales.find((row: { workshop: string }) => row.workshop === '丰联');
+    expect(res.body.asOf).toBe('2026-09-11');
+    expect(completion.months[8].actual).toBe(9);
+    expect(sales.production).toBe(9);
+    expect(sales.sales).toBe(28);
+    expect(sales.inventory).toBe(43.9);
+    const detail = await http(app).get('/api/production/fenglian?days=0')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(detail.body.days.find((day: { date: string }) => day.date === '2026-09-11').values).toMatchObject({
+      field_204: 9, field_205: 28, field_206: 43.9,
+    });
+    expect(detail.body.days.find((day: { date: string }) => day.date === '2026-05-12')).toBeTruthy();
   });
 });

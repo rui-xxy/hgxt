@@ -8,6 +8,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Matches,
   Length,
   Max,
   Min,
@@ -28,6 +29,14 @@ class SulfuricSummaryQuery {
   @Min(0)
   @Max(120)
   days?: number = 30;
+}
+
+class SulfuricControlQuery {
+  @ApiPropertyOptional({ description: '中控化验月份 YYYY-MM；不传则返回最新有数据月份' })
+  @IsOptional()
+  @IsString()
+  @Matches(/^20\d{2}-(0[1-9]|1[0-2])$/)
+  month?: string;
 }
 
 class PlanYearQuery {
@@ -113,6 +122,12 @@ export class ProductionController {
     return this.production.sulfuricSummary(query.days);
   }
 
+  @Get('sulfuric/control')
+  @ApiOperation({ summary: '硫酸车间中控分析：指定月份的化验值与异常备注' })
+  sulfuricControl(@Query() query: SulfuricControlQuery) {
+    return this.production.sulfuricControl(query.month);
+  }
+
   @Get('workshops')
   @ApiOperation({ summary: '车间版面：各车间日产量序列（硫酸折98、热电供汽计量，其余为上报值）' })
   workshops(@Query() query: SulfuricSummaryQuery) {
@@ -129,6 +144,12 @@ export class ProductionController {
   @ApiOperation({ summary: '氨基磺酸车间：日产量、五项消耗与期末库存' })
   amino(@Query() query: SulfuricSummaryQuery) {
     return this.overview.aminoSummary(query.days);
+  }
+
+  @Get('fenglian')
+  @ApiOperation({ summary: '丰联车间：三车间与标准厂房日报原值' })
+  fenglian(@Query() query: SulfuricSummaryQuery) {
+    return this.overview.fenglianSummary(query.days);
   }
 
   @Get('thermal')
