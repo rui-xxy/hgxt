@@ -116,6 +116,7 @@
 .forms-fill-parking > strong { font-size: var(--ui-font-size-sm); }
 .forms-fill-parking > p { margin: 0; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); }
 .forms-fill-footer { flex: none; padding: 12px 20px; border-top: 1px solid var(--ant-color-border-secondary); background: var(--ant-color-bg-container); }
+.forms-fill-optional-hint { margin: 0 0 8px; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); }
 .forms-fill-success { align-items: center; padding: 24px; }
 .forms-fill-success-card { width: min(100%, 400px); padding: 32px; border: 1px solid var(--ant-color-border-secondary); border-radius: var(--r-container); background: var(--ant-color-bg-container); text-align: center; }
 .forms-fill-success-icon { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; background: var(--ant-color-success-bg); color: var(--ant-color-success); font-size: var(--ui-font-size-title); }

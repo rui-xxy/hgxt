@@ -14,7 +14,8 @@ const form: FormDTO = {
   entryMode: 'form', description: null, parkingEnabled: false, latestEntryDate: null, submissionCount: 0,
   schema: [
     { id: 'field_date', title: '日期', type: 'date', hidden: true, required: true },
-    { id: 'field_B', title: '有效硫', type: 'number' },
+    { id: 'field_B', title: '有效硫', type: 'number', required: true },
+    { id: 'field_C', title: '水分', type: 'number', required: true },
   ],
 };
 
@@ -35,9 +36,12 @@ describe('硫酸中控填写日期', () => {
     const date = await screen.findByRole('textbox', { name: '记录日期' });
     fireEvent.change(date, { target: { value: '2026年9月28日' } });
     fireEvent.keyDown(date, { key: 'Enter' });
+    const submit = screen.getByRole('button', { name: '提交已填项目（0）' });
+    expect(submit.hasAttribute('disabled')).toBe(true);
     fireEvent.change(screen.getByRole('textbox', { name: '有效硫' }), { target: { value: '35.1' } });
-    fireEvent.click(screen.getByRole('button', { name: '确认并提交' }));
+    expect(screen.getByRole('button', { name: '提交已填项目（1）' }).hasAttribute('disabled')).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: '提交已填项目（1）' }));
 
-    await waitFor(() => expect(createSubmission).toHaveBeenCalledWith(form.id, { field_date: '2026-09-28', field_B: 35.1 }));
+    await waitFor(() => expect(createSubmission).toHaveBeenCalledWith(form.id, { field_date: '2026-09-28', field_B: 35.1, field_C: null }));
   });
 });

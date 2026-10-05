@@ -64,11 +64,14 @@ export function FormFillPage() {
     }
     return groups;
   }, [form.data?.schema]);
-  // 进度通用化：以 required 字段为准（纯文本/混合表单都能正确工作；无必填字段随时可提交）
-  const requiredFields = form.data?.schema.filter((field) => !field.hidden && field.required) ?? [];
-  const filled = requiredFields.filter((field) => isFilled(field, values[field.id])).length;
   const isSulfuricControl = form.data?.code?.startsWith('sulfuric_control_') ?? false;
-  const hasSulfuricInput = !isSulfuricControl || Object.values(values).some((value) => value?.trim());
+  // 中控检测项目按实际测量结果填写；同一天可分多次补充，日期之外没有必填项目。
+  const requiredFields = form.data?.schema.filter((field) => !isSulfuricControl && !field.hidden && field.required) ?? [];
+  const filled = requiredFields.filter((field) => isFilled(field, values[field.id])).length;
+  const controlFields = isSulfuricControl ? form.data?.schema.filter((field) => !field.hidden) ?? [] : [];
+  const filledControlFields = controlFields.filter((field) => isFilled(field, values[field.id])).length;
+  const invalidControlFields = controlFields.some((field) => values[field.id]?.trim() && !isFilled(field, values[field.id]));
+  const canSubmit = filled === requiredFields.length && (!isSulfuricControl || (filledControlFields > 0 && !invalidControlFields));
   const enableParking = form.data?.parkingEnabled ?? false;
   const current = active || grouped[0]?.name;
   const currentFields = grouped.find((group) => group.name === current)?.fields ?? [];
@@ -80,7 +83,7 @@ export function FormFillPage() {
   const previous: FormLastValuesResult = last.data ?? {};
   const patchParking = (index: number, part: Partial<ParkingRecord>) => setParking((items) => items.map((item, i) => i === index ? { ...item, ...part } : item));
   const handleSubmit = () => {
-    if (!form.data || filled !== requiredFields.length) return;
+    if (!form.data || !canSubmit) return;
     const data: FormData = {};
     for (const field of form.data.schema) {
       if (field.hidden && field.type === 'date') data[field.id] = isSulfuricControl ? entryDate : today();
@@ -104,7 +107,7 @@ export function FormFillPage() {
       </header>
       {grouped.length > 1 && <nav className="forms-fill-tabs" aria-label="表单分组"><div className="forms-fill-tabs-inner">
         {grouped.map((group) => {
-          const missing = group.fields.filter((field) => field.required && !isFilled(field, values[field.id])).length;
+          const missing = isSulfuricControl ? 0 : group.fields.filter((field) => field.required && !isFilled(field, values[field.id])).length;
           return <button type="button" key={group.name} className={current === group.name ? 'active' : ''} onClick={() => { setActive(group.name); setActiveCategory(''); setActiveSubgroup(''); }}>{group.name}{missing > 0 && <b>{missing}</b>}</button>;
         })}
         {enableParking && <button type="button" className={current === '__parking' ? 'active' : ''} onClick={() => setActive('__parking')}>停车记录</button>}
@@ -120,7 +123,7 @@ export function FormFillPage() {
           const lastValue = previous[field.id];
           const value = values[field.id] ?? '';
           return <div className={`forms-fill-row${field.id === 'field_notes' ? ' forms-fill-row-notes' : ''} ${value ? 'filled' : ''}`} key={field.id}>
-            <div className="forms-fill-label"><strong title={field.title}>{field.title}{field.required && <em>*</em>}</strong>{field.description && <small>{field.description}</small>}</div>
+            <div className="forms-fill-label"><strong title={field.title}>{field.title}{field.required && !isSulfuricControl && <em>*</em>}</strong>{field.description && <small>{field.description}</small>}</div>
             <div className="forms-fill-last"><small>上次{lastValue ? ` ${lastValue.date.slice(5).replace('-', '/')}` : ''}</small><strong>{lastValue?.value ?? '--'}</strong></div>
             <div className={`forms-fill-entry forms-fill-entry-${field.type}${field.id === 'field_notes' ? ' forms-fill-entry-notes' : ''}`}>
               {field.id === 'field_notes' ? <textarea aria-label={field.title} placeholder={field.placeholder ?? '--'} maxLength={1000} value={value} onChange={(e) => setValues((currentValues) => ({ ...currentValues, [field.id]: e.target.value }))} /> : field.type === 'select' ? <select value={value} onChange={(e) => setValues((currentValues) => ({ ...currentValues, [field.id]: e.target.value }))}><option value="">--</option>{field.options?.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select> : <input aria-label={field.title} inputMode={field.type === 'number' ? 'decimal' : undefined} type={field.type === 'date' ? 'date' : 'text'} placeholder={field.placeholder ?? '--'} maxLength={200} value={value} onChange={(e) => { const next = e.target.value; if (field.type !== 'number' || next === '' || /^-?\d*\.?\d*$/.test(next)) setValues((currentValues) => ({ ...currentValues, [field.id]: next })); }} />}
@@ -142,7 +145,7 @@ export function FormFillPage() {
           <Button block type="dashed" icon={<PlusIcon width={16} height={16} />} onClick={() => setParking((items) => [...items, emptyParking(today())])}>新增停车记录</Button>
         </div>}
       </section>
-      <footer className="forms-fill-footer"><Button type="primary" block size="large" disabled={filled !== requiredFields.length || !hasSulfuricInput} loading={submit.isPending} onClick={handleSubmit}>{requiredFields.length > 0 ? `确认并提交 (${filled}/${requiredFields.length})` : '确认并提交'}</Button></footer>
+      <footer className="forms-fill-footer">{isSulfuricControl && <p className="forms-fill-optional-hint">{invalidControlFields ? '请检查已填写项目的格式或数值范围。' : '只填写本次需要记录的项目，其他项目可留空。'}</p>}<Button type="primary" block size="large" disabled={!canSubmit} loading={submit.isPending} onClick={handleSubmit}>{isSulfuricControl ? `提交已填项目（${filledControlFields}）` : requiredFields.length > 0 ? `确认并提交 (${filled}/${requiredFields.length})` : '确认并提交'}</Button></footer>
     </main>
   </div>;
 }

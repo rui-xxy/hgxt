@@ -89,8 +89,8 @@ describe('forms 表单填写与数据表格', () => {
     const control = await prisma.form.create({ data: {
       title: '硫酸中控｜矿样·干吸·风机', code: 'sulfuric_control_assay', category: '品质', schema: [
         { id: 'field_date', title: '日期', type: 'date', required: true, hidden: true },
-        { id: 'field_AK', title: '干燥酸浓', type: 'number' },
-        { id: 'field_AC', title: '动力波砷', type: 'number' },
+        { id: 'field_AK', title: '干燥酸浓', type: 'number', required: true },
+        { id: 'field_AC', title: '动力波砷', type: 'number', required: true },
         { id: 'field_notes', title: '生产情况记录', type: 'text' },
       ],
     } });

@@ -84,7 +84,10 @@ function cleanData(form: Form, input: unknown, previousData?: FormData): FormDat
       continue;
     }
     if (raw === undefined || raw === null || raw === '') {
-      if (field.required) throw new BadRequestException(`${field.title}为必填项`);
+      // 硫酸中控按当次实际检测项目补录；仅记录日期必须填写。
+      if (field.required && !(form.code?.startsWith('sulfuric_control_') && field.id !== 'field_date')) {
+        throw new BadRequestException(`${field.title}为必填项`);
+      }
       data[field.id] = null;
     } else if (field.type === 'number') {
       if (typeof raw !== 'number' || !Number.isFinite(raw)) {
