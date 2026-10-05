@@ -2,7 +2,7 @@ import { App, Button, Card, Input, Result, Select, Skeleton, Spin } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { getForm, listSubmissions } from '../../api/forms';
 import { PageHeader } from '../../components/PageHeader';
 import { DataSheet } from './components/DataSheet';
@@ -36,12 +36,14 @@ export function FormDataPage() {
   const submissions = useQuery({
     queryKey: ['forms', id, 'submissions', page, pageSize, keyword, progress],
     queryFn: () => loadFormSubmissions(id, page, pageSize, { keyword, progress }, isSectioned),
-    enabled: !!id && !!form.data,
+    enabled: !!id && !!form.data && form.data.code !== 'maintenance_log',
     refetchOnWindowFocus: false,
     placeholderData: (previousData, previousQuery) => previousQuery?.queryKey[1] === id ? previousData : undefined,
   });
   useEffect(() => { const error = form.error ?? submissions.error; if (error) message.error(error.message); }, [form.error, submissions.error, message]);
-  if (form.isLoading || submissions.isLoading) return <Skeleton active />;
+  if (form.isLoading) return <Skeleton active />;
+  if (form.data?.code === 'maintenance_log') return <Navigate to="/maintenance/records" replace />;
+  if (submissions.isLoading) return <Skeleton active />;
   if (!form.data || !submissions.data) return <Result status="404" title="表单不存在" extra={<Link to="/forms">返回表单列表</Link>} />;
 
   return <>

@@ -39,7 +39,7 @@ export function FormsPage() {
       <div className="forms-category-bar">
         <Segmented
           value={category || '全部'}
-          options={['全部', '生产', '人资', '品质', '总经办']}
+          options={['全部', '生产', '设备', '人资', '品质', '总经办']}
           onChange={(value) => {
             setPage(1);
             setSearchParams(value === '全部' ? {} : { category: value });
@@ -72,11 +72,11 @@ export function FormsPage() {
           {
             title: '操作',
             key: 'actions',
-            width: isAdmin ? 136 : 90,
+            width: 136,
             fixed: 'right',
             render: (_: unknown, form: FormDTO) => <Space size={4}>
-              {isAdmin && <Button type="link" size="small" onClick={() => navigate(`/forms/${form.id}`)}>{form.entryMode === 'sheet' ? '打开表格' : '数据'}</Button>}
-              {form.entryMode === 'form' && <Button type="link" size="small" onClick={() => navigate(`/form-fill/${form.id}`)}>填写</Button>}
+              {(isAdmin || form.code === 'maintenance_log') && <Button type="link" size="small" onClick={() => navigate(form.code === 'maintenance_log' ? '/maintenance/records' : `/forms/${form.id}`)}>{form.entryMode === 'sheet' ? '打开表格' : '数据'}</Button>}
+              {form.entryMode === 'form' && <Button type="link" size="small" onClick={() => navigate(form.code === 'maintenance_log' ? '/maintenance/new' : `/form-fill/${form.id}`)}>填写</Button>}
               {!isAdmin && form.entryMode === 'sheet' && <span className="forms-muted">仅管理员</span>}
             </Space>,
           },

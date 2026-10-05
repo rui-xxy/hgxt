@@ -106,6 +106,15 @@
     "description": "各车间产成品产销存"
   },
   {
+    "file": "maintenance.json",
+    "title": "设备维修登记",
+    "category": "设备",
+    "entryMode": "form",
+    "parkingEnabled": false,
+    "code": "maintenance_log",
+    "description": "设备维修原始记录"
+  },
+  {
     "file": "matters-2026.json",
     "title": "2026年事项表",
     "category": "总经办",

@@ -62,6 +62,14 @@ async function main(): Promise<void> {
   if (process.argv.includes('--dry-run')) return;
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
   try {
+    await prisma.form.upsert({
+      where: { code: 'maintenance_log' },
+      update: { title: '设备维修登记', category: '设备', entryMode: 'form' },
+      create: {
+        code: 'maintenance_log', title: '设备维修登记', category: '设备',
+        entryMode: 'form', description: '设备维修原始记录', schema: [],
+      },
+    });
     // 兼容最初仅按 sourceRow 导入的本机记录，补齐来源后复合唯一键才能防止重导。
     await prisma.maintenanceRecord.updateMany({
       where: { sourceWorkbook: null, sourceRow: { not: null }, reportYear: 2026 },

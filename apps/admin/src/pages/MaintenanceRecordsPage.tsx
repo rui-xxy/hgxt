@@ -9,7 +9,7 @@ import { useMe } from '../api/hooks';
 import { DownloadIcon, PencilIcon, PlusIcon, SearchIcon } from '../components/icons';
 import { PageHeader } from '../components/PageHeader';
 import { TablePageFooter } from '../components/PageNavigator';
-import { displayDate, numberText, peopleOf, recordsCsv, suspiciousHours, uniqueOptions, validHours } from './MaintenanceData';
+import { displayDate, numberText, peopleOf, recordsCsv, uniqueOptions, validHours } from './MaintenanceData';
 import './maintenance.css';
 
 function sortRecords(a: MaintenanceRecord, b: MaintenanceRecord): number {
@@ -56,7 +56,6 @@ export function MaintenanceRecordsPage() {
     }).sort(sortRecords);
   }, [records, keyword, dateRange, department, cause, person]);
   const totalHours = filtered.reduce((sum, record) => sum + (validHours(record) ?? 0), 0);
-  const suspiciousCount = filtered.filter(suspiciousHours).length;
   const currentPage = Math.min(page, Math.max(1, Math.ceil(filtered.length / pageSize)));
   const visible = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const selected = selectedId ? records.find((record) => record.id === selectedId) ?? null : null;
@@ -69,7 +68,7 @@ export function MaintenanceRecordsPage() {
     { title: '工作内容', dataIndex: 'workContent', key: 'workContent', ellipsis: true, render: (value: string) => <strong className="maintenance-content-cell" title={value}>{value || '—'}</strong> },
     { title: '部门', dataIndex: 'department', key: 'department', width: 140, ellipsis: true, render: (value: string) => value || '—' },
     { title: '故障原因', dataIndex: 'faultCause', key: 'faultCause', width: 160, ellipsis: true, render: (value: string) => value || '未填写' },
-    { title: '工时', dataIndex: 'repairHours', key: 'repairHours', width: 110, align: 'right', render: (value: number | null) => value === null ? '—' : value < 0 || value > 24 ? <span className="maintenance-anomaly" title="工时待核对，统计保留原值">{numberText(value, 2)} h *</span> : `${numberText(value, 2)} h` },
+    { title: '工时', dataIndex: 'repairHours', key: 'repairHours', width: 110, align: 'right', render: (value: number | null) => value === null ? '—' : `${numberText(value, 2)} h` },
   ];
 
   const clearFilters = () => {
@@ -85,7 +84,7 @@ export function MaintenanceRecordsPage() {
   if (query.error) return <Alert type="error" showIcon message="维修记录加载失败" description={query.error.message} action={<Button onClick={() => void query.refetch()}>重试</Button>} />;
 
   return <div className="maintenance-page maintenance-records-page">
-    <PageHeader title="维修记录" description="查看、筛选与维护原始维修日志" extra={<div className="maintenance-header-actions">
+    <PageHeader title="维修记录" extra={<div className="maintenance-header-actions">
       <Button icon={<DownloadIcon width={16} height={16} />} disabled={!filtered.length} onClick={() => recordsCsv(filtered)}>导出 CSV</Button>
       <Button type="primary" icon={<PlusIcon width={16} height={16} />} onClick={() => navigate('/maintenance/new')}>维修登记</Button>
     </div>} />
@@ -96,7 +95,7 @@ export function MaintenanceRecordsPage() {
       <Select aria-label="筛选故障原因" placeholder="原因：全部" allowClear showSearch optionFilterProp="label" value={cause} options={causeOptions.map((value) => ({ value, label: value }))} onChange={(value) => { setCause(value); setPage(1); }} className="maintenance-filter-select" />
       <Select aria-label="筛选维修人员" placeholder="人员：全部" allowClear showSearch optionFilterProp="label" value={person} options={personOptions.map((value) => ({ value, label: value }))} onChange={(value) => { setPerson(value); setPage(1); }} className="maintenance-filter-select" />
       <Button type="text" onClick={clearFilters}>清除筛选</Button>
-      <div className="maintenance-result-count">共 {numberText(filtered.length)} 条 · 原值工时 {numberText(totalHours, 2)} h{suspiciousCount ? ` · ${suspiciousCount} 条工时待核对` : ''}</div>
+      <div className="maintenance-result-count">共 {numberText(filtered.length)} 条 · {numberText(totalHours, 2)} h</div>
     </div>
     <section className="maintenance-records-card" aria-label="维修记录列表">
       <Table<MaintenanceRecord>
@@ -123,7 +122,7 @@ export function MaintenanceRecordsPage() {
         <DetailItem label="日期" value={displayDate(selected)} mono />
         <DetailItem label="归属月份" value={`${selected.reportYear} 年 ${selected.reportMonth} 月`} mono />
         <DetailItem label="工作时间" value={selected.workTimeText} mono />
-        <DetailItem label="维修工时" value={selected.repairHours === null ? '未填写' : `${numberText(selected.repairHours, 2)} h${suspiciousHours(selected) ? ' · 待核对' : ''}`} mono />
+        <DetailItem label="维修工时" value={selected.repairHours === null ? '未填写' : `${numberText(selected.repairHours, 2)} h`} mono />
         <DetailItem label="部门" value={selected.department} />
         <DetailItem label="区域 / 位置" value={selected.location} />
         <DetailItem label="设备型号" value={selected.equipmentModel} mono />

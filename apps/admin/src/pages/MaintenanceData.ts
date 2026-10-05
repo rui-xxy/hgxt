@@ -15,16 +15,12 @@ export const monthKey = (year: number, month: number): string =>
   `${year}-${String(month).padStart(2, '0')}`;
 
 export const displayDate = (record: MaintenanceRecord): string =>
-  record.date ?? (record.sourceDateText || '日期待核对');
+  record.date ?? (record.sourceDateText || '—');
 
 export const validHours = (record: MaintenanceRecord): number | null =>
   record.repairHours !== null && Number.isFinite(record.repairHours)
     ? record.repairHours
     : null;
-
-/** 原表工时数值照实求和；负数和超出单日长度的值只做待核对提示。 */
-export const suspiciousHours = (record: MaintenanceRecord): boolean =>
-  record.repairHours !== null && (record.repairHours < 0 || record.repairHours > 24);
 
 export const hasParts = (record: MaintenanceRecord): boolean => {
   const value = record.replacedParts.trim();

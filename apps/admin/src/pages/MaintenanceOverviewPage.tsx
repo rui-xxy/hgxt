@@ -9,7 +9,7 @@ import { DownloadIcon, PlusIcon } from '../components/icons';
 import { PageHeader } from '../components/PageHeader';
 import {
   hasParts, inPeriod, monthKey, numberText, peopleOf, percentText, primaryValue,
-  recordsCsv, suspiciousHours, validHours, type MaintenancePeriod,
+  recordsCsv, validHours, type MaintenancePeriod,
 } from './MaintenanceData';
 import './maintenance.css';
 
@@ -42,7 +42,9 @@ function monthRows(records: MaintenanceRecord[], period: MaintenancePeriod): Mon
     groups.set(key, group);
   }
   if (period.kind === 'year') {
-    for (let month = 1; month <= 12; month += 1) {
+    const now = new Date();
+    const endMonth = period.year === now.getFullYear() ? now.getMonth() + 1 : period.year < now.getFullYear() ? 12 : 1;
+    for (let month = 1; month <= endMonth; month += 1) {
       const key = monthKey(period.year, month);
       if (!groups.has(key)) groups.set(key, []);
     }
@@ -115,9 +117,6 @@ export function MaintenanceOverviewPage() {
   const reworkCount = selected.filter((record) => record.isRework).length;
   const people = new Set(selected.flatMap(peopleOf));
   const participationCount = selected.reduce((sum, record) => sum + peopleOf(record).length, 0);
-  const incompletePeopleCount = selected.filter((record) => peopleOf(record).some((person) => person.length === 1)).length;
-  const suspiciousHoursCount = selected.filter(suspiciousHours).length;
-  const invalidDateCount = selected.filter((record) => record.date === null).length;
 
   const causes = (() => {
     const map = new Map<string, MaintenanceRecord[]>();
@@ -191,7 +190,7 @@ export function MaintenanceOverviewPage() {
   if (query.error) return <Alert type="error" showIcon message="维修数据加载失败" description={query.error.message} action={<Button onClick={() => void query.refetch()}>重试</Button>} />;
 
   return <div className="maintenance-page">
-    <PageHeader title="维修总览" description="按维修日志原始记录实时计算" extra={<div className="maintenance-header-actions">
+    <PageHeader title="维修总览" extra={<div className="maintenance-header-actions">
       <div className="maintenance-period-switch" role="group" aria-label="统计范围">
         {([['month', '本月'], ['year', '本年'], ['custom', '自定义']] as const).map(([key, label]) =>
           <button key={key} type="button" className={periodMode === key ? 'is-active' : ''} onClick={() => setPeriodMode(key)}>{label}</button>)}
@@ -206,8 +205,6 @@ export function MaintenanceOverviewPage() {
     </div>} />
 
     {periodMode === 'custom' && !customRange ? <Alert type="info" showIcon message="请选择自定义日期范围" className="maintenance-inline-alert" /> : null}
-    {suspiciousHoursCount || invalidDateCount || incompletePeopleCount ? <Alert type="warning" showIcon className="maintenance-inline-alert"
-      message={`本范围有 ${suspiciousHoursCount} 条工时、${invalidDateCount} 条日期、${incompletePeopleCount} 条人员姓名待核对；工时统计按原表数值求和。`} /> : null}
 
     <div className="maintenance-kpis">
       <KpiCard label="维修次数" value={numberText(selected.length)} unit="条" note="一条日志计一次" />
@@ -215,26 +212,23 @@ export function MaintenanceOverviewPage() {
       <KpiCard label="更换配件" value={numberText(partCount)} unit="条" note={percentText(partCount, selected.length)} />
       <KpiCard label="设备本身质量问题" value={percentText(qualityCount, selected.length)} note={`${numberText(qualityCount)} 条`} />
       <KpiCard label="返工" value={numberText(reworkCount)} unit="条" note={`返工率 ${percentText(reworkCount, selected.length)}`} />
-      <KpiCard label="维修人员" value={numberText(people.size)} unit="人" note={`人均参与 ${people.size ? numberText(participationCount / people.size, 1) : '—'} 次${incompletePeopleCount ? ` · ${incompletePeopleCount} 条姓名待核对` : ''}`} />
+      <KpiCard label="维修人员" value={numberText(people.size)} unit="人" note={`人均参与 ${people.size ? numberText(participationCount / people.size, 1) : '—'} 次`} />
     </div>
 
     <div className="maintenance-two-col">
       <section className="maintenance-panel" aria-labelledby="maintenance-month-title">
-        <div className="maintenance-panel-heading"><h2 id="maintenance-month-title">月度维修</h2><span>条 · 工时和配件数见下方</span></div>
-        {months.length ? <div className="maintenance-month-scroll"><div className="maintenance-month-chart" style={{ minWidth: `${Math.max(12, months.length) * 4.5}rem` }}>
-          {months.map((month) => <div className="maintenance-month-column" key={month.key} title={`${month.key} · ${month.records.length} 条`}>
+        <div className="maintenance-panel-heading"><h2 id="maintenance-month-title">月度维修</h2><span>条</span></div>
+        {months.length ? <div className="maintenance-month-chart" style={{ '--hg-month-count': Math.min(months.length, 12) } as CSSProperties}>
+          {months.map((month) => <div className="maintenance-month-column" key={month.key} title={`${month.key} · ${month.records.length} 条 · ${numberText(month.hours, 2)} h · 配件 ${month.parts} 条 · 人员 ${month.people} 人`}>
             <span>{month.records.length || '·'}</span>
-            <div className="maintenance-month-track"><i style={{ height: `${(month.records.length / maxMonth) * 100}%` }} /></div>
+            <div className="maintenance-month-track"><i className={month.year === new Date().getFullYear() && month.month === currentMonth ? 'is-current' : ''} style={{ height: `${(month.records.length / maxMonth) * 100}%` }} /></div>
             <small>{month.month}月</small>
           </div>)}
-        </div></div> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="范围内没有维修记录" />}
-        <div className="maintenance-month-summary" role="table" aria-label="各月汇总" style={{ '--hg-month-count': Math.max(1, months.length) } as CSSProperties}>
-          <div role="row"><strong role="rowheader">月份</strong>{months.map((month) => <span role="cell" key={month.key}>{month.month}月</span>)}</div>
-          <div role="row"><strong role="rowheader">维修次数</strong>{months.map((month) => <span role="cell" key={month.key}>{month.records.length}</span>)}</div>
-          <div role="row"><strong role="rowheader">工时 h</strong>{months.map((month) => <span role="cell" key={month.key}>{numberText(month.hours, 2)}</span>)}</div>
-          <div role="row"><strong role="rowheader">配件</strong>{months.map((month) => <span role="cell" key={month.key}>{month.parts}</span>)}</div>
-          <div role="row"><strong role="rowheader">人员</strong>{months.map((month) => <span role="cell" key={month.key}>{month.people}</span>)}</div>
-        </div>
+        </div> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="范围内没有维修记录" />}
+        {months.length > 1 && months.length <= 12 ? <div className="maintenance-month-metrics" style={{ '--hg-month-count': months.length } as CSSProperties}>
+          <span className="maintenance-month-metric-label">工时 h</span>{months.map((month) => <span key={month.key} title={`${numberText(month.hours, 2)} h`}>{numberText(month.hours, 0)}</span>)}
+          <span className="maintenance-month-metric-label">配件</span>{months.map((month) => <span key={month.key}>{month.parts}</span>)}
+        </div> : null}
       </section>
 
       <section className="maintenance-panel" aria-labelledby="maintenance-cause-title">
@@ -267,7 +261,7 @@ export function MaintenanceOverviewPage() {
 
     <section className="maintenance-panel maintenance-full-panel">
       <div className="maintenance-panel-heading"><h2>部门 × 月份</h2><span>单元格颜色越深，维修记录越多</span></div>
-      <div className="maintenance-heat-scroll"><div className="maintenance-heatmap" style={{ gridTemplateColumns: `minmax(8rem, 1fr) repeat(${months.length}, minmax(3.5rem, 1fr)) 4rem` }}>
+      <div className="maintenance-heat-scroll"><div className="maintenance-heatmap" style={{ gridTemplateColumns: `minmax(5rem, 1.5fr) repeat(${months.length}, minmax(0, 1fr)) minmax(2.5rem, .7fr)` }}>
         <div className="maintenance-heat-head">部门</div>{months.map((month) => <div className="maintenance-heat-head" key={month.key}>{month.month}月</div>)}<div className="maintenance-heat-head">合计</div>
         {heatmapRows.map((department) => <div className="maintenance-heat-row" key={department.name}>
           <strong title={department.name}>{department.name}</strong>

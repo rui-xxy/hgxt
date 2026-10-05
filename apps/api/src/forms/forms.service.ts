@@ -160,7 +160,16 @@ export class FormsService {
     ]);
     // 各表按自己的 date 字段取最新归属日期
     const latest = new Map<string, string | null>();
+    const hasMaintenance = forms.some((form) => form.code === 'maintenance_log');
+    const maintenance = hasMaintenance ? await Promise.all([
+      this.prisma.maintenanceRecord.count(),
+      this.prisma.maintenanceRecord.findFirst({ where: { date: { not: null } }, orderBy: { date: 'desc' }, select: { date: true } }),
+    ]) : null;
     for (const form of forms) {
+      if (form.code === 'maintenance_log') {
+        latest.set(form.id, maintenance?.[1]?.date?.toISOString().slice(0, 10) ?? null);
+        continue;
+      }
       const dateIds = schemaOf(form).filter((f) => f.type === 'date').map((f) => f.id);
       if (!dateIds.length) {
         latest.set(form.id, null);
@@ -182,7 +191,7 @@ export class FormsService {
         schema: schemaOf(form),
         parkingEnabled: form.parkingEnabled,
         latestEntryDate: latest.get(form.id) ?? null,
-        submissionCount: form._count.submissions,
+        submissionCount: form.code === 'maintenance_log' ? maintenance?.[0] ?? 0 : form._count.submissions,
       })),
       total, page, pageSize,
     };
@@ -190,6 +199,10 @@ export class FormsService {
 
   async get(id: string): Promise<FormDTO> {
     const form = await this.findForm(id);
+    const maintenance = form.code === 'maintenance_log' ? await Promise.all([
+      this.prisma.maintenanceRecord.count(),
+      this.prisma.maintenanceRecord.findFirst({ where: { date: { not: null } }, orderBy: { date: 'desc' }, select: { date: true } }),
+    ]) : null;
     const schema = schemaOf(form);
     const dateIds = schema.filter((f) => f.type === 'date').map((f) => f.id);
     let latest: string | null = null;
@@ -208,8 +221,8 @@ export class FormsService {
       description: form.description,
       schema,
       parkingEnabled: form.parkingEnabled,
-      latestEntryDate: latest,
-      submissionCount: await this.prisma.formSubmission.count({ where: { formId: id } }),
+      latestEntryDate: maintenance ? maintenance[1]?.date?.toISOString().slice(0, 10) ?? null : latest,
+      submissionCount: maintenance ? maintenance[0] : await this.prisma.formSubmission.count({ where: { formId: id } }),
     };
   }
 

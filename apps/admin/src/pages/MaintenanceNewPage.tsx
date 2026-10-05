@@ -9,8 +9,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { useNavigate, useSearchParams } from 'react-router';
 import { maintenanceApi, type MaintenanceRecord, type MaintenanceRecordInput } from '../api/maintenance';
 import { useMe } from '../api/hooks';
-import { ArrowLeftIcon, PlusIcon, SaveIcon } from '../components/icons';
-import { PageHeader } from '../components/PageHeader';
+import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, PlusIcon, SaveIcon } from '../components/icons';
 import { peopleOf, uniqueOptions } from './MaintenanceData';
 import './maintenance.css';
 
@@ -103,8 +102,11 @@ export function MaintenanceNewPage() {
   const initializedFor = useRef<string | null>(null);
   const [timePreset, setTimePreset] = useState<TimePreset>('custom');
   const [partsOpen, setPartsOpen] = useState(false);
+  const [picker, setPicker] = useState<'personnel' | 'location' | null>(null);
+  const [pickerSearch, setPickerSearch] = useState('');
   const [partsDraft, setPartsDraft] = useState<PartsDraft>({ name: '', quantity: 1, unit: '个' });
   const selectedDepartment = Form.useWatch('department', form);
+  const selectedPersonnel: string[] = Form.useWatch('personnel', form) ?? [];
 
   useEffect(() => {
     if (query.isLoading || initializedFor.current === (editId ?? 'new')) return;
@@ -171,6 +173,21 @@ export function MaintenanceNewPage() {
     setPartsOpen(false);
   };
 
+  const openPicker = (kind: 'personnel' | 'location') => {
+    setPickerSearch('');
+    setPicker(kind);
+  };
+  const togglePerson = (person: string) => {
+    const current: string[] = form.getFieldValue('personnel') ?? [];
+    form.setFieldValue('personnel', current.includes(person) ? current.filter((value) => value !== person) : [...current, person]);
+  };
+  const chooseLocation = (location: string) => {
+    form.setFieldValue('location', location);
+    const department = departmentOfLocation.get(location);
+    if (department) form.setFieldValue('department', department);
+    setPicker(null);
+  };
+
   const submit = (values: FormValues) => {
     const date = values.date?.format('YYYY-MM-DD') ?? null;
     const dateUnchanged = !!existing && date === existing.date;
@@ -210,59 +227,63 @@ export function MaintenanceNewPage() {
   if (editId && !existing) return <Alert type="warning" showIcon message="找不到要编辑的维修记录" action={<Button onClick={() => navigate('/maintenance/records')}>返回记录</Button>} />;
 
   return <div className="maintenance-page maintenance-form-page">
-    <PageHeader title={editId ? '编辑维修记录' : '维修登记'} description={editId ? '修改后，所有统计将按最新原始记录重新计算' : '填写原始维修记录，统计结果将自动更新'}
-      extra={<div className="maintenance-header-actions"><Button icon={<ArrowLeftIcon width={16} height={16} />} onClick={() => navigate('/maintenance/records')}>返回记录</Button>{!editId ? <Button icon={<SaveIcon width={16} height={16} />} onClick={saveDraft}>保存草稿</Button> : null}</div>} />
-    {existing?.date === null ? <Alert type="warning" showIcon className="maintenance-inline-alert" message={`原始日期为“${existing.sourceDateText || '空白'}”，未能解析。可以保留归属月份，或选择正确日期后保存。`} /> : null}
-    <Form<FormValues> form={form} layout="vertical" initialValues={EMPTY_FORM} onFinish={submit} className="maintenance-entry-form" requiredMark="optional">
-      <section className="maintenance-form-card">
-        <h2>工作内容</h2>
-        <Form.Item name="workContent" label="做了什么" rules={[{ required: true, whitespace: true, message: '请填写工作内容' }]}>
-          <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} placeholder="描述维修、巡检或更换工作" showCount maxLength={1000} />
-        </Form.Item>
-      </section>
-
-      <section className="maintenance-form-card">
-        <h2>基础信息</h2>
-        <div className="maintenance-form-grid">
-          <Form.Item name="date" label="日期" rules={[{ required: !editId, message: '请选择日期' }]}><DatePicker className="maintenance-full-width" allowClear={!!editId} format="YYYY-MM-DD" onChange={(nextDate) => { if (!editId && nextDate) form.setFieldValue('reportPeriod', nextDate.startOf('month')); }} /></Form.Item>
-          <Form.Item name="reportPeriod" label="统计月份" rules={[{ required: true, message: '请选择统计月份' }]}><DatePicker className="maintenance-full-width" picker="month" format="YYYY 年 M 月" /></Form.Item>
-          <Form.Item name="personnel" label="维修人员" rules={[{ required: true, type: 'array', min: 1, message: '请选择维修人员' }]}>
-            <Select mode="tags" placeholder="选择或输入维修人员" options={peopleOptions} tokenSeparators={['、', ',', '，']} maxTagCount="responsive" />
+    <div className="maintenance-phone-form">
+      <header className="maintenance-phone-header">
+        <Button type="text" aria-label="返回维修记录" icon={<ArrowLeftIcon width={20} height={20} />} onClick={() => navigate('/maintenance/records')} />
+        <strong>{editId ? '编辑维修记录' : '维修登记'}</strong>
+        {!editId ? <Button type="text" onClick={saveDraft}>草稿</Button> : <span />}
+      </header>
+      <Form<FormValues> form={form} layout="vertical" initialValues={EMPTY_FORM} onFinish={submit} className="maintenance-entry-form" requiredMark={false}>
+        <section className="maintenance-entry-hero">
+          <Form.Item name="workContent" label="做了什么" rules={[{ required: true, whitespace: true, message: '请填写工作内容' }]}>
+            <Input.TextArea variant="borderless" autoSize={{ minRows: 3, maxRows: 8 }} placeholder="描述维修、巡检或更换工作" maxLength={1000} />
           </Form.Item>
-          <Form.Item name="department" label="所属部门"><AutoComplete options={departmentOptions} placeholder="选择或输入部门" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
-          <Form.Item name="location" label="区域 / 位置"><AutoComplete options={locationOptions} placeholder="选择或输入区域" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} onSelect={(location) => { const department = departmentOfLocation.get(location); if (department) form.setFieldValue('department', department); }} /></Form.Item>
-          <Form.Item name="equipmentModel" label="设备型号"><AutoComplete options={modelOptions} placeholder="输入设备型号" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
-        </div>
-      </section>
+        </section>
 
-      <section className="maintenance-form-card">
-        <h2>工时与配件</h2>
-        <div className="maintenance-preset-row"><span>常用时段</span><Segmented<TimePreset> value={timePreset} onChange={setPreset} options={[{ label: '全天', value: 'full' }, { label: '上午', value: 'morning' }, { label: '下午', value: 'afternoon' }, { label: '自定义', value: 'custom' }]} /></div>
-        <div className="maintenance-form-grid">
-          <Form.Item name="workTimeText" label="工作时间"><Input placeholder="如 08:30–11:00" onChange={() => setTimePreset('custom')} /></Form.Item>
-          <Form.Item name="repairHours" label="维修工时 h"><InputNumber className="maintenance-full-width" step={0.25} placeholder="按原始记录填写" onChange={() => setTimePreset('custom')} /></Form.Item>
-        </div>
-        <Form.Item name="replacedParts" label="更换配件"><Input.TextArea autoSize={{ minRows: 2, maxRows: 5 }} placeholder="无配件可留空；多件可用顿号分隔" /></Form.Item>
-        <Button icon={<PlusIcon width={16} height={16} />} onClick={() => setPartsOpen(true)}>添加配件条目</Button>
-      </section>
+        <section className="maintenance-entry-group" aria-label="基础信息">
+          <Form.Item name="date" label="日期" className="maintenance-entry-row" rules={[{ required: !editId, message: '请选择日期' }]}><DatePicker variant="borderless" className="maintenance-full-width" allowClear={!!editId} format="YYYY-MM-DD" onChange={(nextDate) => { if (!editId && nextDate) form.setFieldValue('reportPeriod', nextDate.startOf('month')); }} /></Form.Item>
+          <Form.Item name="personnel" label="维修人员" className="maintenance-entry-row" rules={[{ required: true, type: 'array', min: 1, message: '请选择维修人员' }]}><Select variant="borderless" mode="multiple" placeholder="选择维修人员" options={peopleOptions} maxTagCount={2} open={false} onClick={() => openPicker('personnel')} /></Form.Item>
+          <Form.Item name="department" label="所属部门" className="maintenance-entry-row"><AutoComplete variant="borderless" options={departmentOptions} placeholder="选择或输入" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+          <Form.Item name="location" label="区域 / 位置" className="maintenance-entry-row"><Input variant="borderless" readOnly placeholder="选择区域" suffix={<ArrowRightIcon width={16} height={16} />} onClick={() => openPicker('location')} /></Form.Item>
+          <Form.Item name="equipmentModel" label="设备型号" className="maintenance-entry-row"><AutoComplete variant="borderless" options={modelOptions} placeholder="选择或输入" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+        </section>
 
-      <section className="maintenance-form-card">
-        <h2>故障分类</h2>
-        <div className="maintenance-form-grid">
-          <Form.Item name="faultType" label="故障类型"><AutoComplete options={typeOptions} placeholder="选择或输入故障类型" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
-          <Form.Item name="faultCause" label="故障原因"><AutoComplete options={causeOptions} placeholder="选择或输入故障原因" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
-        </div>
-        <Form.Item name="isRework" label="是否返工" valuePropName="checked" className="maintenance-switch-item"><Switch /></Form.Item>
-        <Form.Item name="remarks" label="备注"><Input.TextArea autoSize={{ minRows: 2, maxRows: 5 }} placeholder="可选" /></Form.Item>
-      </section>
+        <section className="maintenance-entry-group" aria-label="工作时间和配件">
+          <Form.Item name="workTimeText" label="工作时间" className="maintenance-entry-row"><Input variant="borderless" placeholder="如 08:00–17:00" onChange={() => setTimePreset('custom')} /></Form.Item>
+          <div className="maintenance-entry-preset"><Segmented<TimePreset> block value={timePreset} onChange={setPreset} options={[{ label: '全天', value: 'full' }, { label: '上午', value: 'morning' }, { label: '下午', value: 'afternoon' }, { label: '自定义', value: 'custom' }]} /></div>
+          <Form.Item name="repairHours" label="维修工时 h" className="maintenance-entry-row"><InputNumber variant="borderless" className="maintenance-full-width" step={0.25} placeholder="填写工时" onChange={() => setTimePreset('custom')} /></Form.Item>
+          <div className="maintenance-entry-parts-row"><Form.Item name="replacedParts" label="更换配件" className="maintenance-entry-row"><Input variant="borderless" placeholder="无" /></Form.Item><Button type="link" icon={<PlusIcon width={16} height={16} />} onClick={() => setPartsOpen(true)}>添加</Button></div>
+        </section>
 
-      <div className="maintenance-submit-bar"><Button type="primary" htmlType="submit" loading={mutation.isPending} icon={<SaveIcon width={16} height={16} />}>{editId ? '保存修改' : '提交维修登记'}</Button></div>
-    </Form>
+        <details className="maintenance-entry-more"><summary>更多信息</summary>
+          <section className="maintenance-entry-group" aria-label="其他记录">
+            <Form.Item name="reportPeriod" label="统计月份" className="maintenance-entry-row" rules={[{ required: true, message: '请选择统计月份' }]}><DatePicker variant="borderless" className="maintenance-full-width" picker="month" format="YYYY 年 M 月" /></Form.Item>
+            <Form.Item name="faultType" label="故障类型" className="maintenance-entry-row"><AutoComplete variant="borderless" options={typeOptions} placeholder="选择或输入" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+            <Form.Item name="faultCause" label="故障原因" className="maintenance-entry-row"><AutoComplete variant="borderless" options={causeOptions} placeholder="选择或输入" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+            <Form.Item name="isRework" label="是否返工" valuePropName="checked" className="maintenance-entry-row maintenance-switch-item"><Switch /></Form.Item>
+            <Form.Item name="remarks" label="备注" className="maintenance-entry-notes"><Input.TextArea variant="borderless" autoSize={{ minRows: 2, maxRows: 5 }} placeholder="可选" /></Form.Item>
+          </section>
+        </details>
+        <div className="maintenance-phone-footer"><Button type="primary" block htmlType="submit" loading={mutation.isPending} icon={<SaveIcon width={16} height={16} />}>{editId ? '保存修改' : '提交'}</Button></div>
+      </Form>
+    </div>
 
-    <Drawer title="添加配件" open={partsOpen} onClose={() => setPartsOpen(false)} width="min(100vw, 400px)" className="maintenance-parts-drawer" extra={<Button type="primary" onClick={addPart}>加入</Button>}>
+    <Drawer title="添加配件" placement="bottom" height="min(70vh, 28rem)" open={partsOpen} onClose={() => setPartsOpen(false)} className="maintenance-parts-drawer" extra={<Button type="primary" onClick={addPart}>加入</Button>}>
       <div className="maintenance-parts-fields"><label>名称<Input autoFocus placeholder="配件名称" value={partsDraft.name} onChange={(event) => setPartsDraft((draft) => ({ ...draft, name: event.target.value }))} /></label>
         <label>数量<InputNumber min={0.1} step={1} className="maintenance-full-width" value={partsDraft.quantity} onChange={(quantity) => setPartsDraft((draft) => ({ ...draft, quantity: quantity ?? 1 }))} /></label>
         <label>单位<Select value={partsDraft.unit} onChange={(unit) => setPartsDraft((draft) => ({ ...draft, unit }))} options={['个', '片', '套', '台', '根', '米', '件', '只'].map((unit) => ({ value: unit, label: unit }))} /></label>
+      </div>
+    </Drawer>
+    <Drawer placement="bottom" height="min(70vh, 34rem)" title={picker === 'personnel' ? '维修人员' : '区域 / 位置'} open={picker !== null} onClose={() => setPicker(null)} className="maintenance-picker-drawer" extra={picker === 'personnel' ? <Button type="link" onClick={() => setPicker(null)}>完成</Button> : null}>
+      <Input.Search allowClear aria-label={picker === 'personnel' ? '搜索维修人员' : '搜索区域'} placeholder={picker === 'personnel' ? '搜索或输入姓名' : '搜索或输入区域'} value={pickerSearch} onChange={(event) => setPickerSearch(event.target.value)} onPressEnter={() => {
+        const value = pickerSearch.trim();
+        if (!value) return;
+        if (picker === 'personnel') { if (!selectedPersonnel.includes(value)) togglePerson(value); setPickerSearch(''); }
+        else chooseLocation(value);
+      }} />
+      <div className="maintenance-picker-options">
+        {picker === 'personnel' ? peopleOptions.filter((option) => option.value.includes(pickerSearch.trim())).map((option) => <button key={option.value} type="button" className={selectedPersonnel.includes(option.value) ? 'is-selected' : ''} onClick={() => togglePerson(option.value)}><span className="maintenance-picker-avatar">{option.value.slice(0, 1)}</span><span>{option.value}</span>{selectedPersonnel.includes(option.value) ? <CheckIcon width={18} height={18} /> : null}</button>)
+          : locationOptions.filter((option) => option.value.includes(pickerSearch.trim())).map((option) => <button key={option.value} type="button" onClick={() => chooseLocation(option.value)}><span className="maintenance-picker-avatar">{option.value.slice(0, 1)}</span><span>{option.value}<small>{departmentOfLocation.get(option.value)}</small></span></button>)}
       </div>
     </Drawer>
   </div>;

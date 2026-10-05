@@ -17,6 +17,7 @@ import fenglianSchema from './form-schemas/fenglian.json';
 import warehouseSchema from './form-schemas/warehouse.json';
 import finishedProductsSchema from './form-schemas/finished-products.json';
 import mattersSchema from './form-schemas/matters-2026.json';
+import maintenanceSchema from './form-schemas/maintenance.json';
 import { importMatters } from './import-matters';
 
 // manifest 是唯一的表单配置源：新增表单只需加一行 manifest + 对应 JSON 文件
@@ -36,6 +37,7 @@ const SCHEMA_MAP: Record<string, unknown> = {
   'warehouse.json': warehouseSchema,
   'finished-products.json': finishedProductsSchema,
   'matters-2026.json': mattersSchema,
+  'maintenance.json': maintenanceSchema,
 };
 
 // B3：seed 不再有默认密码——必须显式配置 SEED_ADMIN_PASSWORD 才执行
