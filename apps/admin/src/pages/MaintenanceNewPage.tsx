@@ -1,0 +1,269 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Alert, App as AntApp, AutoComplete, Button, DatePicker, Drawer, Form, Input, InputNumber,
+  Segmented, Select, Spin, Switch,
+} from 'antd';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Role } from '@hgxt/shared';
+import dayjs, { type Dayjs } from 'dayjs';
+import { useNavigate, useSearchParams } from 'react-router';
+import { maintenanceApi, type MaintenanceRecord, type MaintenanceRecordInput } from '../api/maintenance';
+import { useMe } from '../api/hooks';
+import { ArrowLeftIcon, PlusIcon, SaveIcon } from '../components/icons';
+import { PageHeader } from '../components/PageHeader';
+import { peopleOf, uniqueOptions } from './MaintenanceData';
+import './maintenance.css';
+
+type TimePreset = 'full' | 'morning' | 'afternoon' | 'custom';
+
+interface FormValues {
+  date: Dayjs | null;
+  reportPeriod: Dayjs | null;
+  workContent: string;
+  personnel: string[];
+  department: string;
+  location: string;
+  equipmentModel: string;
+  workTimeText: string;
+  repairHours: number | null;
+  replacedParts: string;
+  faultType: string;
+  faultCause: string;
+  isRework: boolean;
+  remarks: string;
+}
+
+interface PartsDraft {
+  name: string;
+  quantity: number;
+  unit: string;
+}
+
+const DRAFT_KEY = 'hgxt:maintenance:draft';
+const TODAY = dayjs();
+const EMPTY_FORM: FormValues = {
+  date: TODAY,
+  reportPeriod: TODAY.startOf('month'),
+  workContent: '',
+  personnel: [],
+  department: '',
+  location: '',
+  equipmentModel: '',
+  workTimeText: '',
+  repairHours: null,
+  replacedParts: '',
+  faultType: '',
+  faultCause: '',
+  isRework: false,
+  remarks: '',
+};
+
+function valuesFromRecord(record: MaintenanceRecord): FormValues {
+  return {
+    date: record.date ? dayjs(record.date) : null,
+    reportPeriod: dayjs(`${record.reportYear}-${String(record.reportMonth).padStart(2, '0')}-01`),
+    workContent: record.workContent,
+    personnel: peopleOf(record),
+    department: record.department,
+    location: record.location,
+    equipmentModel: record.equipmentModel,
+    workTimeText: record.workTimeText,
+    repairHours: record.repairHours,
+    replacedParts: record.replacedParts,
+    faultType: record.faultType,
+    faultCause: record.faultCause,
+    isRework: record.isRework,
+    remarks: record.remarks,
+  };
+}
+
+function readDraft(): FormValues | null {
+  try {
+    const text = localStorage.getItem(DRAFT_KEY);
+    if (!text) return null;
+    const parsed = JSON.parse(text) as Omit<FormValues, 'date' | 'reportPeriod'> & { date: string | null; reportPeriod?: string | null };
+    return { ...EMPTY_FORM, ...parsed, date: parsed.date ? dayjs(parsed.date) : null,
+      reportPeriod: parsed.reportPeriod ? dayjs(parsed.reportPeriod) : EMPTY_FORM.reportPeriod };
+  } catch {
+    return null;
+  }
+}
+
+export function MaintenanceNewPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+  const { message } = AntApp.useApp();
+  const me = useMe();
+  const queryClient = useQueryClient();
+  const query = useQuery({ queryKey: ['maintenance', 'records'], queryFn: maintenanceApi.list });
+  const records = useMemo(() => query.data ?? [], [query.data]);
+  const existing = editId ? records.find((record) => record.id === editId) ?? null : null;
+  const [form] = Form.useForm<FormValues>();
+  const initializedFor = useRef<string | null>(null);
+  const [timePreset, setTimePreset] = useState<TimePreset>('custom');
+  const [partsOpen, setPartsOpen] = useState(false);
+  const [partsDraft, setPartsDraft] = useState<PartsDraft>({ name: '', quantity: 1, unit: '个' });
+  const selectedDepartment = Form.useWatch('department', form);
+
+  useEffect(() => {
+    if (query.isLoading || initializedFor.current === (editId ?? 'new')) return;
+    if (editId && !existing) return;
+    form.setFieldsValue(existing ? valuesFromRecord(existing) : readDraft() ?? EMPTY_FORM);
+    initializedFor.current = editId ?? 'new';
+  }, [query.isLoading, editId, existing, form]);
+
+  const peopleOptions = useMemo(() => uniqueOptions(records.flatMap(peopleOf)).map((value) => ({ value, label: value })), [records]);
+  const departmentOptions = useMemo(() => uniqueOptions(records.map((record) => record.department)).map((value) => ({ value, label: value })), [records]);
+  const locationOptions = useMemo(() => uniqueOptions(records.filter((record) => !selectedDepartment || record.department === selectedDepartment).map((record) => record.location)).filter((value) => value !== '/' && value !== '／').map((value) => ({ value, label: value })), [records, selectedDepartment]);
+  const modelOptions = useMemo(() => uniqueOptions(records.map((record) => record.equipmentModel)).filter((value) => value !== '/' && value !== '／').map((value) => ({ value, label: value })), [records]);
+  const typeOptions = useMemo(() => uniqueOptions(records.map((record) => record.faultType)).map((value) => ({ value, label: value })), [records]);
+  const causeOptions = useMemo(() => uniqueOptions(records.map((record) => record.faultCause)).map((value) => ({ value, label: value })), [records]);
+  const departmentOfLocation = useMemo(() => {
+    const map = new Map<string, Map<string, number>>();
+    for (const record of records) {
+      if (!record.location.trim() || !record.department.trim()) continue;
+      const counts = map.get(record.location) ?? new Map<string, number>();
+      counts.set(record.department, (counts.get(record.department) ?? 0) + 1);
+      map.set(record.location, counts);
+    }
+    return new Map([...map.entries()].map(([location, counts]) => [location, [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0]]));
+  }, [records]);
+
+  const mutation = useMutation({
+    mutationFn: (input: MaintenanceRecordInput) => editId ? maintenanceApi.update(editId, input) : maintenanceApi.create(input),
+    onSuccess: async () => {
+      localStorage.removeItem(DRAFT_KEY);
+      await queryClient.invalidateQueries({ queryKey: ['maintenance', 'records'] });
+      message.success(editId ? '维修记录已更新' : '维修登记已提交');
+      navigate('/maintenance/records');
+    },
+    onError: (error) => message.error(error.message),
+  });
+
+  const setPreset = (preset: TimePreset) => {
+    setTimePreset(preset);
+    const value = preset === 'full' ? { workTimeText: '08:00–17:00', repairHours: 8 }
+      : preset === 'morning' ? { workTimeText: '08:00–12:00', repairHours: 4 }
+        : preset === 'afternoon' ? { workTimeText: '13:00–17:00', repairHours: 4 } : null;
+    if (value) form.setFieldsValue(value);
+  };
+
+  const saveDraft = () => {
+    if (editId) return;
+    const values = form.getFieldsValue(true);
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...values, date: values.date?.format('YYYY-MM-DD') ?? null,
+        reportPeriod: values.reportPeriod?.format('YYYY-MM') ?? null }));
+      message.success('草稿已保存在此浏览器');
+    } catch {
+      message.error('草稿保存失败');
+    }
+  };
+
+  const addPart = () => {
+    const name = partsDraft.name.trim();
+    if (!name) { message.warning('请填写配件名称'); return; }
+    const formatted = `${name}×${partsDraft.quantity}${partsDraft.unit}`;
+    const current = form.getFieldValue('replacedParts')?.trim() ?? '';
+    form.setFieldValue('replacedParts', current && !['/', '／', '无'].includes(current) ? `${current}、${formatted}` : formatted);
+    setPartsDraft({ name: '', quantity: 1, unit: '个' });
+    setPartsOpen(false);
+  };
+
+  const submit = (values: FormValues) => {
+    const date = values.date?.format('YYYY-MM-DD') ?? null;
+    const dateUnchanged = !!existing && date === existing.date;
+    // 只编辑某一字段时，其余 Excel 文本原样保留（包括尾随空格与占位符）。
+    const textValue = (value: string | undefined, original: string | undefined) =>
+      original !== undefined && value === original ? original : value?.trim() ?? '';
+    const enteredPeople = [...new Set((values.personnel ?? []).map((person) => person.trim()).filter(Boolean))];
+    const personnelUnchanged = !!existing && enteredPeople.length === peopleOf(existing).length &&
+      enteredPeople.every((person, index) => person === peopleOf(existing)[index]);
+    const reportYear = values.reportPeriod?.year() ?? existing?.reportYear ?? TODAY.year();
+    const reportMonth = values.reportPeriod ? values.reportPeriod.month() + 1 : existing?.reportMonth ?? TODAY.month() + 1;
+    const input: MaintenanceRecordInput = {
+      sourceDateText: dateUnchanged ? existing.sourceDateText : date ?? existing?.sourceDateText ?? '',
+      date,
+      reportYear,
+      reportMonth,
+      personnel: personnelUnchanged ? existing.personnel : enteredPeople.join('、'),
+      department: textValue(values.department, existing?.department),
+      location: textValue(values.location, existing?.location),
+      equipmentModel: textValue(values.equipmentModel, existing?.equipmentModel),
+      workContent: textValue(values.workContent, existing?.workContent),
+      workTimeText: textValue(values.workTimeText, existing?.workTimeText),
+      replacedParts: textValue(values.replacedParts, existing?.replacedParts),
+      faultType: textValue(values.faultType, existing?.faultType),
+      faultCause: textValue(values.faultCause, existing?.faultCause),
+      repairHours: values.repairHours ?? null,
+      isRework: values.isRework ?? false,
+      remarks: textValue(values.remarks, existing?.remarks),
+    };
+    mutation.mutate(input);
+  };
+
+  if (query.isLoading) return <div className="maintenance-center"><Spin tip="正在准备登记表" /></div>;
+  if (query.error) return <Alert type="error" showIcon message="维修数据加载失败" description={query.error.message} action={<Button onClick={() => void query.refetch()}>重试</Button>} />;
+  if (editId && me.isLoading) return <div className="maintenance-center"><Spin tip="正在核对权限" /></div>;
+  if (editId && me.data?.role !== Role.SUPER_ADMIN) return <Alert type="warning" showIcon message="仅管理员可以编辑维修记录" action={<Button onClick={() => navigate('/maintenance/records')}>返回记录</Button>} />;
+  if (editId && !existing) return <Alert type="warning" showIcon message="找不到要编辑的维修记录" action={<Button onClick={() => navigate('/maintenance/records')}>返回记录</Button>} />;
+
+  return <div className="maintenance-page maintenance-form-page">
+    <PageHeader title={editId ? '编辑维修记录' : '维修登记'} description={editId ? '修改后，所有统计将按最新原始记录重新计算' : '填写原始维修记录，统计结果将自动更新'}
+      extra={<div className="maintenance-header-actions"><Button icon={<ArrowLeftIcon width={16} height={16} />} onClick={() => navigate('/maintenance/records')}>返回记录</Button>{!editId ? <Button icon={<SaveIcon width={16} height={16} />} onClick={saveDraft}>保存草稿</Button> : null}</div>} />
+    {existing?.date === null ? <Alert type="warning" showIcon className="maintenance-inline-alert" message={`原始日期为“${existing.sourceDateText || '空白'}”，未能解析。可以保留归属月份，或选择正确日期后保存。`} /> : null}
+    <Form<FormValues> form={form} layout="vertical" initialValues={EMPTY_FORM} onFinish={submit} className="maintenance-entry-form" requiredMark="optional">
+      <section className="maintenance-form-card">
+        <h2>工作内容</h2>
+        <Form.Item name="workContent" label="做了什么" rules={[{ required: true, whitespace: true, message: '请填写工作内容' }]}>
+          <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} placeholder="描述维修、巡检或更换工作" showCount maxLength={1000} />
+        </Form.Item>
+      </section>
+
+      <section className="maintenance-form-card">
+        <h2>基础信息</h2>
+        <div className="maintenance-form-grid">
+          <Form.Item name="date" label="日期" rules={[{ required: !editId, message: '请选择日期' }]}><DatePicker className="maintenance-full-width" allowClear={!!editId} format="YYYY-MM-DD" onChange={(nextDate) => { if (!editId && nextDate) form.setFieldValue('reportPeriod', nextDate.startOf('month')); }} /></Form.Item>
+          <Form.Item name="reportPeriod" label="统计月份" rules={[{ required: true, message: '请选择统计月份' }]}><DatePicker className="maintenance-full-width" picker="month" format="YYYY 年 M 月" /></Form.Item>
+          <Form.Item name="personnel" label="维修人员" rules={[{ required: true, type: 'array', min: 1, message: '请选择维修人员' }]}>
+            <Select mode="tags" placeholder="选择或输入维修人员" options={peopleOptions} tokenSeparators={['、', ',', '，']} maxTagCount="responsive" />
+          </Form.Item>
+          <Form.Item name="department" label="所属部门"><AutoComplete options={departmentOptions} placeholder="选择或输入部门" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+          <Form.Item name="location" label="区域 / 位置"><AutoComplete options={locationOptions} placeholder="选择或输入区域" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} onSelect={(location) => { const department = departmentOfLocation.get(location); if (department) form.setFieldValue('department', department); }} /></Form.Item>
+          <Form.Item name="equipmentModel" label="设备型号"><AutoComplete options={modelOptions} placeholder="输入设备型号" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+        </div>
+      </section>
+
+      <section className="maintenance-form-card">
+        <h2>工时与配件</h2>
+        <div className="maintenance-preset-row"><span>常用时段</span><Segmented<TimePreset> value={timePreset} onChange={setPreset} options={[{ label: '全天', value: 'full' }, { label: '上午', value: 'morning' }, { label: '下午', value: 'afternoon' }, { label: '自定义', value: 'custom' }]} /></div>
+        <div className="maintenance-form-grid">
+          <Form.Item name="workTimeText" label="工作时间"><Input placeholder="如 08:30–11:00" onChange={() => setTimePreset('custom')} /></Form.Item>
+          <Form.Item name="repairHours" label="维修工时 h"><InputNumber className="maintenance-full-width" step={0.25} placeholder="按原始记录填写" onChange={() => setTimePreset('custom')} /></Form.Item>
+        </div>
+        <Form.Item name="replacedParts" label="更换配件"><Input.TextArea autoSize={{ minRows: 2, maxRows: 5 }} placeholder="无配件可留空；多件可用顿号分隔" /></Form.Item>
+        <Button icon={<PlusIcon width={16} height={16} />} onClick={() => setPartsOpen(true)}>添加配件条目</Button>
+      </section>
+
+      <section className="maintenance-form-card">
+        <h2>故障分类</h2>
+        <div className="maintenance-form-grid">
+          <Form.Item name="faultType" label="故障类型"><AutoComplete options={typeOptions} placeholder="选择或输入故障类型" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+          <Form.Item name="faultCause" label="故障原因"><AutoComplete options={causeOptions} placeholder="选择或输入故障原因" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+        </div>
+        <Form.Item name="isRework" label="是否返工" valuePropName="checked" className="maintenance-switch-item"><Switch /></Form.Item>
+        <Form.Item name="remarks" label="备注"><Input.TextArea autoSize={{ minRows: 2, maxRows: 5 }} placeholder="可选" /></Form.Item>
+      </section>
+
+      <div className="maintenance-submit-bar"><Button type="primary" htmlType="submit" loading={mutation.isPending} icon={<SaveIcon width={16} height={16} />}>{editId ? '保存修改' : '提交维修登记'}</Button></div>
+    </Form>
+
+    <Drawer title="添加配件" open={partsOpen} onClose={() => setPartsOpen(false)} width="min(100vw, 400px)" className="maintenance-parts-drawer" extra={<Button type="primary" onClick={addPart}>加入</Button>}>
+      <div className="maintenance-parts-fields"><label>名称<Input autoFocus placeholder="配件名称" value={partsDraft.name} onChange={(event) => setPartsDraft((draft) => ({ ...draft, name: event.target.value }))} /></label>
+        <label>数量<InputNumber min={0.1} step={1} className="maintenance-full-width" value={partsDraft.quantity} onChange={(quantity) => setPartsDraft((draft) => ({ ...draft, quantity: quantity ?? 1 }))} /></label>
+        <label>单位<Select value={partsDraft.unit} onChange={(unit) => setPartsDraft((draft) => ({ ...draft, unit }))} options={['个', '片', '套', '台', '根', '米', '件', '只'].map((unit) => ({ value: unit, label: unit }))} /></label>
+      </div>
+    </Drawer>
+  </div>;
+}

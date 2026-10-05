@@ -33,6 +33,15 @@ const ProductionPlanPage = lazy(() =>
 const PlanSettingsPage = lazy(() =>
   import('./pages/production/PlanSettingsPage').then((m) => ({ default: m.PlanSettingsPage })),
 );
+const MaintenanceOverviewPage = lazy(() =>
+  import('./pages/MaintenanceOverviewPage').then((m) => ({ default: m.MaintenanceOverviewPage })),
+);
+const MaintenanceRecordsPage = lazy(() =>
+  import('./pages/MaintenanceRecordsPage').then((m) => ({ default: m.MaintenanceRecordsPage })),
+);
+const MaintenanceNewPage = lazy(() =>
+  import('./pages/MaintenanceNewPage').then((m) => ({ default: m.MaintenanceNewPage })),
+);
 
 export default function App() {
   const navigate = useNavigate();
@@ -63,6 +72,9 @@ export default function App() {
           <Route element={<AdminLayout />}>
             <Route index element={<HomePage />} />
             <Route path="forms" element={<FormsPage />} />
+            <Route path="maintenance" element={<MaintenanceOverviewPage />} />
+            <Route path="maintenance/records" element={<MaintenanceRecordsPage />} />
+            <Route path="maintenance/new" element={<MaintenanceNewPage />} />
             <Route
               path="board"
               element={

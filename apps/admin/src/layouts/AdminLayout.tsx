@@ -12,6 +12,8 @@ import {
   DashboardIcon,
   FactoryIcon,
   FormsNavIcon,
+  FormsIcon,
+  HistoryIcon,
   LogoutIcon,
   MoonIcon,
   PackageIcon,
@@ -20,6 +22,7 @@ import {
   SystemNavIcon,
   TargetIcon,
   UsersIcon,
+  WrenchIcon,
 } from '../components/icons';
 import { useThemeMode } from '../theme/ThemeProvider';
 
@@ -82,6 +85,21 @@ const MODULES: ModuleDef[] = [
     sections: [{ items: [{ label: '全部表单', path: '/forms', icon: FormsNavIcon }] }],
   },
   {
+    key: 'maintenance',
+    label: '设备',
+    icon: WrenchIcon,
+    title: '设备',
+    path: '/maintenance',
+    match: (p) => p === '/maintenance' || p.startsWith('/maintenance/'),
+    sections: [{
+      items: [
+        { label: '维修总览', path: '/maintenance', icon: DashboardIcon },
+        { label: '维修记录', path: '/maintenance/records', icon: HistoryIcon },
+        { label: '维修登记', path: '/maintenance/new', icon: FormsIcon },
+      ],
+    }],
+  },
+  {
     key: 'system',
     label: '系统',
     icon: SystemNavIcon,
@@ -98,6 +116,9 @@ function pageName(pathname: string): string {
   if (pathname === '/') return '工作台';
   if (pathname === '/forms') return '全部表单';
   if (pathname.startsWith('/forms/')) return '数据';
+  if (pathname === '/maintenance') return '维修总览';
+  if (pathname.startsWith('/maintenance/records')) return '维修记录';
+  if (pathname.startsWith('/maintenance/new')) return '维修登记';
   if (pathname.startsWith('/board')) return '车间版面';
   if (pathname.startsWith('/energy')) return '能源中心';
   if (pathname.startsWith('/materials')) return '物料与库存';
@@ -142,7 +163,9 @@ export function AdminLayout() {
   const current = MODULES.find((m) => m.match(location.pathname)) ?? MODULES[0];
   const flyout = modules.find((m) => m.key === hoverKey) ?? null;
   const itemActive = (path: string) =>
-    path === '/' || path === '/forms' || path === '/plan' ? location.pathname === path : location.pathname.startsWith(path);
+    path === '/' || path === '/forms' || path === '/plan' || path === '/maintenance'
+      ? location.pathname === path
+      : location.pathname.startsWith(path);
 
   const logoutMutation = useMutation({
     mutationFn: () => logoutApi(tokenStore.getRefreshToken() ?? ''),

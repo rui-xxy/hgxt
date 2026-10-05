@@ -17,7 +17,8 @@
     "db:import-matters": "tsx --env-file=.env prisma/scripts/import-matters.ts",
     "db:import-anthraquinone": "tsx --env-file=.env prisma/scripts/import-anthraquinone.ts",
     "db:import-fenglian": "tsx --env-file=.env prisma/scripts/import-fenglian.ts",
-    "db:import-sulfuric-control": "tsx --env-file=.env prisma/scripts/import-sulfuric-control.ts"
+    "db:import-sulfuric-control": "tsx --env-file=.env prisma/scripts/import-sulfuric-control.ts",
+    "db:import-maintenance": "tsx --env-file=.env prisma/scripts/import-maintenance.ts"
   },
   "prisma": {
     "seed": "tsx --env-file=.env prisma/seed.ts"
