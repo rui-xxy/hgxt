@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { App as AntApp, DatePicker } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import type { DetailedWorkshopCode, SulfuricDaySummary } from '@hgxt/shared';
-import { ChevronLeftIcon, ChevronRightIcon, FlaskIcon, ProductionChartIcon } from '../../components/icons';
+import { ChevronLeftIcon, ChevronRightIcon } from '../../components/icons';
 import { aminoSummary, detailedWorkshopSummary, fenglianSummary, sulfuricSummary, tankLevels, thermalSummary, workshopOverview } from '../../api/production';
 import { Dash, ExportButton, Kpi, MonthBars, PALETTE, Seg, downloadCsv, fmt, pctChange } from './dash-ui';
 import { DetailedWorkshopPanel, DetailedWorkshopStockCards, DetailedWorkshopTable, detailMetricColor, detailMetricDigits, downloadDetailedWorkshopCsv } from './DetailedWorkshopView';
@@ -90,17 +90,20 @@ export function WorkshopBoardPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [panelMode, setPanelMode] = useState<'day' | 'month'>('day');
   const [tab, setTab] = useState<DetailTab>('prod');
-  const [workshopView, setWorkshopView] = useState<'board' | 'control'>('board');
+  const [activeChapter, setActiveChapter] = useState<'board' | 'control'>('board');
+  const [controlMounted, setControlMounted] = useState(() => typeof IntersectionObserver === 'undefined');
+  const boardSectionRef = useRef<HTMLElement>(null);
+  const controlSectionRef = useRef<HTMLElement>(null);
   const [calcDate, setCalcDate] = useState<string | null>(null);
   const [fenglianSelection, setFenglianSelection] = useState<FenglianSelection>({ group: '' });
   const otherCode: DetailedWorkshopCode | null = code === 'magnesium' || code === 'hydrotalcite' || code === 'anthraquinone' ? code : null;
 
   const overview = useQuery({ queryKey: ['production', 'workshops', 0], queryFn: () => workshopOverview(0) });
-  const sulfuric = useQuery({ queryKey: ['production', 'sulfuric', 0], queryFn: () => sulfuricSummary(0), enabled: workshopView === 'board' && code === 'sulfuric' });
-  const amino = useQuery({ queryKey: ['production', 'amino', 0], queryFn: () => aminoSummary(0), enabled: workshopView === 'board' && code === 'aminosulfonic' });
-  const fenglian = useQuery({ queryKey: ['production', 'fenglian', 0], queryFn: () => fenglianSummary(0), enabled: workshopView === 'board' && code === 'fenglian' });
-  const detailed = useQuery({ queryKey: ['production', 'detail', otherCode, 0], queryFn: () => detailedWorkshopSummary(otherCode!, 0), enabled: workshopView === 'board' && Boolean(otherCode) });
-  const thermal = useQuery({ queryKey: ['production', 'thermal', 0], queryFn: () => thermalSummary(0), enabled: workshopView === 'board' && code === 'thermal' });
+  const sulfuric = useQuery({ queryKey: ['production', 'sulfuric', 0], queryFn: () => sulfuricSummary(0), enabled: code === 'sulfuric' });
+  const amino = useQuery({ queryKey: ['production', 'amino', 0], queryFn: () => aminoSummary(0), enabled: code === 'aminosulfonic' });
+  const fenglian = useQuery({ queryKey: ['production', 'fenglian', 0], queryFn: () => fenglianSummary(0), enabled: code === 'fenglian' });
+  const detailed = useQuery({ queryKey: ['production', 'detail', otherCode, 0], queryFn: () => detailedWorkshopSummary(otherCode!, 0), enabled: Boolean(otherCode) });
+  const thermal = useQuery({ queryKey: ['production', 'thermal', 0], queryFn: () => thermalSummary(0), enabled: code === 'thermal' });
   useEffect(() => { if (overview.error) message.error(overview.error.message); }, [overview.error, message]);
   useEffect(() => { if (amino.error) message.error(amino.error.message); }, [amino.error, message]);
   useEffect(() => { if (fenglian.error) message.error(fenglian.error.message); }, [fenglian.error, message]);
@@ -116,6 +119,48 @@ export function WorkshopBoardPage() {
   const isOther = otherCode !== null;
   const isAnthra = code === 'anthraquinone';
   const isThermal = code === 'thermal';
+
+  useEffect(() => {
+    const root = boardSectionRef.current?.closest('.hgxt-scroll');
+    const controlSection = controlSectionRef.current;
+    if (!root || !controlSection) return;
+    const updateChapter = () => {
+      const threshold = root.getBoundingClientRect().top + Math.min(176, root.clientHeight * 0.25);
+      setActiveChapter(controlSection.getBoundingClientRect().top <= threshold ? 'control' : 'board');
+    };
+    updateChapter();
+    root.addEventListener('scroll', updateChapter, { passive: true });
+    window.addEventListener('resize', updateChapter);
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateChapter);
+    if (observer) {
+      observer.observe(root);
+      if (boardSectionRef.current) observer.observe(boardSectionRef.current);
+      observer.observe(controlSection);
+    }
+    return () => {
+      root.removeEventListener('scroll', updateChapter);
+      window.removeEventListener('resize', updateChapter);
+      observer?.disconnect();
+    };
+  }, [code]);
+
+  useEffect(() => {
+    const root = boardSectionRef.current?.closest('.hgxt-scroll');
+    const controlSection = controlSectionRef.current;
+    if (!root || !controlSection) return;
+    if (typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setControlMounted(true);
+    }, { root, rootMargin: '400px 0px' });
+    observer.observe(controlSection);
+    return () => observer.disconnect();
+  }, []);
+
+  const goToChapter = (chapter: 'board' | 'control') => {
+    const target = chapter === 'board' ? boardSectionRef.current : controlSectionRef.current;
+    if (chapter === 'control') setControlMounted(true);
+    target?.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  };
 
   const latestMonth = allDates[allDates.length - 1]?.slice(0, 7) ?? dayjs().format('YYYY-MM');
   const currentMonth = dayjs().format('YYYY-MM');
@@ -139,7 +184,7 @@ export function WorkshopBoardPage() {
   const validSeries = series.filter((s) => s.value !== null) as Array<{ label: string; value: number }>;
   const fallbackDate = validSeries[validSeries.length - 1]?.label ?? series[series.length - 1]?.label ?? null;
   const activeDate = selected && series.some((s) => s.label === selected) ? selected : fallbackDate;
-  const tanks = useQuery({ queryKey: ['production', 'tanks', activeDate], queryFn: () => tankLevels(activeDate ?? undefined), enabled: workshopView === 'board' && isSulfuric && Boolean(activeDate) });
+  const tanks = useQuery({ queryKey: ['production', 'tanks', activeDate], queryFn: () => tankLevels(activeDate ?? undefined), enabled: isSulfuric && Boolean(activeDate) });
   const activeIdx = validSeries.findIndex((s) => s.label === activeDate);
   const activeValue = activeIdx >= 0 ? validSeries[activeIdx].value : null;
   const prevValue = activeIdx > 0 ? validSeries[activeIdx - 1].value : null;
@@ -391,11 +436,12 @@ export function WorkshopBoardPage() {
   return (
     <Dash className="workshop-board-dash">
       <div className="workshop-view-layout">
-        <nav className="workshop-view-rail" aria-label="车间视图">
-          <button type="button" className={workshopView === 'board' ? 'on' : ''} onClick={() => setWorkshopView('board')} aria-label="生产看板" title="生产看板"><ProductionChartIcon width={18} height={18} /></button>
-          <div className="workshop-view-rail-item"><button type="button" className={workshopView === 'control' ? 'on' : ''} onClick={() => setWorkshopView('control')} aria-label="中控数据" title="中控数据"><FlaskIcon width={18} height={18} /></button>{workshopView === 'board' && isSulfuric && <SulfuricControlPeek />}</div>
+        <nav className="workshop-view-rail" aria-label="车间章节导航">
+          <button type="button" className={activeChapter === 'board' ? 'on' : ''} onClick={() => goToChapter('board')} aria-label="跳到生产看板" aria-current={activeChapter === 'board' ? 'location' : undefined}><span>生产看板</span></button>
+          <div className={`workshop-view-rail-item${activeChapter === 'board' && isSulfuric ? ' has-peek' : ''}`}><button type="button" className={activeChapter === 'control' ? 'on' : ''} onClick={() => goToChapter('control')} aria-label="跳到中控数据" aria-current={activeChapter === 'control' ? 'location' : undefined}><span>中控数据</span></button>{activeChapter === 'board' && isSulfuric && <SulfuricControlPeek />}</div>
         </nav>
         <div className="workshop-view-content">
+      <section ref={boardSectionRef} className="workshop-chapter" aria-label="生产看板">
       <div className="enter" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div className="wstabs" role="tablist" aria-label="车间">
           {workshops.map((w) => (
@@ -413,7 +459,7 @@ export function WorkshopBoardPage() {
 
       <div className="enter" style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '22px 0 16px' }}>
         <h1 className="h1" style={{ fontSize: 28, flex: 1 }}>{TITLES[code] ?? '车间版面'}</h1>
-        {workshopView === 'board' && <><button type="button" className={`btn sm ${range || monthKey !== currentMonth ? 'ghost' : 'secondary'}`} onClick={() => { setMonth(currentMonth); setRange(null); setSelected(null); setDetailPage(0); }}>本月</button>
+        <button type="button" className={`btn sm ${range || monthKey !== currentMonth ? 'ghost' : 'secondary'}`} onClick={() => { setMonth(currentMonth); setRange(null); setSelected(null); setDetailPage(0); }}>本月</button>
         <div className="range-nav">
           <button type="button" className="iconbtn" aria-label="上一个月" onClick={() => changeMonth(-1)}><ChevronLeftIcon width={16} height={16} /></button>
           <DatePicker.RangePicker
@@ -431,10 +477,8 @@ export function WorkshopBoardPage() {
           />
           <button type="button" className="iconbtn" aria-label="下一个月" onClick={() => changeMonth(1)}><ChevronRightIcon width={16} height={16} /></button>
         </div>
-        <ExportButton onClick={exportCsv} /></>}
+        <ExportButton onClick={exportCsv} />
       </div>
-
-        {workshopView === 'control' ? (isSulfuric ? <SulfuricControlPanel /> : <div className="workshop-control-blank" aria-label={`${TITLES[code] ?? '车间'}中控数据`} />) : <>
 
       {workshop ? (
         <div className="kpis enter d1" style={{ gridTemplateColumns: `repeat(${kpiCount}, minmax(0, 1fr))` }}>
@@ -879,7 +923,10 @@ export function WorkshopBoardPage() {
           </table>
         </div>}
       </div>
-        </>}
+      </section>
+      <section ref={controlSectionRef} className="workshop-chapter workshop-control-chapter" aria-label={`${TITLES[code] ?? '车间'}中控数据`}>
+        {isSulfuric && controlMounted ? <SulfuricControlPanel /> : <div className="workshop-control-blank" />}
+      </section>
         </div>
       </div>
       <SulfuricCalculationModal day={calcDate ? dayMap.get(calcDate) ?? null : null} onClose={() => setCalcDate(null)} />
