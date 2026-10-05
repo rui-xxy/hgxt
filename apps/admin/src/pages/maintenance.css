@@ -128,9 +128,7 @@
 .maintenance-heat-scroll,
 .maintenance-detail-scroll { overflow-x: auto; scrollbar-width: none; }
 .maintenance-heat-scroll::-webkit-scrollbar,
-.maintenance-detail-scroll::-webkit-scrollbar,
-.maintenance-records-table .ant-table-content::-webkit-scrollbar { display: none; }
-.maintenance-records-table .ant-table-content { scrollbar-width: none; }
+.maintenance-detail-scroll::-webkit-scrollbar { display: none; }
 .maintenance-month-chart {
   display: grid;
   grid-template-columns: repeat(var(--hg-month-count), minmax(0, 1fr));
@@ -203,14 +201,21 @@
 .maintenance-detail-table tbody th { font-weight: 500; }
 .maintenance-detail-table tbody tr:hover { background: var(--hg-hover); }
 
-.maintenance-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-block: 1rem 0.75rem; }
+.maintenance-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; padding: 1rem; border-block-end: 1px solid var(--hg-line); }
+.maintenance-records-back { display: inline-flex; align-items: center; justify-content: center; margin-inline-end: 0.5rem; color: var(--hg-ink2); vertical-align: middle; }
+.maintenance-records-back:hover { color: var(--hg-ink); }
 .maintenance-search { width: min(100%, 17rem); }
 .maintenance-filter-select { min-width: 9rem; }
 .maintenance-result-count { margin-inline-start: auto; color: var(--hg-ink2); font-size: var(--hg-font-size-xs); white-space: nowrap; }
-.maintenance-records-card { overflow: hidden; border: 1px solid var(--hg-line); border-radius: var(--hg-radius-container); background: var(--hg-surface); }
-.maintenance-records-table .ant-table-tbody > tr { cursor: pointer; }
-.maintenance-records-table .ant-table-tbody > tr.maintenance-record-selected > td { background: var(--hg-brand-soft); }
-.maintenance-load-more { min-height: 1px; }
+.maintenance-records-card { overflow: hidden; margin-block-start: 1rem; border: 1px solid var(--hg-line); border-radius: var(--hg-radius-container); background: var(--hg-surface); }
+.maintenance-records-table .ant-table-container { border-block-start: 0 !important; border-inline-start: 0 !important; }
+.maintenance-records-table .ant-table-thead > tr > th { background: var(--hg-side); color: var(--hg-ink2); font-size: var(--hg-font-size-sm); font-weight: 600; text-align: center; }
+.maintenance-records-table .ant-table-cell { border-color: var(--hg-line) !important; }
+.maintenance-records-table .ant-table-tbody-virtual .ant-table-row { cursor: pointer; }
+.maintenance-records-table .ant-table-tbody-virtual .ant-table-row.maintenance-record-selected > .ant-table-cell { background: var(--hg-brand-soft); }
+.maintenance-records-table .ant-table-tbody-virtual-holder { scrollbar-width: auto; scrollbar-color: var(--hg-ink3) var(--hg-side); }
+.maintenance-records-table .ant-table-tbody-virtual-scrollbar { background: var(--hg-side); }
+.maintenance-row-number { color: var(--hg-ink3); }
 .maintenance-edit-modal .ant-modal-content { overflow: hidden; padding: 0; background: var(--hg-side); }
 .maintenance-edit-modal .ant-modal-body { max-height: min(85vh, 52rem); overflow-y: auto; scrollbar-width: none; }
 .maintenance-edit-modal .ant-modal-body::-webkit-scrollbar { display: none; }
