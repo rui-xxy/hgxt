@@ -189,7 +189,7 @@ export function SulfuricControlPanel() {
 
   return <section className="scc" aria-label="硫酸中控数据" style={chartPaletteStyle}>
     <header className="scc-header">
-      <h2>中控数据</h2>
+      <h1>中控数据</h1>
       <div className="scc-header-actions">
         <div className="scc-date-nav">
           <button type="button" aria-label="前一天" disabled={!firstDate || activeDate <= firstDate} onClick={() => stepDate(-1)}><ChevronLeftIcon width={16} height={16} /></button>

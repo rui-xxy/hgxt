@@ -1,7 +1,8 @@
 .scc{container-type:inline-size;min-width:0;padding:22px 32px 28px;background:var(--hg-bg);color:var(--hg-ink);font-size:var(--hg-control-section-size);line-height:1.55}
+.workshop-view-content.is-control .scc{padding-inline:0}
 .scc-header,.scc-header-actions,.scc-date-nav,.scc-section-title,.scc-month-header,.scc-trend-head{display:flex;align-items:center}
 .scc-header{justify-content:space-between;gap:16px;margin-bottom:22px}
-.scc-header h2{margin:0;font:500 var(--hg-control-title-size)/1.25 var(--hg-font-serif);white-space:nowrap}
+.scc-header h1{margin:0;font:500 var(--hg-font-size-xl)/1.25 var(--hg-font-serif);white-space:nowrap}
 .scc-header-actions{gap:8px;justify-content:flex-end;min-width:0}
 .scc-date-nav{height:36px;border:1px solid var(--hg-line2);border-radius:var(--hg-radius-control);background:var(--hg-surface)}
 .scc-date-nav>button{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:var(--hg-radius-control);background:transparent;color:var(--hg-ink2);cursor:pointer}

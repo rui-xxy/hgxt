@@ -399,7 +399,7 @@ export function WorkshopBoardPage() {
           <button type="button" className={workshopView === 'board' ? 'on' : ''} onClick={(event) => switchView('board', event.currentTarget)} aria-label="生产看板" aria-pressed={workshopView === 'board'} title="生产看板"><ProductionChartIcon width={18} height={18} /></button>
           <div className="workshop-view-rail-item"><button type="button" className={workshopView === 'control' ? 'on' : ''} onClick={(event) => switchView('control', event.currentTarget)} aria-label="中控数据" aria-pressed={workshopView === 'control'} title="中控数据"><FlaskIcon width={18} height={18} /></button>{workshopView === 'board' && isSulfuric && <SulfuricControlPeek />}</div>
         </nav>
-        <div className="workshop-view-content">
+        <div className={`workshop-view-content${workshopView === 'control' ? ' is-control' : ''}`}>
       <div className="enter" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div className="wstabs" role="tablist" aria-label="车间">
           {workshops.map((w) => (
@@ -415,9 +415,9 @@ export function WorkshopBoardPage() {
         </div>
       </div>
 
-      <div className="enter" style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '22px 0 16px' }}>
+      {workshopView === 'board' && <div className="enter" style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '22px 0 16px' }}>
         <h1 className="h1" style={{ fontSize: 28, flex: 1 }}>{TITLES[code] ?? '车间版面'}</h1>
-        {workshopView === 'board' && <><button type="button" className={`btn sm ${range || monthKey !== currentMonth ? 'ghost' : 'secondary'}`} onClick={() => { setMonth(currentMonth); setRange(null); setSelected(null); setDetailPage(0); }}>本月</button>
+        <button type="button" className={`btn sm ${range || monthKey !== currentMonth ? 'ghost' : 'secondary'}`} onClick={() => { setMonth(currentMonth); setRange(null); setSelected(null); setDetailPage(0); }}>本月</button>
         <div className="range-nav">
           <button type="button" className="iconbtn" aria-label="上一个月" onClick={() => changeMonth(-1)}><ChevronLeftIcon width={16} height={16} /></button>
           <DatePicker.RangePicker
@@ -435,8 +435,8 @@ export function WorkshopBoardPage() {
           />
           <button type="button" className="iconbtn" aria-label="下一个月" onClick={() => changeMonth(1)}><ChevronRightIcon width={16} height={16} /></button>
         </div>
-        <ExportButton onClick={exportCsv} /></>}
-      </div>
+        <ExportButton onClick={exportCsv} />
+      </div>}
 
         {workshopView === 'control' ? (isSulfuric ? <SulfuricControlPanel /> : <div className="workshop-control-blank" aria-label={`${TITLES[code] ?? '车间'}中控数据`} />) : <>
 
