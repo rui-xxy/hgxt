@@ -12,7 +12,6 @@ import {
   DashboardIcon,
   FactoryIcon,
   FormsNavIcon,
-  FormsIcon,
   HistoryIcon,
   LogoutIcon,
   MoonIcon,
@@ -81,7 +80,7 @@ const MODULES: ModuleDef[] = [
     icon: FormsNavIcon,
     title: '表单',
     path: '/forms',
-    match: (p) => p.startsWith('/forms'),
+    match: (p) => p.startsWith('/forms') || p.startsWith('/form-fill') || p.startsWith('/maintenance/new'),
     sections: [{ items: [{ label: '全部表单', path: '/forms', icon: FormsNavIcon }] }],
   },
   {
@@ -95,7 +94,6 @@ const MODULES: ModuleDef[] = [
       items: [
         { label: '维修总览', path: '/maintenance', icon: DashboardIcon },
         { label: '维修记录', path: '/maintenance/records', icon: HistoryIcon },
-        { label: '维修登记', path: '/maintenance/new', icon: FormsIcon },
       ],
     }],
   },

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert, App as AntApp, AutoComplete, Button, DatePicker, Drawer, Form, Input, InputNumber,
-  Segmented, Select, Spin, Switch,
+  Segmented, Select, Spin, Switch, TimePicker,
 } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Role } from '@hgxt/shared';
@@ -57,6 +57,32 @@ const EMPTY_FORM: FormValues = {
   remarks: '',
 };
 
+function parseWorkTime(value: string): [Dayjs, Dayjs] | null {
+  const matches = [...value.matchAll(/(\d{1,2})[:：](\d{2})/g)].slice(0, 2);
+  if (matches.length !== 2) return null;
+  const times = matches.map((match) => ({ hour: Number(match[1]), minute: Number(match[2]) }));
+  if (times.some(({ hour, minute }) => hour > 23 || minute > 59)) return null;
+  const base = dayjs().startOf('day');
+  return times.map(({ hour, minute }) => base.hour(hour).minute(minute)) as [Dayjs, Dayjs];
+}
+
+function hoursFromTime(range: [Dayjs, Dayjs]): number {
+  const start = range[0].hour() * 60 + range[0].minute();
+  const end = range[1].hour() * 60 + range[1].minute();
+  const duration = end >= start ? end - start : end + 1440 - start;
+  const lunch = end > start ? Math.max(0, Math.min(end, 780) - Math.max(start, 720)) : 0;
+  return Number(((duration - lunch) / 60).toFixed(2));
+}
+
+function presetFromTime(range: [Dayjs, Dayjs] | null): TimePreset {
+  if (!range) return 'custom';
+  const value = `${range[0].format('HH:mm')}–${range[1].format('HH:mm')}`;
+  if (value === '08:00–17:00') return 'full';
+  if (value === '08:00–12:00') return 'morning';
+  if (value === '13:00–17:00') return 'afternoon';
+  return 'custom';
+}
+
 function valuesFromRecord(record: MaintenanceRecord): FormValues {
   return {
     date: record.date ? dayjs(record.date) : null,
@@ -88,30 +114,36 @@ function readDraft(): FormValues | null {
   }
 }
 
-export function MaintenanceNewPage() {
+export function MaintenanceNewPage({ editRecord, onClose }: { editRecord?: MaintenanceRecord; onClose?: () => void } = {}) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const editId = searchParams.get('edit');
+  const editId = editRecord?.id ?? searchParams.get('edit');
+  const exitPath = editId ? '/maintenance/records' : '/forms?category=设备';
   const { message } = AntApp.useApp();
   const me = useMe();
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: ['maintenance', 'records'], queryFn: maintenanceApi.list });
   const records = useMemo(() => query.data ?? [], [query.data]);
-  const existing = editId ? records.find((record) => record.id === editId) ?? null : null;
+  const existing = editRecord ?? (editId ? records.find((record) => record.id === editId) ?? null : null);
   const [form] = Form.useForm<FormValues>();
   const initializedFor = useRef<string | null>(null);
-  const [timePreset, setTimePreset] = useState<TimePreset>('custom');
+  const [customTimeMode, setCustomTimeMode] = useState(false);
+  const [timePickerOpen, setTimePickerOpen] = useState(false);
   const [partsOpen, setPartsOpen] = useState(false);
   const [picker, setPicker] = useState<'personnel' | 'location' | null>(null);
   const [pickerSearch, setPickerSearch] = useState('');
   const [partsDraft, setPartsDraft] = useState<PartsDraft>({ name: '', quantity: 1, unit: '个' });
   const selectedDepartment = Form.useWatch('department', form);
   const selectedPersonnel: string[] = Form.useWatch('personnel', form) ?? [];
+  const workTimeText: string = Form.useWatch('workTimeText', form) ?? '';
+  const timeRange = parseWorkTime(workTimeText);
+  const timePreset: TimePreset = customTimeMode ? 'custom' : presetFromTime(timeRange);
 
   useEffect(() => {
     if (query.isLoading || initializedFor.current === (editId ?? 'new')) return;
     if (editId && !existing) return;
-    form.setFieldsValue(existing ? valuesFromRecord(existing) : readDraft() ?? EMPTY_FORM);
+    const values = existing ? valuesFromRecord(existing) : readDraft() ?? EMPTY_FORM;
+    form.setFieldsValue(values);
     initializedFor.current = editId ?? 'new';
   }, [query.isLoading, editId, existing, form]);
 
@@ -135,20 +167,30 @@ export function MaintenanceNewPage() {
   const mutation = useMutation({
     mutationFn: (input: MaintenanceRecordInput) => editId ? maintenanceApi.update(editId, input) : maintenanceApi.create(input),
     onSuccess: async () => {
-      localStorage.removeItem(DRAFT_KEY);
-      await queryClient.invalidateQueries({ queryKey: ['maintenance', 'records'] });
+      if (!editId) localStorage.removeItem(DRAFT_KEY);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['maintenance', 'records'] }),
+        queryClient.invalidateQueries({ queryKey: ['forms', 'list'] }),
+      ]);
       message.success(editId ? '维修记录已更新' : '维修登记已提交');
-      navigate('/maintenance/records');
+      if (onClose) onClose();
+      else navigate(exitPath);
     },
     onError: (error) => message.error(error.message),
   });
 
   const setPreset = (preset: TimePreset) => {
-    setTimePreset(preset);
     const value = preset === 'full' ? { workTimeText: '08:00–17:00', repairHours: 8 }
       : preset === 'morning' ? { workTimeText: '08:00–12:00', repairHours: 4 }
         : preset === 'afternoon' ? { workTimeText: '13:00–17:00', repairHours: 4 } : null;
-    if (value) form.setFieldsValue(value);
+    if (value) {
+      form.setFieldsValue(value);
+      setCustomTimeMode(false);
+      setTimePickerOpen(false);
+    } else {
+      setCustomTimeMode(true);
+      setTimePickerOpen(true);
+    }
   };
 
   const saveDraft = () => {
@@ -229,7 +271,7 @@ export function MaintenanceNewPage() {
   return <div className="maintenance-page maintenance-form-page">
     <div className="maintenance-phone-form">
       <header className="maintenance-phone-header">
-        <Button type="text" aria-label="返回维修记录" icon={<ArrowLeftIcon width={20} height={20} />} onClick={() => navigate('/maintenance/records')} />
+        <Button type="text" aria-label={onClose ? '关闭编辑' : '返回上一页'} icon={<ArrowLeftIcon width={20} height={20} />} onClick={() => { if (onClose) onClose(); else navigate(exitPath); }} />
         <strong>{editId ? '编辑维修记录' : '维修登记'}</strong>
         {!editId ? <Button type="text" onClick={saveDraft}>草稿</Button> : <span />}
       </header>
@@ -249,9 +291,15 @@ export function MaintenanceNewPage() {
         </section>
 
         <section className="maintenance-entry-group" aria-label="工作时间和配件">
-          <Form.Item name="workTimeText" label="工作时间" className="maintenance-entry-row"><Input variant="borderless" placeholder="如 08:00–17:00" onChange={() => setTimePreset('custom')} /></Form.Item>
+          <Form.Item name="workTimeText" hidden><Input /></Form.Item>
+          <div className="maintenance-entry-time-row"><span>工作时间</span><TimePicker.RangePicker aria-label="选择工作时间" variant="borderless" format="HH:mm" value={timeRange} open={timePickerOpen} onOpenChange={setTimePickerOpen} inputReadOnly onChange={(range) => {
+            const next = range as [Dayjs, Dayjs] | null;
+            setCustomTimeMode(true);
+            form.setFieldValue('workTimeText', next ? `${next[0].format('HH:mm')}–${next[1].format('HH:mm')}` : '');
+            form.setFieldValue('repairHours', next ? hoursFromTime(next) : null);
+          }} /></div>
           <div className="maintenance-entry-preset"><Segmented<TimePreset> block value={timePreset} onChange={setPreset} options={[{ label: '全天', value: 'full' }, { label: '上午', value: 'morning' }, { label: '下午', value: 'afternoon' }, { label: '自定义', value: 'custom' }]} /></div>
-          <Form.Item name="repairHours" label="维修工时 h" className="maintenance-entry-row"><InputNumber variant="borderless" className="maintenance-full-width" step={0.25} placeholder="填写工时" onChange={() => setTimePreset('custom')} /></Form.Item>
+          <Form.Item name="repairHours" label="维修工时 h" className="maintenance-entry-row"><InputNumber variant="borderless" className="maintenance-full-width" step={0.25} placeholder="填写工时" /></Form.Item>
           <div className="maintenance-entry-parts-row"><Form.Item name="replacedParts" label="更换配件" className="maintenance-entry-row"><Input variant="borderless" placeholder="无" /></Form.Item><Button type="link" icon={<PlusIcon width={16} height={16} />} onClick={() => setPartsOpen(true)}>添加</Button></div>
         </section>
 

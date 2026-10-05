@@ -51,11 +51,7 @@
 
 .maintenance-period-switch button:focus-visible,
 .maintenance-detail-tabs button:focus-visible,
-.maintenance-year-stepper button:focus-visible,
-.maintenance-related button:focus-visible {
-  outline: 2px solid var(--hg-brand);
-  outline-offset: 2px;
-}
+.maintenance-year-stepper button:focus-visible { outline: 2px solid var(--hg-brand); outline-offset: 2px; }
 
 .maintenance-year-stepper {
   display: inline-flex;
@@ -214,26 +210,24 @@
 .maintenance-records-card { overflow: hidden; border: 1px solid var(--hg-line); border-radius: var(--hg-radius-container); background: var(--hg-surface); }
 .maintenance-records-table .ant-table-tbody > tr { cursor: pointer; }
 .maintenance-records-table .ant-table-tbody > tr.maintenance-record-selected > td { background: var(--hg-brand-soft); }
+.maintenance-load-more { min-height: 1px; }
+.maintenance-edit-modal .ant-modal-content { overflow: hidden; padding: 0; background: var(--hg-side); }
+.maintenance-edit-modal .ant-modal-body { max-height: min(85vh, 52rem); overflow-y: auto; scrollbar-width: none; }
+.maintenance-edit-modal .ant-modal-body::-webkit-scrollbar { display: none; }
+.maintenance-edit-modal .maintenance-form-page { padding-block-end: 0; }
+.maintenance-edit-modal .maintenance-phone-form { border: 0; }
+.maintenance-readonly-detail { padding: 1.5rem; background: var(--hg-surface); }
+.maintenance-readonly-detail h2 { margin-block: 0 1rem; font-size: var(--hg-font-size-lg); font-weight: 600; }
 .maintenance-content-cell { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
 .maintenance-date-cell { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .maintenance-anomaly { color: var(--hg-amber); font-weight: 500; }
-.maintenance-drawer-id { color: var(--hg-ink3); font-size: var(--hg-font-size-xs); }
-.maintenance-drawer h2 { margin-block: 0.6rem 0.7rem; font-size: var(--hg-font-size-lg); line-height: 1.4; }
-.maintenance-drawer-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-block-end: 1rem; }
-.maintenance-drawer-tags span { padding: 0.15rem 0.45rem; border-radius: var(--hg-radius-tag); background: var(--hg-active); color: var(--hg-ink2); font-size: var(--hg-font-size-xs); }
-.maintenance-drawer-tags .maintenance-rework-tag { background: var(--hg-amber-soft); color: var(--hg-amber); }
 .maintenance-detail-item { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: 0.5rem; padding-block: 0.55rem; border-block-end: 1px solid var(--hg-line); font-size: var(--hg-font-size-sm); }
 .maintenance-detail-item > span { color: var(--hg-ink3); }
 .maintenance-detail-item strong { overflow-wrap: anywhere; font-weight: 500; }
-.maintenance-related { margin-block-start: 1.5rem; }
-.maintenance-related h3 { margin-block: 0 0.5rem; color: var(--hg-ink2); font-size: var(--hg-font-size-sm); font-weight: 500; }
-.maintenance-related button { display: flex; flex-direction: column; gap: 0.1rem; width: 100%; padding: 0.5rem 0; border: 0; border-block-end: 1px solid var(--hg-line); background: transparent; color: var(--hg-ink); text-align: start; font: inherit; font-size: var(--hg-font-size-xs); cursor: pointer; }
-.maintenance-related button:hover { background: var(--hg-hover); }
-.maintenance-related button span:first-child { color: var(--hg-ink3); }
 
-.maintenance-form-page { max-width: 28rem; }
-.maintenance-phone-form { overflow: hidden; border: 1px solid var(--hg-line); border-radius: var(--hg-radius-container); background: var(--hg-side); }
-.maintenance-phone-header { display: grid; grid-template-columns: 3rem 1fr 3rem; align-items: center; min-height: 3.5rem; padding-inline: 0.5rem; background: var(--hg-surface); }
+.maintenance-form-page { max-width: 25rem; }
+.maintenance-phone-form { overflow: clip; border: 1px solid var(--hg-line); border-radius: var(--hg-radius-container); background: var(--hg-side); }
+.maintenance-phone-header { position: sticky; top: 0; z-index: 2; display: grid; grid-template-columns: 3rem 1fr 3rem; align-items: center; min-height: 3.5rem; padding-inline: 0.5rem; background: var(--hg-surface); }
 .maintenance-phone-header strong { text-align: center; font-size: var(--hg-font-size-lg); font-weight: 600; }
 .maintenance-phone-header > span { min-width: 3rem; }
 .maintenance-entry-form { display: grid; gap: 0.75rem; padding: 0.75rem 1rem 0; }
@@ -258,6 +252,10 @@
 .maintenance-entry-row .ant-input-number { width: 100%; }
 .maintenance-entry-row .ant-select-selector { justify-content: end; }
 .maintenance-entry-row .ant-form-item-explain-error { text-align: end; font-size: var(--hg-font-size-xs); }
+.maintenance-entry-time-row { display: flex; align-items: center; min-height: 3.25rem; padding: 0.25rem 0.75rem 0.25rem 1rem; border-block-end: 1px solid var(--hg-line); }
+.maintenance-entry-time-row > span { flex: 0 0 6rem; color: var(--hg-ink2); font-size: var(--hg-font-size-sm); }
+.maintenance-entry-time-row .ant-picker { min-width: 0; flex: 1; }
+.maintenance-entry-time-row .ant-picker-input > input { font-size: var(--hg-font-size-sm); text-align: center; }
 .maintenance-entry-preset { padding: 0.35rem 0.75rem 0.75rem 1rem; border-block-end: 1px solid var(--hg-line); }
 .maintenance-entry-preset .ant-segmented { width: 100%; }
 .maintenance-entry-preset .ant-segmented-group { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -273,6 +271,8 @@
 .maintenance-entry-notes .ant-form-item-label > label { color: var(--hg-ink2); font-size: var(--hg-font-size-sm); }
 .maintenance-phone-footer { position: sticky; bottom: 0; z-index: 2; padding: 0.75rem 0 1rem; background: var(--hg-side); }
 .maintenance-phone-footer .ant-btn { min-height: 3rem; }
+.maintenance-phone-footer .ant-btn-primary:not(:disabled) { border-color: var(--hg-brand); background: var(--hg-brand); color: var(--hg-surface); }
+.maintenance-phone-footer .ant-btn-primary:not(:disabled):hover { border-color: var(--hg-brand); background: var(--hg-brand); filter: brightness(.94); }
 .maintenance-picker-drawer .ant-drawer-content { border-radius: var(--hg-radius-container) var(--hg-radius-container) 0 0; }
 .maintenance-parts-drawer .ant-drawer-content { border-radius: var(--hg-radius-container) var(--hg-radius-container) 0 0; }
 .maintenance-picker-drawer .ant-drawer-body { scrollbar-width: none; }

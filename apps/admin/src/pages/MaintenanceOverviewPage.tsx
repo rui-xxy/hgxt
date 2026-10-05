@@ -2,10 +2,9 @@ import { useMemo, useState, type CSSProperties } from 'react';
 import { Alert, Button, DatePicker, Empty, Spin } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import type { Dayjs } from 'dayjs';
-import { useNavigate } from 'react-router';
 import type { MaintenanceRecord } from '../api/maintenance';
 import { maintenanceApi } from '../api/maintenance';
-import { DownloadIcon, PlusIcon } from '../components/icons';
+import { DownloadIcon } from '../components/icons';
 import { PageHeader } from '../components/PageHeader';
 import {
   hasParts, inPeriod, monthKey, numberText, peopleOf, percentText, primaryValue,
@@ -95,7 +94,6 @@ function KpiCard({ label, value, unit, note }: { label: string; value: string; u
 }
 
 export function MaintenanceOverviewPage() {
-  const navigate = useNavigate();
   const query = useQuery({ queryKey: ['maintenance', 'records'], queryFn: maintenanceApi.list });
   const records = useMemo(() => query.data ?? [], [query.data]);
   const [periodMode, setPeriodMode] = useState<PeriodMode>('year');
@@ -201,7 +199,6 @@ export function MaintenanceOverviewPage() {
           <button type="button" aria-label="下一年" onClick={() => setYear(year + 1)}>›</button>
         </div>}
       <Button icon={<DownloadIcon width={16} height={16} />} onClick={() => recordsCsv(selected)} disabled={!selected.length}>导出</Button>
-      <Button type="primary" icon={<PlusIcon width={16} height={16} />} onClick={() => navigate('/maintenance/new')}>维修登记</Button>
     </div>} />
 
     {periodMode === 'custom' && !customRange ? <Alert type="info" showIcon message="请选择自定义日期范围" className="maintenance-inline-alert" /> : null}

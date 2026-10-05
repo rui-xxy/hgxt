@@ -1,15 +1,14 @@
-import { useMemo, useState } from 'react';
-import { Alert, Button, DatePicker, Drawer, Empty, Input, Select, Spin, Table, type TableProps } from 'antd';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Button, DatePicker, Empty, Input, Modal, Select, Spin, Table, type TableProps } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { Role } from '@hgxt/shared';
 import type { Dayjs } from 'dayjs';
-import { useNavigate } from 'react-router';
 import { maintenanceApi, type MaintenanceRecord } from '../api/maintenance';
 import { useMe } from '../api/hooks';
-import { DownloadIcon, PencilIcon, PlusIcon, SearchIcon } from '../components/icons';
+import { DownloadIcon, SearchIcon } from '../components/icons';
 import { PageHeader } from '../components/PageHeader';
-import { TablePageFooter } from '../components/PageNavigator';
 import { displayDate, numberText, peopleOf, recordsCsv, uniqueOptions, validHours } from './MaintenanceData';
+import { MaintenanceNewPage } from './MaintenanceNewPage';
 import './maintenance.css';
 
 function sortRecords(a: MaintenanceRecord, b: MaintenanceRecord): number {
@@ -26,7 +25,6 @@ function DetailItem({ label, value, mono = false }: { label: string; value: stri
 }
 
 export function MaintenanceRecordsPage() {
-  const navigate = useNavigate();
   const me = useMe();
   const query = useQuery({ queryKey: ['maintenance', 'records'], queryFn: maintenanceApi.list });
   const records = useMemo(() => query.data ?? [], [query.data]);
@@ -35,8 +33,8 @@ export function MaintenanceRecordsPage() {
   const [department, setDepartment] = useState<string | undefined>();
   const [cause, setCause] = useState<string | undefined>();
   const [person, setPerson] = useState<string | undefined>();
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [visibleCount, setVisibleCount] = useState(80);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const departmentOptions = useMemo(() => uniqueOptions(records.map((record) => record.department)), [records]);
@@ -56,19 +54,24 @@ export function MaintenanceRecordsPage() {
     }).sort(sortRecords);
   }, [records, keyword, dateRange, department, cause, person]);
   const totalHours = filtered.reduce((sum, record) => sum + (validHours(record) ?? 0), 0);
-  const currentPage = Math.min(page, Math.max(1, Math.ceil(filtered.length / pageSize)));
-  const visible = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const visible = filtered.slice(0, visibleCount);
   const selected = selectedId ? records.find((record) => record.id === selectedId) ?? null : null;
-  const related = selected?.equipmentModel.trim() && selected.equipmentModel.trim() !== '/' && selected.equipmentModel.trim() !== '／'
-    ? records.filter((record) => record.id !== selected.id && record.equipmentModel === selected.equipmentModel && record.reportYear === selected.reportYear && record.reportMonth === selected.reportMonth).sort(sortRecords).slice(0, 5)
-    : [];
+
+  useEffect(() => {
+    if (visibleCount >= filtered.length || !loadMoreRef.current) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setVisibleCount((count) => Math.min(count + 80, filtered.length));
+    }, { rootMargin: '500px' });
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [visibleCount, filtered.length]);
 
   const columns: TableProps<MaintenanceRecord>['columns'] = [
     { title: '日期', dataIndex: 'date', key: 'date', width: 124, render: (_value, record) => <span className={`maintenance-date-cell ${record.date ? 'mono' : 'maintenance-anomaly'}`} title={record.date ? undefined : `原始日期：${record.sourceDateText}`}>{displayDate(record)}</span> },
     { title: '工作内容', dataIndex: 'workContent', key: 'workContent', ellipsis: true, render: (value: string) => <strong className="maintenance-content-cell" title={value}>{value || '—'}</strong> },
-    { title: '部门', dataIndex: 'department', key: 'department', width: 140, ellipsis: true, render: (value: string) => value || '—' },
-    { title: '故障原因', dataIndex: 'faultCause', key: 'faultCause', width: 160, ellipsis: true, render: (value: string) => value || '未填写' },
-    { title: '工时', dataIndex: 'repairHours', key: 'repairHours', width: 110, align: 'right', render: (value: number | null) => value === null ? '—' : `${numberText(value, 2)} h` },
+    { title: '部门', dataIndex: 'department', key: 'department', width: 140, responsive: ['md'], ellipsis: true, render: (value: string) => value || '—' },
+    { title: '故障原因', dataIndex: 'faultCause', key: 'faultCause', width: 160, responsive: ['md'], ellipsis: true, render: (value: string) => value || '未填写' },
+    { title: '工时', dataIndex: 'repairHours', key: 'repairHours', width: 110, responsive: ['sm'], align: 'right', render: (value: number | null) => value === null ? '—' : `${numberText(value, 2)} h` },
   ];
 
   const clearFilters = () => {
@@ -77,7 +80,7 @@ export function MaintenanceRecordsPage() {
     setDepartment(undefined);
     setCause(undefined);
     setPerson(undefined);
-    setPage(1);
+    setVisibleCount(80);
   };
 
   if (query.isLoading) return <div className="maintenance-center"><Spin tip="正在读取维修记录" /></div>;
@@ -86,14 +89,13 @@ export function MaintenanceRecordsPage() {
   return <div className="maintenance-page maintenance-records-page">
     <PageHeader title="维修记录" extra={<div className="maintenance-header-actions">
       <Button icon={<DownloadIcon width={16} height={16} />} disabled={!filtered.length} onClick={() => recordsCsv(filtered)}>导出 CSV</Button>
-      <Button type="primary" icon={<PlusIcon width={16} height={16} />} onClick={() => navigate('/maintenance/new')}>维修登记</Button>
     </div>} />
     <div className="maintenance-filters">
-      <Input aria-label="搜索维修记录" placeholder="搜索工作内容、型号、配件" prefix={<SearchIcon width={16} height={16} />} value={keyword} onChange={(event) => { setKeyword(event.target.value); setPage(1); }} allowClear className="maintenance-search" />
-      <DatePicker.RangePicker aria-label="日期范围" value={dateRange} onChange={(value) => { setDateRange(value as [Dayjs, Dayjs] | null); setPage(1); }} />
-      <Select aria-label="筛选部门" placeholder="部门：全部" allowClear showSearch optionFilterProp="label" value={department} options={departmentOptions.map((value) => ({ value, label: value }))} onChange={(value) => { setDepartment(value); setPage(1); }} className="maintenance-filter-select" />
-      <Select aria-label="筛选故障原因" placeholder="原因：全部" allowClear showSearch optionFilterProp="label" value={cause} options={causeOptions.map((value) => ({ value, label: value }))} onChange={(value) => { setCause(value); setPage(1); }} className="maintenance-filter-select" />
-      <Select aria-label="筛选维修人员" placeholder="人员：全部" allowClear showSearch optionFilterProp="label" value={person} options={personOptions.map((value) => ({ value, label: value }))} onChange={(value) => { setPerson(value); setPage(1); }} className="maintenance-filter-select" />
+      <Input aria-label="搜索维修记录" placeholder="搜索工作内容、型号、配件" prefix={<SearchIcon width={16} height={16} />} value={keyword} onChange={(event) => { setKeyword(event.target.value); setVisibleCount(80); }} allowClear className="maintenance-search" />
+      <DatePicker.RangePicker aria-label="日期范围" value={dateRange} onChange={(value) => { setDateRange(value as [Dayjs, Dayjs] | null); setVisibleCount(80); }} />
+      <Select aria-label="筛选部门" placeholder="部门：全部" allowClear showSearch optionFilterProp="label" value={department} options={departmentOptions.map((value) => ({ value, label: value }))} onChange={(value) => { setDepartment(value); setVisibleCount(80); }} className="maintenance-filter-select" />
+      <Select aria-label="筛选故障原因" placeholder="原因：全部" allowClear showSearch optionFilterProp="label" value={cause} options={causeOptions.map((value) => ({ value, label: value }))} onChange={(value) => { setCause(value); setVisibleCount(80); }} className="maintenance-filter-select" />
+      <Select aria-label="筛选维修人员" placeholder="人员：全部" allowClear showSearch optionFilterProp="label" value={person} options={personOptions.map((value) => ({ value, label: value }))} onChange={(value) => { setPerson(value); setVisibleCount(80); }} className="maintenance-filter-select" />
       <Button type="text" onClick={clearFilters}>清除筛选</Button>
       <div className="maintenance-result-count">共 {numberText(filtered.length)} 条 · {numberText(totalHours, 2)} h</div>
     </div>
@@ -105,20 +107,17 @@ export function MaintenanceRecordsPage() {
         columns={columns}
         dataSource={visible}
         pagination={false}
-        scroll={{ x: 850, y: 640 }}
+        tableLayout="fixed"
         rowClassName={(record) => record.id === selectedId ? 'maintenance-record-selected' : ''}
-        onRow={(record) => ({ onClick: () => setSelectedId(record.id), tabIndex: 0, role: 'button', 'aria-label': `查看 ${displayDate(record)} 维修记录`, onKeyDown: (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelectedId(record.id); } } })}
+        onRow={(record) => ({ onClick: () => setSelectedId(record.id), tabIndex: 0, role: 'button', 'aria-label': `${me.data?.role === Role.SUPER_ADMIN ? '编辑' : '查看'} ${displayDate(record)} 维修记录`, onKeyDown: (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelectedId(record.id); } } })}
         locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="没有符合条件的维修记录" /> }}
       />
-      {filtered.length ? <TablePageFooter page={currentPage} pageSize={pageSize} total={filtered.length} onChange={setPage} onPageSizeChange={(nextSize) => { setPageSize(nextSize); setPage(1); }} />
-        : <div className="hgxt-table-pagination"><span className="hgxt-table-pagination-count">共 0 条</span></div>}
+      {visibleCount < filtered.length ? <div ref={loadMoreRef} className="maintenance-load-more" aria-label="继续向下加载维修记录" /> : null}
     </section>
 
-    <Drawer open={!!selected} onClose={() => setSelectedId(null)} title="维修记录详情" width="min(100vw, 440px)" className="maintenance-drawer" extra={selected && me.data?.role === Role.SUPER_ADMIN ? <Button icon={<PencilIcon width={16} height={16} />} onClick={() => navigate(`/maintenance/new?edit=${encodeURIComponent(selected.id)}`)}>编辑</Button> : null}>
-      {selected ? <>
-        <div className="maintenance-drawer-id mono">{selected.sourceRow === null ? '新登记' : `源表第 ${selected.sourceRow} 行`}</div>
+    <Modal open={!!selected} onCancel={() => setSelectedId(null)} footer={null} title={me.data?.role === Role.SUPER_ADMIN ? null : '维修记录详情'} closable={me.data?.role !== Role.SUPER_ADMIN} centered width="min(calc(100vw - 2rem), 30rem)" destroyOnHidden className="maintenance-edit-modal">
+      {selected && me.data?.role === Role.SUPER_ADMIN ? <MaintenanceNewPage key={selected.id} editRecord={selected} onClose={() => setSelectedId(null)} /> : selected ? <div className="maintenance-readonly-detail">
         <h2>{selected.workContent || '未填写工作内容'}</h2>
-        <div className="maintenance-drawer-tags"><span>{selected.faultType || '类型未填'}</span><span>{selected.faultCause || '原因未填'}</span>{selected.isRework ? <span className="maintenance-rework-tag">返工</span> : null}</div>
         <DetailItem label="日期" value={displayDate(selected)} mono />
         <DetailItem label="归属月份" value={`${selected.reportYear} 年 ${selected.reportMonth} 月`} mono />
         <DetailItem label="工作时间" value={selected.workTimeText} mono />
@@ -129,10 +128,7 @@ export function MaintenanceRecordsPage() {
         <DetailItem label="更换配件" value={selected.replacedParts} />
         <DetailItem label="维修人员" value={peopleOf(selected).join('、')} />
         {selected.remarks ? <DetailItem label="备注" value={selected.remarks} /> : null}
-        {related.length ? <div className="maintenance-related"><h3>同型号当月其他记录 · {related.length} 条</h3>
-          {related.map((record) => <button type="button" key={record.id} onClick={() => setSelectedId(record.id)}><span className="mono">{displayDate(record)}</span><span>{record.workContent || '未填写工作内容'}</span></button>)}
-        </div> : null}
-      </> : null}
-    </Drawer>
+      </div> : null}
+    </Modal>
   </div>;
 }
