@@ -92,6 +92,7 @@ export interface ResetPasswordBody {
 }
 
 export { CURRENT_DEPARTMENTS, normalizeDepartmentValue, parseDepartmentNames } from './departments.js';
+export { calculateMaintenanceHours } from './maintenance-hours.js';
 
 export type FormFieldType = 'text' | 'number' | 'date' | 'select';
 export interface FormField {

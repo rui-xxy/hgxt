@@ -1,6 +1,6 @@
 import { request } from './client';
 
-/** Excel「维修日志主表」的原始登记值。归属期以原表统计月份为准。 */
+/** Excel「维修日志主表」的登记值；repairHours 优先为工作时间扣除午休后的计算值。 */
 export interface MaintenanceRecord {
   id: string;
   sourceRow: number | null;
@@ -22,7 +22,7 @@ export interface MaintenanceRecord {
   remarks: string;
 }
 
-export type MaintenanceRecordInput = Omit<MaintenanceRecord, 'id' | 'sourceRow'>;
+export type MaintenanceRecordInput = Omit<MaintenanceRecord, 'id' | 'sourceRow' | 'repairHours'> & { repairHours?: number | null };
 
 export const maintenanceApi = {
   list(): Promise<MaintenanceRecord[]> {

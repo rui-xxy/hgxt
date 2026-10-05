@@ -46,8 +46,11 @@ describe('设备维修原始记录', () => {
     expect(listed.body).toHaveLength(1);
     expect(listed.body[0].date).toBe('2025-12-29');
     const changed = await http(app).patch(`/api/maintenance/records/${created.body.id}`)
-      .set('Authorization', auth()).send({ ...row, repairHours: 7.5 }).expect(200);
+      .set('Authorization', auth()).send({ ...row, workTimeText: '08:00-16:30', repairHours: 77.5 }).expect(200);
     expect(changed.body.repairHours).toBe(7.5);
+    const recalculated = await http(app).get('/api/maintenance/records?year=2026')
+      .set('Authorization', auth()).expect(200);
+    expect(recalculated.body[0].repairHours).toBe(7.5);
   });
 
   it('拒绝无效日期和归属月份，但允许显式保留历史异常日期原文', async () => {
@@ -56,8 +59,25 @@ describe('设备维修原始记录', () => {
     await http(app).post('/api/maintenance/records').set('Authorization', auth())
       .send({ ...row, reportMonth: 13 }).expect(400);
     const anomalous = await http(app).post('/api/maintenance/records').set('Authorization', auth())
-      .send({ ...row, sourceDateText: '2026-09-330星期三', date: null, reportMonth: 9, repairHours: -3 })
+      .send({ ...row, sourceDateText: '2026-09-330星期三', date: null, reportMonth: 9, workTimeText: '未记录', repairHours: -3 })
       .expect(201);
     expect(anomalous.body).toMatchObject({ date: null, reportMonth: 9, repairHours: -3 });
+  });
+
+  it('按时间段自动计算工时，并只扣除与午休重叠的部分', async () => {
+    const cases = [
+      ['08:00–17:00', 8],
+      ['08:00–16:30', 7.5],
+      ['11:30–12:30', 0.5],
+      ['12:00–13:00', 0],
+      ['13:00–17:00', 4],
+      ['22:00–02:00', 4],
+      ['11:30–01:00', 12.5],
+    ] as const;
+    for (const [workTimeText, expectedHours] of cases) {
+      const created = await http(app).post('/api/maintenance/records')
+        .set('Authorization', auth()).send({ ...row, workTimeText, repairHours: 77.5 }).expect(201);
+      expect(created.body.repairHours).toBe(expectedHours);
+    }
   });
 });

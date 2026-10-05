@@ -24,7 +24,6 @@ interface FormValues {
   location: string;
   equipmentModel: string;
   workTimeText: string;
-  repairHours: number | null;
   replacedParts: string;
   faultType: string;
   faultCause: string;
@@ -49,7 +48,6 @@ const EMPTY_FORM: FormValues = {
   location: '',
   equipmentModel: '',
   workTimeText: '',
-  repairHours: null,
   replacedParts: '',
   faultType: '',
   faultCause: '',
@@ -64,14 +62,6 @@ function parseWorkTime(value: string): [Dayjs, Dayjs] | null {
   if (times.some(({ hour, minute }) => hour > 23 || minute > 59)) return null;
   const base = dayjs().startOf('day');
   return times.map(({ hour, minute }) => base.hour(hour).minute(minute)) as [Dayjs, Dayjs];
-}
-
-function hoursFromTime(range: [Dayjs, Dayjs]): number {
-  const start = range[0].hour() * 60 + range[0].minute();
-  const end = range[1].hour() * 60 + range[1].minute();
-  const duration = end >= start ? end - start : end + 1440 - start;
-  const lunch = end > start ? Math.max(0, Math.min(end, 780) - Math.max(start, 720)) : 0;
-  return Number(((duration - lunch) / 60).toFixed(2));
 }
 
 function presetFromTime(range: [Dayjs, Dayjs] | null): TimePreset {
@@ -93,7 +83,6 @@ function valuesFromRecord(record: MaintenanceRecord): FormValues {
     location: record.location,
     equipmentModel: record.equipmentModel,
     workTimeText: record.workTimeText,
-    repairHours: record.repairHours,
     replacedParts: record.replacedParts,
     faultType: record.faultType,
     faultCause: record.faultCause,
@@ -114,7 +103,7 @@ function readDraft(): FormValues | null {
   }
 }
 
-export function MaintenanceNewPage({ editRecord, onClose }: { editRecord?: MaintenanceRecord; onClose?: () => void } = {}) {
+export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { editRecord?: MaintenanceRecord; onClose?: () => void; desktop?: boolean } = {}) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const editId = editRecord?.id ?? searchParams.get('edit');
@@ -180,11 +169,11 @@ export function MaintenanceNewPage({ editRecord, onClose }: { editRecord?: Maint
   });
 
   const setPreset = (preset: TimePreset) => {
-    const value = preset === 'full' ? { workTimeText: '08:00–17:00', repairHours: 8 }
-      : preset === 'morning' ? { workTimeText: '08:00–12:00', repairHours: 4 }
-        : preset === 'afternoon' ? { workTimeText: '13:00–17:00', repairHours: 4 } : null;
+    const value = preset === 'full' ? '08:00–17:00'
+      : preset === 'morning' ? '08:00–12:00'
+        : preset === 'afternoon' ? '13:00–17:00' : null;
     if (value) {
-      form.setFieldsValue(value);
+      form.setFieldValue('workTimeText', value);
       setCustomTimeMode(false);
       setTimePickerOpen(false);
     } else {
@@ -255,7 +244,6 @@ export function MaintenanceNewPage({ editRecord, onClose }: { editRecord?: Maint
       replacedParts: textValue(values.replacedParts, existing?.replacedParts),
       faultType: textValue(values.faultType, existing?.faultType),
       faultCause: textValue(values.faultCause, existing?.faultCause),
-      repairHours: values.repairHours ?? null,
       isRework: values.isRework ?? false,
       remarks: textValue(values.remarks, existing?.remarks),
     };
@@ -267,6 +255,37 @@ export function MaintenanceNewPage({ editRecord, onClose }: { editRecord?: Maint
   if (editId && me.isLoading) return <div className="maintenance-center"><Spin tip="正在核对权限" /></div>;
   if (editId && me.data?.role !== Role.SUPER_ADMIN) return <Alert type="warning" showIcon message="仅管理员可以编辑维修记录" action={<Button onClick={() => navigate('/maintenance/records')}>返回记录</Button>} />;
   if (editId && !existing) return <Alert type="warning" showIcon message="找不到要编辑的维修记录" action={<Button onClick={() => navigate('/maintenance/records')}>返回记录</Button>} />;
+
+  if (desktop) return <div className="maintenance-desktop-editor">
+    <header className="maintenance-desktop-header"><h2>编辑维修记录</h2><span>{existing?.date ?? existing?.sourceDateText}</span></header>
+    <Form<FormValues> form={form} layout="vertical" initialValues={EMPTY_FORM} onFinish={submit} requiredMark={false} className="maintenance-desktop-form">
+      <Form.Item name="workContent" label="工作内容" className="maintenance-desktop-wide" rules={[{ required: true, whitespace: true, message: '请填写工作内容' }]}>
+        <Input.TextArea autoSize={{ minRows: 2, maxRows: 5 }} placeholder="描述维修、巡检或更换工作" maxLength={1000} />
+      </Form.Item>
+      <Form.Item name="date" label="日期"><DatePicker className="maintenance-full-width" allowClear format="YYYY-MM-DD" /></Form.Item>
+      <Form.Item name="reportPeriod" label="统计月份" rules={[{ required: true, message: '请选择统计月份' }]}><DatePicker className="maintenance-full-width" picker="month" format="YYYY 年 M 月" /></Form.Item>
+      <Form.Item name="personnel" label="维修人员" rules={[{ required: true, type: 'array', min: 1, message: '请选择维修人员' }]}>
+        <Select mode="tags" placeholder="选择或输入维修人员" options={peopleOptions} tokenSeparators={['、', '，', ',']} />
+      </Form.Item>
+      <Form.Item name="department" label="所属部门"><AutoComplete options={departmentOptions} placeholder="选择或输入部门" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+      <Form.Item name="location" label="区域 / 位置"><AutoComplete options={locationOptions} placeholder="选择或输入区域" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+      <Form.Item name="equipmentModel" label="设备型号"><AutoComplete options={modelOptions} placeholder="选择或输入型号" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+      <Form.Item name="workTimeText" hidden><Input /></Form.Item>
+      <div className="maintenance-desktop-time"><label>工作时间</label><TimePicker.RangePicker aria-label="选择工作时间" className="maintenance-full-width" format="HH:mm" value={timeRange} open={timePickerOpen} onOpenChange={setTimePickerOpen} inputReadOnly onChange={(range) => {
+        const next = range as [Dayjs, Dayjs] | null;
+        setCustomTimeMode(true);
+        form.setFieldValue('workTimeText', next ? `${next[0].format('HH:mm')}–${next[1].format('HH:mm')}` : '');
+      }} />
+        <Segmented<TimePreset> block value={timePreset} onChange={setPreset} options={[{ label: '全天', value: 'full' }, { label: '上午', value: 'morning' }, { label: '下午', value: 'afternoon' }, { label: '自定义', value: 'custom' }]} />
+      </div>
+      <Form.Item name="replacedParts" label="更换配件"><Input placeholder="无" /></Form.Item>
+      <Form.Item name="faultType" label="故障类型"><AutoComplete options={typeOptions} placeholder="选择或输入类型" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+      <Form.Item name="faultCause" label="故障原因"><AutoComplete options={causeOptions} placeholder="选择或输入原因" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+      <Form.Item name="isRework" label="是否返工" valuePropName="checked"><Switch /></Form.Item>
+      <Form.Item name="remarks" label="备注" className="maintenance-desktop-wide"><Input.TextArea autoSize={{ minRows: 2, maxRows: 5 }} placeholder="可选" /></Form.Item>
+      <div className="maintenance-desktop-actions"><Button onClick={onClose}>取消</Button><Button type="primary" htmlType="submit" loading={mutation.isPending} icon={<SaveIcon width={16} height={16} />}>保存修改</Button></div>
+    </Form>
+  </div>;
 
   return <div className="maintenance-page maintenance-form-page">
     <div className="maintenance-phone-form">
@@ -296,10 +315,8 @@ export function MaintenanceNewPage({ editRecord, onClose }: { editRecord?: Maint
             const next = range as [Dayjs, Dayjs] | null;
             setCustomTimeMode(true);
             form.setFieldValue('workTimeText', next ? `${next[0].format('HH:mm')}–${next[1].format('HH:mm')}` : '');
-            form.setFieldValue('repairHours', next ? hoursFromTime(next) : null);
           }} /></div>
           <div className="maintenance-entry-preset"><Segmented<TimePreset> block value={timePreset} onChange={setPreset} options={[{ label: '全天', value: 'full' }, { label: '上午', value: 'morning' }, { label: '下午', value: 'afternoon' }, { label: '自定义', value: 'custom' }]} /></div>
-          <Form.Item name="repairHours" label="维修工时 h" className="maintenance-entry-row"><InputNumber variant="borderless" className="maintenance-full-width" step={0.25} placeholder="填写工时" /></Form.Item>
           <div className="maintenance-entry-parts-row"><Form.Item name="replacedParts" label="更换配件" className="maintenance-entry-row"><Input variant="borderless" placeholder="无" /></Form.Item><Button type="link" icon={<PlusIcon width={16} height={16} />} onClick={() => setPartsOpen(true)}>添加</Button></div>
         </section>
 

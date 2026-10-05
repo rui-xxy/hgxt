@@ -46,7 +46,7 @@ export class MaintenanceRecordDto {
   @IsString() @Length(0, 500) faultType!: string;
   @IsString() @Length(0, 500) faultCause!: string;
 
-  @ApiPropertyOptional({ description: '原表工时；历史异常保留原值并计入合计，界面单独提示核对' })
+  @ApiPropertyOptional({ description: '原表工时；可识别工作时间时自动计算，历史原值保留作回退' })
   @IsOptional()
   @IsNumber({ allowNaN: false, allowInfinity: false })
   repairHours?: number | null;

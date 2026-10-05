@@ -23,7 +23,7 @@ export class MaintenanceController {
   constructor(private readonly maintenance: MaintenanceService) {}
 
   @Get('records')
-  @ApiOperation({ summary: '维修日志原始记录；看板统计由这些记录计算' })
+  @ApiOperation({ summary: '维修日志记录；可识别的工作时间自动计算工时' })
   list(@Query() query: RecordsQuery) {
     return this.maintenance.list(query.year);
   }

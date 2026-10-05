@@ -71,7 +71,7 @@ export function MaintenanceRecordsPage() {
     { title: '工作内容', dataIndex: 'workContent', key: 'workContent', ellipsis: true, render: (value: string) => <strong className="maintenance-content-cell" title={value}>{value || '—'}</strong> },
     { title: '部门', dataIndex: 'department', key: 'department', width: 140, responsive: ['md'], ellipsis: true, render: (value: string) => value || '—' },
     { title: '故障原因', dataIndex: 'faultCause', key: 'faultCause', width: 160, responsive: ['md'], ellipsis: true, render: (value: string) => value || '未填写' },
-    { title: '工时', dataIndex: 'repairHours', key: 'repairHours', width: 110, responsive: ['sm'], align: 'right', render: (value: number | null) => value === null ? '—' : `${numberText(value, 2)} h` },
+    { title: '维修工时', dataIndex: 'repairHours', key: 'repairHours', width: 110, responsive: ['sm'], align: 'right', render: (value: number | null) => value === null ? '—' : `${numberText(value, 2)} h` },
   ];
 
   const clearFilters = () => {
@@ -115,8 +115,8 @@ export function MaintenanceRecordsPage() {
       {visibleCount < filtered.length ? <div ref={loadMoreRef} className="maintenance-load-more" aria-label="继续向下加载维修记录" /> : null}
     </section>
 
-    <Modal open={!!selected} onCancel={() => setSelectedId(null)} footer={null} title={me.data?.role === Role.SUPER_ADMIN ? null : '维修记录详情'} closable={me.data?.role !== Role.SUPER_ADMIN} centered width="min(calc(100vw - 2rem), 30rem)" destroyOnHidden className="maintenance-edit-modal">
-      {selected && me.data?.role === Role.SUPER_ADMIN ? <MaintenanceNewPage key={selected.id} editRecord={selected} onClose={() => setSelectedId(null)} /> : selected ? <div className="maintenance-readonly-detail">
+    <Modal open={!!selected} onCancel={() => setSelectedId(null)} footer={null} title={me.data?.role === Role.SUPER_ADMIN ? null : '维修记录详情'} centered width={me.data?.role === Role.SUPER_ADMIN ? 'min(calc(100vw - 2rem), 60rem)' : 'min(calc(100vw - 2rem), 30rem)'} destroyOnHidden className={`maintenance-edit-modal ${me.data?.role === Role.SUPER_ADMIN ? 'maintenance-edit-modal-desktop' : ''}`}>
+      {selected && me.data?.role === Role.SUPER_ADMIN ? <MaintenanceNewPage key={selected.id} editRecord={selected} onClose={() => setSelectedId(null)} desktop /> : selected ? <div className="maintenance-readonly-detail">
         <h2>{selected.workContent || '未填写工作内容'}</h2>
         <DetailItem label="日期" value={displayDate(selected)} mono />
         <DetailItem label="归属月份" value={`${selected.reportYear} 年 ${selected.reportMonth} 月`} mono />
