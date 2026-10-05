@@ -133,7 +133,7 @@
 .maintenance-month-chart,
 .maintenance-month-metrics {
   display: grid;
-  grid-template-columns: 4rem repeat(var(--hg-month-count), minmax(0, 1fr));
+  grid-template-columns: 2.25rem repeat(var(--hg-month-count), minmax(0, 1fr));
   column-gap: 0.2rem;
 }
 .maintenance-month-chart {

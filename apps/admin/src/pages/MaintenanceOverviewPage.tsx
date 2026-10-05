@@ -216,7 +216,7 @@ export function MaintenanceOverviewPage() {
       <section className="maintenance-panel" aria-labelledby="maintenance-month-title">
         <div className="maintenance-panel-heading"><h2 id="maintenance-month-title">月度维修</h2><span>条</span></div>
         {months.length ? <div className="maintenance-month-scroll">
-          <div className="maintenance-month-layout" style={{ '--hg-month-count': months.length, minWidth: months.length > 12 ? `${4 + months.length * 3.5}rem` : undefined } as CSSProperties}>
+          <div className="maintenance-month-layout" style={{ '--hg-month-count': months.length, minWidth: months.length > 12 ? `${2.25 + months.length * 3.5}rem` : undefined } as CSSProperties}>
             <div className="maintenance-month-chart">
               <span className="maintenance-month-gutter" aria-hidden="true" />
               {months.map((month) => <Popover key={month.key} trigger={['hover', 'focus']} placement="top" title={`${month.year} 年 ${month.month} 月`} content={<div className="maintenance-month-popover">
