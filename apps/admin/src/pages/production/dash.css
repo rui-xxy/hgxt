@@ -272,6 +272,8 @@
 .pg>i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;z-index:1}
 .plan-time-fill{background:var(--ink3)}
 .plan-section-head{align-items:center;margin-bottom:14px}
+.plan-completion-card .plan-section-head{flex-wrap:wrap}
+.plan-completion-card .plan-section-head .r{flex-wrap:wrap;justify-content:flex-end}
 .plan-section-head>b{font-size:var(--ui-font-size-lg)}
 .plan-consumption-head .tbtabs{margin-left:10px}
 .plan-completion-group>span:nth-child(2),.plan-completion-group>span:nth-child(4){text-align:center;border-bottom:1px solid var(--ink3);padding-bottom:6px}

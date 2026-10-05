@@ -210,6 +210,7 @@ export function ProductionPlanPage() {
   const { message } = AntApp.useApp();
   const navigate = useNavigate();
   const [year, setYear] = useState(() => new Date().getFullYear());
+  const [selectedCompletionMonth, setSelectedCompletionMonth] = useState<number | null>(null);
   const [view, setView] = useState<ViewKey>('ps');
   const [wsFilter, setWsFilter] = useState('全部');
   const [weekMetric, setWeekMetric] = useState<'production' | 'sales'>('production');
@@ -226,6 +227,7 @@ export function ProductionPlanPage() {
   const displayYear = data?.year ?? year;
 
   const monthLabel = data?.asOf ? `${Number(data.asOf.slice(5, 7))} 月` : '';
+  const completionMonth = selectedCompletionMonth ?? (data?.asOf ? Number(data.asOf.slice(5, 7)) : displayYear === new Date().getFullYear() ? new Date().getMonth() + 1 : 1);
   // 周对比的“同期”窗口：以 asOf 所在周的周一为界（与后端口径一致），明确标出日期区间
   const asOf = data?.asOf ?? null;
   const weekRange = useMemo(() => {
@@ -311,8 +313,8 @@ export function ProductionPlanPage() {
         </div>
         <Stepper
           label={`${year} 年`}
-          onPrev={() => setYear((current) => current - 1)}
-          onNext={() => setYear((current) => current + 1)}
+          onPrev={() => { setYear((current) => current - 1); setSelectedCompletionMonth(null); }}
+          onNext={() => { setYear((current) => current + 1); setSelectedCompletionMonth(null); }}
           prevDisabled={year <= 2020}
           nextDisabled={year >= 2100}
           prevLabel="上一年"
@@ -362,13 +364,22 @@ export function ProductionPlanPage() {
         <div className="ct plan-section-head">
           <b>计划完成</b>
           <div className="r">
+            <Stepper
+              label={`${displayYear} 年 ${completionMonth} 月`}
+              onPrev={() => setSelectedCompletionMonth(completionMonth - 1)}
+              onNext={() => setSelectedCompletionMonth(completionMonth + 1)}
+              prevDisabled={query.isPlaceholderData || completionMonth <= 1}
+              nextDisabled={query.isPlaceholderData || completionMonth >= 12}
+              prevLabel="计划完成上一个月"
+              nextLabel="计划完成下一个月"
+            />
             <button className="btn secondary sm" onClick={() => navigate('/plan/settings')}><SlidersHorizontal size={14} />编辑计划</button>
           </div>
         </div>
         <div style={{ overflowX: 'auto' }}>
         <div style={{ minWidth: 1080 }}>
         <div className="ghd plan-completion-group" style={{ gridTemplateColumns: COMPLETION_GRID, paddingTop: 6, paddingBottom: 4 }}>
-          <span /><span style={{ gridColumn: 'span 3' }}>{monthLabel}</span><span /><span style={{ gridColumn: 'span 5' }}>{displayYear} 年度</span>
+          <span /><span style={{ gridColumn: 'span 3' }}>{completionMonth} 月</span><span /><span style={{ gridColumn: 'span 5' }}>{displayYear} 年度</span>
         </div>
         <div className="prow phead" style={{ gridTemplateColumns: COMPLETION_GRID }}>
           <span>车间</span>
@@ -377,19 +388,22 @@ export function ProductionPlanPage() {
         </div>
         {(data?.completion ?? []).map((r) => {
           const tp = data?.timeProgress?.pct ?? null;
-          const monthTone = monthPlanTone(completionRate(r.monthActual, r.monthPlan));
+          const selectedMonth = r.months[completionMonth - 1];
+          const monthPlan = selectedMonth?.plan ?? null;
+          const monthActual = selectedMonth?.actual ?? null;
+          const monthTone = monthPlanTone(completionRate(monthActual, monthPlan));
           const yearTone = yearPlanTone(r.statusPoints);
           return (
             <div className="prow" key={r.workshop} style={{ gridTemplateColumns: COMPLETION_GRID }}>
               <div className="plan-actual">{r.workshop}</div>
-              <span className="num r muted">{fmtAmount(r.monthPlan)}</span>
-              <span className="num r plan-actual">{fmtAmount(r.monthActual)}</span>
+              <span className="num r muted">{fmtAmount(monthPlan)}</span>
+              <span className="num r plan-actual">{fmtAmount(monthActual)}</span>
               <div>
                 <div className="plan-completion-meter">
                   <div className="pg" style={{ flex: 1 }}>
-                    <i className={`plan-tone-${monthTone}`} style={{ width: `${Math.min(100, completionRate(r.monthActual, r.monthPlan) ?? 0)}%` }} />
+                    <i className={`plan-tone-${monthTone}`} style={{ width: `${Math.min(100, completionRate(monthActual, monthPlan) ?? 0)}%` }} />
                   </div>
-                  <span className="num plan-actual">{completionRateText(r.monthActual, r.monthPlan)}</span>
+                  <span className="num plan-actual">{completionRateText(monthActual, monthPlan)}</span>
                 </div>
               </div>
               <span />
