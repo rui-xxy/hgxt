@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { App, Button, Empty, Input, Result, Skeleton } from 'antd';
+import { App, Button, DatePicker, Empty, Input, Result, Skeleton } from 'antd';
+import dayjs from 'dayjs';
 import { CheckIcon, PlusIcon } from '../../components/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, Navigate, useParams } from 'react-router';
@@ -34,6 +35,8 @@ export function FormFillPage() {
   const [activeCategory, setActiveCategory] = useState('');
   const [activeSubgroup, setActiveSubgroup] = useState('');
   const [values, setValues] = useState<Record<string, string>>({});
+  const [dateSelection, setDateSelection] = useState(() => ({ formId: id, date: today() }));
+  const entryDate = dateSelection.formId === id ? dateSelection.date : today();
   const [parking, setParking] = useState<ParkingRecord[]>([emptyParking(today())]);
   const [submitted, setSubmitted] = useState(false);
   const [formKey, setFormKey] = useState(0);
@@ -80,7 +83,7 @@ export function FormFillPage() {
     if (!form.data || filled !== requiredFields.length) return;
     const data: FormData = {};
     for (const field of form.data.schema) {
-      if (field.hidden && field.type === 'date') data[field.id] = today();
+      if (field.hidden && field.type === 'date') data[field.id] = isSulfuricControl ? entryDate : today();
       else if (field.type === 'number') data[field.id] = values[field.id]?.trim() ? Number(values[field.id]) : null;
       else if (!field.hidden) data[field.id] = values[field.id]?.trim() ? values[field.id] : null;
     }
@@ -95,7 +98,10 @@ export function FormFillPage() {
 
   return <div className="forms-fill-shell" key={formKey}>
     <main className={`forms-fill-panel${isSulfuricControl ? ' forms-fill-panel-control' : ''}`}>
-      <header className="forms-fill-header"><h1>{form.data.title}</h1><span>{new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })}</span></header>
+      <header className="forms-fill-header"><h1>{form.data.title}</h1>
+        {isSulfuricControl ? <div className="forms-fill-date-row"><label htmlFor="forms-fill-entry-date">记录日期</label><DatePicker id="forms-fill-entry-date" aria-label="记录日期" className="forms-fill-date-picker" value={dayjs(entryDate)} allowClear={false} format="YYYY年M月D日" onChange={(date) => { if (date) setDateSelection({ formId: id, date: date.format('YYYY-MM-DD') }); }} /></div>
+          : <span>{new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })}</span>}
+      </header>
       {grouped.length > 1 && <nav className="forms-fill-tabs" aria-label="表单分组"><div className="forms-fill-tabs-inner">
         {grouped.map((group) => {
           const missing = group.fields.filter((field) => field.required && !isFilled(field, values[field.id])).length;

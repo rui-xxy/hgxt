@@ -76,6 +76,9 @@
 .forms-fill-header { flex: none; padding: 12px 20px; border-bottom: 1px solid var(--ant-color-border-secondary); }
 .forms-fill-header h1 { margin: 0 0 2px; font-family: var(--font-serif); font-size: var(--ui-font-size-xl); font-weight: 500; line-height: 1.3; }
 .forms-fill-header span { color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); }
+.forms-fill-date-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 8px; }
+.forms-fill-date-row label { color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); white-space: nowrap; }
+.forms-fill-date-picker { width: 12rem; max-width: 100%; }
 .forms-fill-tabs { flex: none; padding: 10px 16px; overflow-x: auto; border-bottom: 1px solid var(--ant-color-border-secondary); scrollbar-width: none; }
 .forms-fill-tabs::-webkit-scrollbar { display: none; }
 .forms-fill-tabs-inner { display: flex; gap: 4px; width: max-content; min-width: 100%; padding: 4px; border-radius: var(--r-container); background: var(--ant-color-fill-quaternary); }
