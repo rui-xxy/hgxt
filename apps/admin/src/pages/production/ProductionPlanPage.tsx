@@ -32,7 +32,7 @@ const completionRateText = (actual: number | null, plan: number | null): string 
   return `${shown.toFixed(1)}%`;
 };
 const fmtAmount = (value: number | null | undefined): string => fmt(value, 2);
-const COMPLETION_GRID = '128px 10ch 10ch minmax(0,1fr) 4px 12ch 12ch minmax(0,1.2fr) 13ch 92px';
+const COMPLETION_GRID = '128px 10ch 10ch minmax(0,1fr) 4px 12ch 12ch minmax(0,1.2fr) 16ch';
 const CONSUMPTION_GRID = '120px minmax(0,1.2fr) minmax(0,1fr) 84px 64px 96px 84px 84px 84px minmax(110px,1fr)';
 
 const deltaPct = (current: number, previous: number): number | null => previous > 0 ? ((current / previous) - 1) * 100 : null;
@@ -379,20 +379,19 @@ export function ProductionPlanPage() {
         <div style={{ overflowX: 'auto' }}>
         <div style={{ minWidth: 1080 }}>
         <div className="ghd plan-completion-group" style={{ gridTemplateColumns: COMPLETION_GRID, paddingTop: 6, paddingBottom: 4 }}>
-          <span /><span style={{ gridColumn: 'span 3' }}>{completionMonth} 月</span><span /><span style={{ gridColumn: 'span 5' }}>{displayYear} 年度</span>
+          <span /><span style={{ gridColumn: 'span 3' }}>{completionMonth} 月</span><span /><span style={{ gridColumn: 'span 4' }}>{displayYear} 年度</span>
         </div>
         <div className="prow phead" style={{ gridTemplateColumns: COMPLETION_GRID }}>
           <span>车间</span>
           <span className="r">计划</span><span className="r">完成</span><span>完成率</span><span />
-          <span className="r">年计划</span><span className="r">累计完成</span><span>完成率</span><span className="r">按进度</span><span>较时间进度</span>
+          <span className="r">年计划</span><span className="r">累计完成</span><span>完成率</span><span className="r" title="年度计划减累计完成">距年计划</span>
         </div>
         {(data?.completion ?? []).map((r) => {
-          const tp = data?.timeProgress?.pct ?? null;
           const selectedMonth = r.months[completionMonth - 1];
           const monthPlan = selectedMonth?.plan ?? null;
           const monthActual = selectedMonth?.actual ?? null;
           const monthTone = monthPlanTone(completionRate(monthActual, monthPlan));
-          const yearTone = yearPlanTone(r.statusPoints);
+          const yearGap = r.yearPlan > 0 ? r.yearPlan - r.yearActual : null;
           return (
             <div className="prow" key={r.workshop} style={{ gridTemplateColumns: COMPLETION_GRID }}>
               <div className="plan-actual">{r.workshop}</div>
@@ -412,21 +411,14 @@ export function ProductionPlanPage() {
               <div>
                 <div className="plan-completion-meter">
                   <div className="pg" style={{ flex: 1 }}>
-                    {tp !== null && r.yearPlan > 0 ? <span className="plan-time-progress" style={{ width: `${Math.min(100, tp)}%` }} /> : null}
-                    <i className={`plan-tone-${yearTone}`} style={{ width: `${Math.min(100, completionRate(r.yearActual, r.yearPlan > 0 ? r.yearPlan : null) ?? 0)}%` }} />
+                    <i className="plan-completion-annual-fill" style={{ width: `${Math.min(100, completionRate(r.yearActual, r.yearPlan > 0 ? r.yearPlan : null) ?? 0)}%` }} />
                   </div>
                   <span className="num plan-actual">{completionRateText(r.yearActual, r.yearPlan > 0 ? r.yearPlan : null)}</span>
                 </div>
               </div>
-              <span className={`num r ${r.aheadOfProgress === null ? 'faint' : r.aheadOfProgress >= 0 ? 'up' : 'dn'}`}>
-                {r.aheadOfProgress === null ? '—' : r.aheadOfProgress >= 0 ? `超 ${fmtAmount(r.aheadOfProgress)}` : `欠 ${fmtAmount(Math.abs(r.aheadOfProgress))}`}
+              <span className={`num r ${yearGap === null ? 'faint' : yearGap > 0 ? 'dn' : yearGap < 0 ? 'up' : ''}`}>
+                {yearGap === null ? '—' : yearGap > 0 ? `还差 ${fmtAmount(yearGap)}` : yearGap < 0 ? `超额 ${fmtAmount(-yearGap)}` : '已达成'}
               </span>
-              <div>
-                {r.status === 'ahead' ? <span className="st st-ok">超前 {r.statusPoints}</span>
-                  : r.status === 'onTrack' ? <span className="st st-mute">持平 {r.statusPoints}</span>
-                  : r.status === 'behind' ? <span className="st st-bad">滞后 {r.statusPoints}</span>
-                  : <span className="faint">—</span>}
-              </div>
             </div>
           );
         })}

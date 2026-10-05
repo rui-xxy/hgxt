@@ -280,6 +280,7 @@
 .plan-completion-card .prow:not(.phead){min-height:44px}
 .plan-completion-meter{display:grid;grid-template-columns:minmax(0,1fr) 52px;align-items:center;gap:10px}
 .plan-completion-meter>.num{text-align:right}
+.pg>i.plan-completion-annual-fill{background:var(--brand)}
 .plan-actual{font-weight:600}
 .pg>i.plan-tone-met,.plan-tone-met{background:var(--brand)}
 .pg>i.plan-tone-almost,.plan-tone-almost{background:var(--plan-unmet-fill)}

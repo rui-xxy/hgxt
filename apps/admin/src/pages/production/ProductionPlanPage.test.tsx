@@ -13,8 +13,8 @@ const board: ProductionPlanBoardResult = {
   year: 2026, asOf: '2026-09-29', timeProgress: null,
   completion: [{
     workshop: '硫酸', basis: '产量', monthPlan: 200, monthActual: 150, monthRate: 75,
-    yearPlan: 1000, yearActual: 450, yearRate: 45, expectedByProgress: null,
-    aheadOfProgress: null, status: null, statusPoints: null,
+    yearPlan: 1000, yearActual: 450, yearRate: 45, expectedByProgress: 300,
+    aheadOfProgress: 150, status: 'ahead', statusPoints: 15,
     months: Array.from({ length: 12 }, (_, index) => ({
       month: index + 1,
       plan: index === 7 ? 100 : index === 8 ? 200 : null,
@@ -35,6 +35,9 @@ describe('计划完成月度切换', () => {
     expect(row().textContent).toContain('200.00');
     expect(row().textContent).toContain('150.00');
     expect(row().textContent).toContain('75.0%');
+    expect(container.querySelector('.plan-completion-card .phead')?.textContent).toContain('距年计划');
+    expect(row().textContent).toContain('还差 550.00');
+    expect(row().textContent).not.toContain('超前');
 
     fireEvent.click(screen.getByRole('button', { name: '计划完成上一个月' }));
     expect(row().textContent).toContain('100.00');
@@ -42,6 +45,7 @@ describe('计划完成月度切换', () => {
     expect(row().textContent).toContain('80.0%');
     expect(row().textContent).toContain('1,000.00');
     expect(row().textContent).toContain('450.00');
+    expect(row().textContent).toContain('还差 550.00');
     expect(screen.getByText('2026 年 8 月')).toBeTruthy();
   });
 });
