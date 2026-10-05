@@ -1,5 +1,5 @@
 import { useMemo, useState, type CSSProperties } from 'react';
-import { Alert, Button, DatePicker, Empty, Spin } from 'antd';
+import { Alert, Button, DatePicker, Empty, Popover, Spin } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import type { Dayjs } from 'dayjs';
 import type { MaintenanceRecord } from '../api/maintenance';
@@ -215,17 +215,33 @@ export function MaintenanceOverviewPage() {
     <div className="maintenance-two-col">
       <section className="maintenance-panel" aria-labelledby="maintenance-month-title">
         <div className="maintenance-panel-heading"><h2 id="maintenance-month-title">月度维修</h2><span>条</span></div>
-        {months.length ? <div className="maintenance-month-chart" style={{ '--hg-month-count': Math.min(months.length, 12) } as CSSProperties}>
-          {months.map((month) => <div className="maintenance-month-column" key={month.key} title={`${month.key} · ${month.records.length} 条 · ${numberText(month.hours, 2)} h · 配件 ${month.parts} 条 · 人员 ${month.people} 人`}>
-            <span>{month.records.length || '·'}</span>
-            <div className="maintenance-month-track"><i className={month.year === new Date().getFullYear() && month.month === currentMonth ? 'is-current' : ''} style={{ height: `${(month.records.length / maxMonth) * 100}%` }} /></div>
-            <small>{month.month}月</small>
-          </div>)}
+        {months.length ? <div className="maintenance-month-scroll">
+          <div className="maintenance-month-layout" style={{ '--hg-month-count': months.length, minWidth: months.length > 12 ? `${4 + months.length * 3.5}rem` : undefined } as CSSProperties}>
+            <div className="maintenance-month-chart">
+              <span className="maintenance-month-gutter" aria-hidden="true" />
+              {months.map((month) => <Popover key={month.key} trigger={['hover', 'focus']} placement="top" title={`${month.year} 年 ${month.month} 月`} content={<div className="maintenance-month-popover">
+                <span>维修次数</span><strong>{numberText(month.records.length)} 条</strong>
+                <span>维修工时</span><strong>{numberText(month.hours, 2)} h</strong>
+                <span>更换配件</span><strong>{numberText(month.parts)} 条</strong>
+                <span>维修人员</span><strong>{numberText(month.people)} 人</strong>
+                <span>涉及部门</span><strong>{numberText(month.departments)} 个</strong>
+                <span>返工</span><strong>{numberText(month.rework)} 条</strong>
+              </div>}>
+                <button type="button" className="maintenance-month-column" aria-label={`${month.year} 年 ${month.month} 月，维修 ${month.records.length} 条，查看详细数据`}>
+                  <span className="maintenance-month-track" style={{ '--hg-month-height': `${(month.records.length / maxMonth) * 85}%` } as CSSProperties}>
+                    <span className="maintenance-month-value">{month.records.length || '·'}</span>
+                    <i className={month.year === new Date().getFullYear() && month.month === currentMonth ? 'is-current' : ''} />
+                  </span>
+                  <small>{month.month}月</small>
+                </button>
+              </Popover>)}
+            </div>
+            {months.length > 1 ? <div className="maintenance-month-metrics">
+              <span className="maintenance-month-metric-label">工时 h</span>{months.map((month) => <span key={month.key}>{numberText(month.hours, 0)}</span>)}
+              <span className="maintenance-month-metric-label">配件</span>{months.map((month) => <span key={month.key}>{month.parts}</span>)}
+            </div> : null}
+          </div>
         </div> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="范围内没有维修记录" />}
-        {months.length > 1 && months.length <= 12 ? <div className="maintenance-month-metrics" style={{ '--hg-month-count': months.length } as CSSProperties}>
-          <span className="maintenance-month-metric-label">工时 h</span>{months.map((month) => <span key={month.key} title={`${numberText(month.hours, 2)} h`}>{numberText(month.hours, 0)}</span>)}
-          <span className="maintenance-month-metric-label">配件</span>{months.map((month) => <span key={month.key}>{month.parts}</span>)}
-        </div> : null}
       </section>
 
       <section className="maintenance-panel" aria-labelledby="maintenance-cause-title">
