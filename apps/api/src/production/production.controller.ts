@@ -1,11 +1,12 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Role, type DetailedWorkshopCode } from '@hgxt/shared';
+import { Role, type DetailedWorkshopCode, type PlanSettingsSaveBody, type PlanTargetSaveBody } from '@hgxt/shared';
 import { Roles } from '../common/decorators/roles.decorator';
 import { OverviewService } from './overview.service';
+import { PlanService } from './plan.service';
 import { ProductionService } from './production.service';
 
 class SulfuricSummaryQuery {
@@ -18,6 +19,16 @@ class SulfuricSummaryQuery {
   days?: number = 30;
 }
 
+class PlanYearQuery {
+  @ApiPropertyOptional({ description: '计划年度（默认当前年）' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(2020)
+  @Max(2100)
+  year?: number = new Date().getFullYear();
+}
+
 /** 生产指标（读取时现算，不改写表单数据） */
 @ApiTags('production 生产指标')
 @ApiBearerAuth()
@@ -27,6 +38,7 @@ export class ProductionController {
   constructor(
     private readonly production: ProductionService,
     private readonly overview: OverviewService,
+    private readonly plan: PlanService,
   ) {}
 
   @Get('sulfuric')
@@ -75,5 +87,29 @@ export class ProductionController {
   @ApiOperation({ summary: '车间版面：硫酸系统指定归属日期的期末分罐液位' })
   tanks(@Query('date') date?: string) {
     return this.overview.tankLevels(date);
+  }
+
+  @Get('plan')
+  @ApiOperation({ summary: '计划与完成：计划 vs 实际看板（实际值现算，计划值来自设置页）' })
+  planBoard(@Query() query: PlanYearQuery) {
+    return this.plan.board(query.year ?? new Date().getFullYear());
+  }
+
+  @Get('plan/settings')
+  @ApiOperation({ summary: '生产计划设置：年度/月度计划（自动按天数拆分，手工覆盖）与单耗目标' })
+  planSettings(@Query() query: PlanYearQuery) {
+    return this.plan.getSettings(query.year ?? new Date().getFullYear());
+  }
+
+  @Post('plan/settings')
+  @ApiOperation({ summary: '保存年度计划与月度手工值（null=清除手工回到自动拆分）' })
+  savePlanSettings(@Body() body: PlanSettingsSaveBody) {
+    return this.plan.saveSettings(body);
+  }
+
+  @Post('plan/targets')
+  @ApiOperation({ summary: '保存单耗目标' })
+  savePlanTargets(@Body() body: PlanTargetSaveBody) {
+    return this.plan.saveTargets(body);
   }
 }

@@ -267,9 +267,9 @@ export interface SulfuricSummaryResult {
 
 /** 一个车间的日产量序列（values 与 dates 一一对应，无数据为 null） */
 export interface WorkshopSeries {
-  code: 'sulfuric' | 'aminosulfonic' | 'magnesium' | 'hydrotalcite' | 'anthraquinone' | 'thermal';
+  code: 'sulfuric' | 'aminosulfonic' | 'magnesium' | 'hydrotalcite' | 'anthraquinone' | 'fenglian' | 'thermal';
   name: string;
-  /** 硫酸为折98吨，热电为十路供汽计量合计，其余车间为日报上报产量。 */
+  /** 硫酸为折98吨，热电为十路供汽计量合计，丰联为焦磷酸哌嗪产量，其余车间为日报上报产量。 */
   unit: string;
   values: Array<number | null>;
 }
@@ -463,4 +463,149 @@ export interface TankLevelsResult {
   /** 期末库存的生产归属日；液位来自次日填报 */
   date: string;
   groups: TankMaterialGroup[];
+}
+
+// ═══════════════════════════════════════════════════════════
+// 生产计划与完成 —— 计划值入库，实际值从表单现算
+// ═══════════════════════════════════════════════════════════
+
+/** 计划车间清单行（设置页与看板共用） */
+export interface PlanWorkshopRow {
+  /** 车间名（与表单/计划表一致） */
+  workshop: string;
+  /** 产量口径副标题（折 98% 硫酸 / 4 牌号合计 / 精品 / 焦磷酸哌嗪…） */
+  basis: string;
+  /** 年度计划 t */
+  annual: number;
+  /** 12 个月计划 t；manual=false 表示按天数自动拆分 */
+  months: Array<{ value: number; manual: boolean }>;
+  /** 月合计（校验用，≠ annual 时前端标红） */
+  monthTotal: number;
+}
+
+/** 单耗目标行 */
+export interface PlanTargetRow {
+  workshop: string;
+  material: string;
+  unit: string;
+  target: string;
+}
+
+export interface PlanSettingsResult {
+  year: number;
+  rows: PlanWorkshopRow[];
+  targets: PlanTargetRow[];
+}
+
+export interface PlanSettingsSaveBody {
+  year: number;
+  /** 每车间年度值与 12 个月手工值（null=清除手工、回到自动拆分） */
+  rows: Array<{ workshop: string; annual: number; months: Array<number | null> }>;
+}
+
+export interface PlanTargetSaveBody {
+  targets: PlanTargetRow[];
+}
+
+/** 单个车间的计划 vs 实际 */
+export interface PlanCompletionRow {
+  workshop: string;
+  basis: string;
+  /** 当月计划 / 实际 / 完成率%（无计划为 null） */
+  monthPlan: number | null;
+  monthActual: number;
+  monthRate: number | null;
+  /** 年度计划 / 累计实际 / 完成率% */
+  yearPlan: number;
+  yearActual: number;
+  yearRate: number | null;
+  /** 按时间进度应完成 t */
+  expectedByProgress: number | null;
+  /** 累计实际 − 按进度应完成（正=超前 N t） */
+  aheadOfProgress: number | null;
+  /** 较时间进度（百分点）：超前/持平/滞后（±2pp 容差） */
+  status: 'ahead' | 'onTrack' | 'behind' | null;
+  statusPoints: number | null;
+  /** 月度趋势：12 个月实际/计划/是否达标（未来月 actual=null） */
+  months: Array<{ month: number; plan: number | null; actual: number | null; met: boolean | null }>;
+}
+
+/** 本周 vs 上周对比行 */
+export interface PlanWeekRow {
+  workshop: string;
+  /** 本周产量 / 上周同期产量 / 环比% */
+  productionThis: number;
+  productionLast: number | null;
+  productionDelta: number | null;
+  /** 本周销量 / 上周同期销量 / 环比% */
+  salesThis: number;
+  salesLast: number | null;
+  salesDelta: number | null;
+  /** 上周全周产量 */
+  productionLastFullWeek: number | null;
+}
+
+/** 产销视图行 */
+export interface PlanSalesRow {
+  workshop: string;
+  production: number | null;
+  sales: number | null;
+  salesRatio: number | null;
+  inventory: number | null;
+  inventoryDays: number | null;
+  lastMonthProduction: number | null;
+  productionDelta: number | null;
+}
+
+/** 单耗视图行（能源/原辅料共用） */
+export interface PlanConsumptionRow {
+  workshop: string;
+  /** 能源或原辅料名 */
+  material: string;
+  /** 用量单位（kWh / t / m³ / kg） */
+  usageUnit: string;
+  /** 单耗单位（kWh/t / t/t / m³/t / kg/t） */
+  unit: string;
+  /** 当月用量 = 单耗 × 产量（看板展示用） */
+  monthUsage: number | null;
+  /** 当月单耗 */
+  current: number | null;
+  /** 上月单耗 */
+  lastMonth: number | null;
+  /** 目标（来自 ConsumptionTarget，区间/上限文本） */
+  target: string | null;
+  /** 目标上限数值（可解析时），用于偏离计算 */
+  targetMax: number | null;
+  /** (当前 ÷ 目标上限 − 1)×100%，正=超目标 */
+  deviationPct: number | null;
+}
+
+/** 事项（matters-2026 表单提交推导） */
+export interface PlanTask {
+  /** 本周 / 下周 / 其他（不在当前与下一周的历史或远期事项） */
+  period: '本周' | '下周' | '其他';
+  /** done=已完成(含延期完成)；late=已逾期未完成；doing=进行中；todo=未开始/搁置 */
+  status: 'done' | 'late' | 'doing' | 'todo';
+  matter: string;
+  department: string;
+  owner: string;
+  importance: string;
+  /** 计划完成日（MM-DD 展示由前端处理，此处 YYYY-MM-DD） */
+  dueDate: string | null;
+  progress: string;
+  completionNote: string;
+}
+
+export interface ProductionPlanBoardResult {
+  year: number;
+  /** 截至（最后一个有实际数据的归属日） */
+  asOf: string | null;
+  /** 年度时间进度%（已过天数 ÷ 全年天数）与天数 */
+  timeProgress: { pct: number; dayOfYear: number; daysInYear: number } | null;
+  completion: PlanCompletionRow[];
+  week: PlanWeekRow[];
+  sales: PlanSalesRow[];
+  energyConsumption: PlanConsumptionRow[];
+  materialConsumption: PlanConsumptionRow[];
+  tasks: PlanTask[];
 }

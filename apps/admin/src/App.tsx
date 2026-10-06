@@ -27,6 +27,12 @@ const EnergyCenterPage = lazy(() =>
 const MaterialsPage = lazy(() =>
   import('./pages/production/MaterialsPage').then((m) => ({ default: m.MaterialsPage })),
 );
+const ProductionPlanPage = lazy(() =>
+  import('./pages/production/ProductionPlanPage').then((m) => ({ default: m.ProductionPlanPage })),
+);
+const PlanSettingsPage = lazy(() =>
+  import('./pages/production/PlanSettingsPage').then((m) => ({ default: m.PlanSettingsPage })),
+);
 
 export default function App() {
   const navigate = useNavigate();
@@ -78,6 +84,22 @@ export default function App() {
               element={
                 <RequireSuperAdmin>
                   <MaterialsPage />
+                </RequireSuperAdmin>
+              }
+            />
+            <Route
+              path="plan"
+              element={
+                <RequireSuperAdmin>
+                  <ProductionPlanPage />
+                </RequireSuperAdmin>
+              }
+            />
+            <Route
+              path="plan/settings"
+              element={
+                <RequireSuperAdmin>
+                  <PlanSettingsPage />
                 </RequireSuperAdmin>
               }
             />
