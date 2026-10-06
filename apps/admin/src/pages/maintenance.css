@@ -1,3 +1,4 @@
+
 .maintenance-page {
   width: min(100%, 68rem);
   margin-inline: auto;
@@ -312,6 +313,7 @@
 .maintenance-picker-drawer .ant-drawer-body { scrollbar-width: none; }
 .maintenance-picker-drawer .ant-drawer-body::-webkit-scrollbar { display: none; }
 .maintenance-picker-options { margin-block-start: 0.75rem; }
+.maintenance-picker-section { padding: 0.9rem 0.25rem 0.35rem; color: var(--hg-ink3); font-size: var(--hg-font-size-xs); }
 .maintenance-picker-options button { display: flex; align-items: center; gap: 0.75rem; width: 100%; min-height: 3.5rem; padding-inline: 0.25rem; border: 0; border-block-end: 1px solid var(--hg-line); background: transparent; color: var(--hg-ink); text-align: start; font: inherit; cursor: pointer; }
 .maintenance-picker-options button:hover { background: var(--hg-hover); }
 .maintenance-picker-options button > span:nth-child(2) { min-width: 0; flex: 1; }
@@ -321,6 +323,12 @@
 .maintenance-picker-options button.is-selected .maintenance-picker-avatar { background: var(--hg-brand); color: var(--hg-surface); }
 .maintenance-full-width { width: 100%; }
 .maintenance-switch-item .ant-form-item-control-input { min-height: 2rem; }
+.maintenance-parts-presets { margin-block-end: 1.25rem; }
+.maintenance-parts-presets > span { display: block; margin-block-end: 0.5rem; color: var(--hg-ink2); font-size: var(--hg-font-size-sm); }
+.maintenance-parts-presets > div { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.maintenance-parts-presets button { padding: 0.45rem 0.75rem; border: 1px solid var(--hg-line2); border-radius: var(--hg-radius-control); background: var(--hg-surface); color: var(--hg-ink); font: inherit; cursor: pointer; }
+.maintenance-parts-presets button:hover { border-color: var(--hg-brand); color: var(--hg-brand); }
+.maintenance-parts-presets button.is-selected { border-color: var(--hg-brand); background: var(--hg-brand-soft); color: var(--hg-brand); }
 .maintenance-parts-fields { display: grid; gap: 1rem; }
 .maintenance-parts-fields label { display: grid; gap: 0.35rem; font-size: var(--hg-font-size-sm); }
 

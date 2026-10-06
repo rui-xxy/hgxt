@@ -299,7 +299,7 @@ export class FormsService {
     return result;
   }
 
-  async createSubmission(id: string, input: unknown, submitterId: string): Promise<FormSubmissionDTO> {
+  async createSubmission(id: string, input: unknown, submitterId: string | null): Promise<FormSubmissionDTO> {
     const form = await this.findForm(id);
     if (form.entryMode === 'sheet') throw new BadRequestException('此表格仅支持在数据页维护');
     const data = cleanData(form, input);

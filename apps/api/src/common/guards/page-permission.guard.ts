@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@
 import { Reflector } from '@nestjs/core';
 import { Role, type PagePermission } from '@hgxt/shared';
 import { PAGE_PERMISSION_KEY } from '../decorators/page-permission.decorator';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import type { AuthUser } from '../decorators/current-user.decorator';
 
 @Injectable()
@@ -9,11 +10,15 @@ export class PagePermissionGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
     const permission = this.reflector.getAllAndOverride<PagePermission>(PAGE_PERMISSION_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
-    if (!permission) return true;
+    if (isPublic || !permission) return true;
 
     const { user } = context.switchToHttp().getRequest<{ user?: AuthUser }>();
     if (user?.role === Role.SUPER_ADMIN || user?.pagePermissions.includes(permission)) return true;

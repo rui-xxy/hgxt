@@ -49,6 +49,9 @@ async function bootstrap(): Promise<void> {
             directives: {
               styleSrc: ["'self'", "'unsafe-inline'"],
               imgSrc: ["'self'", 'data:', 'blob:'],
+              // 纯 HTTP 直连部署必须关闭：helmet 默认开启会把页面资源强制升级为 https，
+              // 而本服务不提供 TLS，浏览器升级后全部资源加载失败导致白屏（HTTPS 反代部署可再打开）
+              upgradeInsecureRequests: null,
             },
           }
         : false,

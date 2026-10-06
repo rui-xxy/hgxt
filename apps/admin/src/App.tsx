@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { Navigate, Route, Routes, useNavigate } from 'react-router';
-import { setAuthFailureHandler, setExternalLogoutHandler } from './api/client';
+import { setAuthFailureHandler, setExternalLogoutHandler, tokenStore } from './api/client';
 import { queryClient } from './api/queryClient';
 import { RequireAuth } from './components/RequireAuth';
 import { RequireSuperAdmin } from './components/RequireSuperAdmin';
@@ -15,6 +15,28 @@ function LandingRedirect() {
   const me = useMe();
   if (!me.data) return <PageLoading />;
   return <Navigate to={landingPath()} replace />;
+}
+
+/**
+ * 设备维修登记入口：无需登录即可填报（后端提交接口已开放并限流）。
+ * 已登录用户则沿用原带导航布局 + 页面权限校验的版本。
+ */
+function MaintenanceNewGate() {
+  if (!tokenStore.getAccessToken()) return <MaintenanceNewPage />;
+  return (
+    <Routes>
+      <Route element={<AdminLayout />}>
+        <Route
+          index
+          element={
+            <RequirePageAccess permission={PagePermission.MAINTENANCE}>
+              <MaintenanceNewPage />
+            </RequirePageAccess>
+          }
+        />
+      </Route>
+    </Routes>
+  );
 }
 
 // F3：路由级拆包——业务页面按需加载，不进首屏主包
@@ -77,8 +99,10 @@ export default function App() {
     <Suspense fallback={<PageLoading />}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        {/* 表单填写页无需登录：凭链接直接填报（后端对应接口已开放并限流） */}
+        <Route path="form-fill/:id" element={<FormFillPage />} />
+        <Route path="maintenance/new" element={<MaintenanceNewGate />} />
         <Route element={<RequireAuth />}>
-          <Route path="form-fill/:id" element={<FormFillPage />} />
           <Route element={<AdminLayout />}>
             <Route index element={<LandingRedirect />} />
             <Route path="workspace" element={<RequireSuperAdmin><HomePage /></RequireSuperAdmin>} />

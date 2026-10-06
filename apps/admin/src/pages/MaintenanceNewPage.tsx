@@ -9,6 +9,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { useNavigate, useSearchParams } from 'react-router';
 import { maintenanceApi, type MaintenanceRecord, type MaintenanceRecordInput } from '../api/maintenance';
 import { useMe } from '../api/hooks';
+import { tokenStore } from '../api/client';
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, PlusIcon, SaveIcon } from '../components/icons';
 import { peopleOf, uniqueOptions } from './MaintenanceData';
 import './maintenance.css';
@@ -36,6 +37,12 @@ interface PartsDraft {
   quantity: number;
   unit: string;
 }
+
+const COMMON_PARTS: Pick<PartsDraft, 'name' | 'unit'>[] = [
+  { name: '软联接膜片', unit: '片' },
+  { name: '机械密封', unit: '套' },
+  { name: '联轴器弹性圈', unit: '个' },
+];
 
 const DRAFT_KEY = 'hgxt:maintenance:draft';
 const TODAY = dayjs();
@@ -109,10 +116,14 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
   const editId = editRecord?.id ?? searchParams.get('edit');
   const exitPath = editId ? '/maintenance/records' : '/forms?category=设备';
   const { message } = AntApp.useApp();
-  const me = useMe();
+  const me = useMe(!!editId); // 仅编辑模式需要登录态；匿名登记不查 /me（避免 401 触发跳登录）
   const queryClient = useQueryClient();
-  const query = useQuery({ queryKey: ['maintenance', 'records'], queryFn: maintenanceApi.list });
-  const records = useMemo(() => query.data ?? [], [query.data]);
+  // 已登录拉全量记录（含「常一起」共事推荐）；匿名拉公开选项行（仅人员/部门/区域等分类字段）
+  const query = useQuery({
+    queryKey: ['maintenance', 'records'],
+    queryFn: () => (tokenStore.getAccessToken() ? maintenanceApi.list() : maintenanceApi.options()),
+  });
+  const records = useMemo(() => (query.data ?? []) as MaintenanceRecord[], [query.data]);
   const existing = editRecord ?? (editId ? records.find((record) => record.id === editId) ?? null : null);
   const [form] = Form.useForm<FormValues>();
   const initializedFor = useRef<string | null>(null);
@@ -123,7 +134,8 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
   const [pickerSearch, setPickerSearch] = useState('');
   const [partsDraft, setPartsDraft] = useState<PartsDraft>({ name: '', quantity: 1, unit: '个' });
   const selectedDepartment = Form.useWatch('department', form);
-  const selectedPersonnel: string[] = Form.useWatch('personnel', form) ?? [];
+  const watchedPersonnel: string[] | undefined = Form.useWatch('personnel', form);
+  const selectedPersonnel = useMemo(() => watchedPersonnel ?? [], [watchedPersonnel]);
   const workTimeText: string = Form.useWatch('workTimeText', form) ?? '';
   const timeRange = parseWorkTime(workTimeText);
   const timePreset: TimePreset = customTimeMode ? 'custom' : presetFromTime(timeRange);
@@ -142,6 +154,30 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
   const modelOptions = useMemo(() => uniqueOptions(records.map((record) => record.equipmentModel)).filter((value) => value !== '/' && value !== '／').map((value) => ({ value, label: value })), [records]);
   const typeOptions = useMemo(() => uniqueOptions(records.map((record) => record.faultType)).map((value) => ({ value, label: value })), [records]);
   const causeOptions = useMemo(() => uniqueOptions(records.map((record) => record.faultCause)).map((value) => ({ value, label: value })), [records]);
+  const coworkerOptions = useMemo(() => {
+    if (selectedPersonnel.length === 0) return [];
+    const selected = new Set(selectedPersonnel);
+    const counts = new Map<string, number>();
+    for (const record of records) {
+      const people = peopleOf(record);
+      if (!people.some((person) => selected.has(person))) continue;
+      for (const person of people) {
+        if (!selected.has(person)) counts.set(person, (counts.get(person) ?? 0) + 1);
+      }
+    }
+    return [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN'))
+      .slice(0, 5).map(([value]) => value);
+  }, [records, selectedPersonnel]);
+  const recentLocations = useMemo(() => {
+    const seen = new Set<string>();
+    return records.filter((record) => !selectedDepartment || record.department === selectedDepartment)
+      .map((record) => record.location.trim())
+      .filter((location) => {
+        if (!location || location === '/' || location === '／' || seen.has(location)) return false;
+        seen.add(location);
+        return true;
+      }).slice(0, 5);
+  }, [records, selectedDepartment]);
   const departmentOfLocation = useMemo(() => {
     const map = new Map<string, Map<string, number>>();
     for (const record of records) {
@@ -218,6 +254,25 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
     if (department) form.setFieldValue('department', department);
     setPicker(null);
   };
+  const searchedPeople = peopleOptions.map((option) => option.value)
+    .filter((person) => person.includes(pickerSearch.trim()));
+  const selectedPeople = selectedPersonnel.filter((person) => person.includes(pickerSearch.trim()));
+  const suggestedPeople = coworkerOptions.filter((person) => searchedPeople.includes(person));
+  const otherPeople = searchedPeople.filter((person) => !selectedPersonnel.includes(person) && !coworkerOptions.includes(person));
+  const searchedLocations = locationOptions.map((option) => option.value)
+    .filter((location) => location.includes(pickerSearch.trim()));
+  const recentMatches = recentLocations.filter((location) => searchedLocations.includes(location));
+  const otherLocations = searchedLocations.filter((location) => !recentLocations.includes(location));
+  const personOption = (person: string) => <button key={person} type="button"
+    className={selectedPersonnel.includes(person) ? 'is-selected' : ''} onClick={() => togglePerson(person)}>
+    <span className="maintenance-picker-avatar">{person.slice(0, 1)}</span>
+    <span>{person}{me.data?.name === person ? <small>我</small> : null}</span>
+    {selectedPersonnel.includes(person) ? <CheckIcon width={18} height={18} /> : null}
+  </button>;
+  const locationOption = (location: string) => <button key={location} type="button" onClick={() => chooseLocation(location)}>
+    <span className="maintenance-picker-avatar">{location.slice(0, 1)}</span>
+    <span>{location}<small>{departmentOfLocation.get(location)}</small></span>
+  </button>;
 
   const submit = (values: FormValues) => {
     const date = values.date?.format('YYYY-MM-DD') ?? null;
@@ -251,7 +306,8 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
   };
 
   if (query.isLoading) return <div className="maintenance-center"><Spin tip="正在准备登记表" /></div>;
-  if (query.error) return <Alert type="error" showIcon message="维修数据加载失败" description={query.error.message} action={<Button onClick={() => void query.refetch()}>重试</Button>} />;
+  // 历史记录只用于联想选项；匿名登记拿不到列表（401），属预期，不阻断填报
+  if (query.error && tokenStore.getAccessToken()) return <Alert type="error" showIcon message="维修数据加载失败" description={query.error.message} action={<Button onClick={() => void query.refetch()}>重试</Button>} />;
   if (editId && me.isLoading) return <div className="maintenance-center"><Spin tip="正在核对权限" /></div>;
   if (editId && me.data?.role !== Role.SUPER_ADMIN) return <Alert type="warning" showIcon message="仅管理员可以编辑维修记录" action={<Button onClick={() => navigate('/maintenance/records')}>返回记录</Button>} />;
   if (editId && !existing) return <Alert type="warning" showIcon message="找不到要编辑的维修记录" action={<Button onClick={() => navigate('/maintenance/records')}>返回记录</Button>} />;
@@ -320,7 +376,8 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
           <div className="maintenance-entry-parts-row"><Form.Item name="replacedParts" label="更换配件" className="maintenance-entry-row"><Input variant="borderless" placeholder="无" /></Form.Item><Button type="link" icon={<PlusIcon width={16} height={16} />} onClick={() => setPartsOpen(true)}>添加</Button></div>
         </section>
 
-        <details className="maintenance-entry-more"><summary>更多信息</summary>
+        {/* 需求：填报页不展示这些选填项；保留 DOM（hidden）使字段仍注册在表单里，值随提交上报 */}
+        <details className="maintenance-entry-more" hidden><summary>更多信息</summary>
           <section className="maintenance-entry-group" aria-label="其他记录">
             <Form.Item name="reportPeriod" label="统计月份" className="maintenance-entry-row" rules={[{ required: true, message: '请选择统计月份' }]}><DatePicker variant="borderless" className="maintenance-full-width" picker="month" format="YYYY 年 M 月" /></Form.Item>
             <Form.Item name="faultType" label="故障类型" className="maintenance-entry-row"><AutoComplete variant="borderless" options={typeOptions} placeholder="选择或输入" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
@@ -334,6 +391,14 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
     </div>
 
     <Drawer title="添加配件" placement="bottom" height="min(70vh, 28rem)" open={partsOpen} onClose={() => setPartsOpen(false)} className="maintenance-parts-drawer" extra={<Button type="primary" onClick={addPart}>加入</Button>}>
+      <div className="maintenance-parts-presets">
+        <span>常用配件</span>
+        <div>{COMMON_PARTS.map((part) => <button key={part.name} type="button"
+          className={partsDraft.name === part.name ? 'is-selected' : ''}
+          onClick={() => setPartsDraft((draft) => ({ ...draft, name: part.name, unit: part.unit }))}>
+          {part.name}
+        </button>)}</div>
+      </div>
       <div className="maintenance-parts-fields"><label>名称<Input autoFocus placeholder="配件名称" value={partsDraft.name} onChange={(event) => setPartsDraft((draft) => ({ ...draft, name: event.target.value }))} /></label>
         <label>数量<InputNumber min={0.1} step={1} className="maintenance-full-width" value={partsDraft.quantity} onChange={(quantity) => setPartsDraft((draft) => ({ ...draft, quantity: quantity ?? 1 }))} /></label>
         <label>单位<Select value={partsDraft.unit} onChange={(unit) => setPartsDraft((draft) => ({ ...draft, unit }))} options={['个', '片', '套', '台', '根', '米', '件', '只'].map((unit) => ({ value: unit, label: unit }))} /></label>
@@ -347,8 +412,19 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
         else chooseLocation(value);
       }} />
       <div className="maintenance-picker-options">
-        {picker === 'personnel' ? peopleOptions.filter((option) => option.value.includes(pickerSearch.trim())).map((option) => <button key={option.value} type="button" className={selectedPersonnel.includes(option.value) ? 'is-selected' : ''} onClick={() => togglePerson(option.value)}><span className="maintenance-picker-avatar">{option.value.slice(0, 1)}</span><span>{option.value}</span>{selectedPersonnel.includes(option.value) ? <CheckIcon width={18} height={18} /> : null}</button>)
-          : locationOptions.filter((option) => option.value.includes(pickerSearch.trim())).map((option) => <button key={option.value} type="button" onClick={() => chooseLocation(option.value)}><span className="maintenance-picker-avatar">{option.value.slice(0, 1)}</span><span>{option.value}<small>{departmentOfLocation.get(option.value)}</small></span></button>)}
+        {picker === 'personnel' ? <>
+          {selectedPeople.length > 0 && <div className="maintenance-picker-section">已选</div>}
+          {selectedPeople.map(personOption)}
+          {suggestedPeople.length > 0 && <div className="maintenance-picker-section">常一起</div>}
+          {suggestedPeople.map(personOption)}
+          {otherPeople.length > 0 && <div className="maintenance-picker-section">全部</div>}
+          {otherPeople.map(personOption)}
+        </> : <>
+          {recentMatches.length > 0 && <div className="maintenance-picker-section">最近区域</div>}
+          {recentMatches.map(locationOption)}
+          {otherLocations.length > 0 && <div className="maintenance-picker-section">全部区域</div>}
+          {otherLocations.map(locationOption)}
+        </>}
       </div>
     </Drawer>
   </div>;

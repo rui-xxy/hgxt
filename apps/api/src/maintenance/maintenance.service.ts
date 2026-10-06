@@ -33,6 +33,24 @@ export class MaintenanceService {
     return rows.map(asResponse);
   }
 
+  /**
+   * 匿名登记页的联想选项数据：仅含人员/部门/区域/型号/故障等分类字段，
+   * 不含日期、工作内容、备注等明细——公开可读但 limiting 信息暴露面。
+   */
+  async optionRows() {
+    return this.prisma.maintenanceRecord.findMany({
+      select: {
+        personnel: true,
+        department: true,
+        location: true,
+        equipmentModel: true,
+        faultType: true,
+        faultCause: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async create(body: MaintenanceRecordDto) {
     const repairHours = calculateMaintenanceHours(body.workTimeText) ?? body.repairHours ?? null;
     const row = await this.prisma.maintenanceRecord.create({
