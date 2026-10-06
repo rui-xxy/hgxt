@@ -67,15 +67,18 @@ describe('users 用户与权限（A2/A4/E1/E2/E3）', () => {
     expect(dup.status).toBe(409);
   });
 
-  it('E2：email 入库统一小写；E3：null=清空、缺省=不修改', async () => {
+  it('成员接口不接收或返回邮箱；手机号支持缺省和清空', async () => {
     const created = await createUser({
       username: 'hanmei',
       name: '韩梅梅',
       password: 'Pass@12345',
       role: Role.USER,
+      phone: '13800000001',
       email: 'HanMei@Example.COM',
     }).expect(201);
-    expect(created.body.email).toBe('hanmei@example.com');
+    expect(created.body).not.toHaveProperty('email');
+    const saved = await prisma.user.findUniqueOrThrow({ where: { id: created.body.id } });
+    expect(saved.email).toBeNull();
 
     // 缺省 = 不修改
     await http(app)
@@ -84,16 +87,17 @@ describe('users 用户与权限（A2/A4/E1/E2/E3）', () => {
       .send({ name: '韩梅梅2' })
       .expect(200);
     let detail = await http(app).get(`/api/users/${created.body.id}`).set('Authorization', `Bearer ${adminToken}`);
-    expect(detail.body.email).toBe('hanmei@example.com');
+    expect(detail.body.phone).toBe('13800000001');
+    expect(detail.body).not.toHaveProperty('email');
 
     // null = 清空
     await http(app)
       .patch(`/api/users/${created.body.id}`)
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ email: null })
+      .send({ phone: null })
       .expect(200);
     detail = await http(app).get(`/api/users/${created.body.id}`).set('Authorization', `Bearer ${adminToken}`);
-    expect(detail.body.email).toBeNull();
+    expect(detail.body.phone).toBeNull();
   });
 
   it('关键字搜索不区分大小写', async () => {

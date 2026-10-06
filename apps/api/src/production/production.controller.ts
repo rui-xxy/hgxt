@@ -15,8 +15,9 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Role, type DetailedWorkshopCode } from '@hgxt/shared';
+import { PagePermission, Role, type DetailedWorkshopCode } from '@hgxt/shared';
 import { Roles } from '../common/decorators/roles.decorator';
+import { PageAccess } from '../common/decorators/page-permission.decorator';
 import { OverviewService } from './overview.service';
 import { PlanService } from './plan.service';
 import { ProductionService } from './production.service';
@@ -107,7 +108,6 @@ class PlanSettingsSaveDto {
 /** 生产指标（读取时现算，不改写表单数据） */
 @ApiTags('production 生产指标')
 @ApiBearerAuth()
-@Roles(Role.SUPER_ADMIN)
 @Controller('production')
 export class ProductionController {
   constructor(
@@ -117,7 +117,7 @@ export class ProductionController {
   ) {}
 
   @Get('sulfuric')
-  @ApiOperation({ summary: '硫酸车间：按归属日的库存 / 差值产量 / 分表电耗（仅管理员）' })
+  @ApiOperation({ summary: '硫酸车间：按归属日的库存 / 差值产量 / 分表电耗' })
   sulfuric(@Query() query: SulfuricSummaryQuery) {
     return this.production.sulfuricSummary(query.days);
   }
@@ -177,18 +177,21 @@ export class ProductionController {
   }
 
   @Get('plan')
+  @PageAccess(PagePermission.PLAN)
   @ApiOperation({ summary: '计划与完成：计划 vs 实际看板（实际值现算，计划值来自设置页）' })
   planBoard(@Query() query: PlanYearQuery) {
     return this.plan.board(query.year ?? new Date().getFullYear());
   }
 
   @Get('plan/settings')
+  @Roles(Role.SUPER_ADMIN)
   @ApiOperation({ summary: '生产计划设置：分别录入年度/月度计划与各车间单耗上限' })
   planSettings(@Query() query: PlanYearQuery) {
     return this.plan.getSettings(query.year ?? new Date().getFullYear());
   }
 
   @Post('plan/settings')
+  @Roles(Role.SUPER_ADMIN)
   @ApiOperation({ summary: '保存年度计划、月度计划与单耗上限（单一事务，任一失败整体回滚）' })
   savePlanSettings(@Body() body: PlanSettingsSaveDto) {
     return this.plan.saveSettings(body as never);

@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import type { FenglianSummaryResult, FormField } from '@hgxt/shared';
-import { PALETTE, Seg, fmt } from './dash-ui';
+import { PALETTE, Seg, fmtRecorded } from './dash-ui';
 
 type Day = FenglianSummaryResult['days'][number];
 type Entry = { kind: 'day'; date: string; index: number } | { kind: 'summary'; month: string };
@@ -49,9 +49,9 @@ export function FenglianPanel({ days }: { days: Array<Day | undefined> }) {
       <div className="amino-panel-heading">{tab === 'production' ? '生产与耗用' : '水电气'}<span>{days.length > 1 ? '本期' : '当日'}</span></div>
       {rows.map((row) => <div className="amino-panel-row" key={row.field} style={accent(row.color)}>
         <span className="amino-panel-name"><i style={{ background: row.color }} />{row.name}</span>
-        <strong>{fmt(row.field.includes('cumulative')
+        <strong>{fmtRecorded(row.field.includes('cumulative')
           ? [...days].reverse().find((day) => number(day, row.field) !== null)?.values[row.field] ?? null
-          : sumOrNull(days.map((day) => number(day, row.field))), 3)} {row.unit && <small>{row.unit}</small>}</strong>
+          : sumOrNull(days.map((day) => number(day, row.field))))} {row.unit && <small>{row.unit}</small>}</strong>
       </div>)}
     </div>
   </div>;
@@ -66,8 +66,8 @@ export function FenglianStockCards({ day }: { day: Day | undefined }) {
   ];
   return <div className="fenglian-stock-grid">
     {items.map((item) => <div className="amino-stock" key={item.name} style={accent(item.color)}>
-      <span>{item.name}</span><strong>{fmt(number(day, item.stock), 3)} <small>{item.unit}</small></strong>
-      <div className="amino-stock-flows"><span>{item.incomingLabel} <b>{fmt(number(day, item.incoming), 3)} {item.unit}</b></span><span>{item.outgoingLabel} <b>{fmt(number(day, item.outgoing), 3)} {item.unit}</b></span></div>
+      <span>{item.name}</span><strong>{fmtRecorded(number(day, item.stock))} <small>{item.unit}</small></strong>
+      <div className="amino-stock-flows"><span>{item.incomingLabel} <b>{fmtRecorded(number(day, item.incoming))} {item.unit}</b></span><span>{item.outgoingLabel} <b>{fmtRecorded(number(day, item.outgoing))} {item.unit}</b></span></div>
     </div>)}
   </div>;
 }
@@ -117,7 +117,7 @@ export function FenglianTable({ data, entries, activeDate, onSelect, selection, 
             className={entry.kind === 'summary' ? 'sum' : `clickrow${entry.date === activeDate ? ' on' : ''}`}
             onClick={entry.kind === 'day' ? () => onSelect(entry.date) : undefined}>
             <td>{entry.kind === 'summary' ? '月汇总' : entry.date.slice(5)}</td>
-            {fields.map((field) => <td key={field.id} className="band-cell" style={accent(colorOf(field.section ?? ''))}>{fmt(fieldValue(entry, field), 3)}</td>)}
+            {fields.map((field) => <td key={field.id} className="band-cell" style={accent(colorOf(field.section ?? ''))}>{fmtRecorded(fieldValue(entry, field))}</td>)}
           </tr>)}
         </tbody>
       </table>

@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { Modal } from 'antd';
 import type { SulfuricDaySummary, SulfuricFlow } from '@hgxt/shared';
-import { fmt, PALETTE } from './dash-ui';
+import { fmtRecorded, PALETTE } from './dash-ui';
 
 const MATERIALS = [
   { material: '98酸', title: '98% 酸', color: PALETTE.brand },
@@ -9,7 +9,7 @@ const MATERIALS = [
   { material: '试剂酸', title: '试剂酸', color: PALETTE.reagent },
 ];
 const accent = (color: string): CSSProperties => ({ '--group-accent': color } as CSSProperties);
-const precise = (value: number): string => value.toLocaleString('zh-CN', { maximumFractionDigits: 6 });
+const precise = fmtRecorded;
 const entered = (value: number | null): string => value === null ? '未填' : precise(value);
 
 export function SulfuricCalculationModal({ day, onClose }: { day: SulfuricDaySummary | null; onClose: () => void }) {
@@ -54,7 +54,7 @@ export function SulfuricCalculationModal({ day, onClose }: { day: SulfuricDaySum
         <div className="pc-overview">
           <div><span>液位填报</span><strong>{calculation.previousReportDate} → {day.date}</strong></div>
           <div><span>生产归属</span><strong>{day.productionDate}</strong></div>
-          <div><span>折 98% 合计</span><strong>{fmt(production.total98Equivalent, 3)} t</strong></div>
+          <div><span>折 98% 合计</span><strong>{fmtRecorded(production.total98Equivalent)} t</strong></div>
         </div>
         {production.gapDays > 0 && (
           <p className="pc-note">两次液位填报相隔 {production.gapDays + 1} 天；下面的库存变化和流出量是这段期间的累计值，不能拆成单日值。</p>
@@ -122,18 +122,18 @@ export function SulfuricCalculationModal({ day, onClose }: { day: SulfuricDaySum
 
         <section className="pc-section">
           <h3>3. 库存变化 + 流出 = 各酸产量</h3>
-          <div className="pc-formula" style={accent(PALETTE.brand)}><b>98% 酸</b><span>{precise(acid98Delta)} + {precise(production.flow.acid98)} = {precise(acid98Raw)} t</span><strong>产量 {fmt(production.acid98, 3)} t</strong></div>
-          <div className="pc-formula" style={accent(PALETTE.acid93)}><b>93% 酸</b><span>无独立储罐，直接取外销 {precise(production.flow.acid93)} t</span><strong>产量 {fmt(production.acid93, 3)} t</strong></div>
-          <div className="pc-formula" style={accent(PALETTE.reagent)}><b>试剂酸</b><span>{precise(reagentDelta)} + {precise(production.flow.reagent)} = {precise(reagentRaw)} t</span><strong>产量 {fmt(production.reagent, 3)} t</strong></div>
-          <div className="pc-formula" style={accent(PALETTE.fuming)}><b>发烟硫酸</b><span>{precise(fumingDelta)} + {precise(production.flow.fuming)} + {precise(aminoTons)} + {precise(anthraquinoneTons)} = {precise(fumingRaw)} t</span><strong>产量 {fmt(production.fuming, 3)} t</strong></div>
+          <div className="pc-formula" style={accent(PALETTE.brand)}><b>98% 酸</b><span>{precise(acid98Delta)} + {precise(production.flow.acid98)} = {precise(acid98Raw)} t</span><strong>产量 {fmtRecorded(production.acid98)} t</strong></div>
+          <div className="pc-formula" style={accent(PALETTE.acid93)}><b>93% 酸</b><span>无独立储罐，直接取外销 {precise(production.flow.acid93)} t</span><strong>产量 {fmtRecorded(production.acid93)} t</strong></div>
+          <div className="pc-formula" style={accent(PALETTE.reagent)}><b>试剂酸</b><span>{precise(reagentDelta)} + {precise(production.flow.reagent)} = {precise(reagentRaw)} t</span><strong>产量 {fmtRecorded(production.reagent)} t</strong></div>
+          <div className="pc-formula" style={accent(PALETTE.fuming)}><b>发烟硫酸</b><span>{precise(fumingDelta)} + {precise(production.flow.fuming)} + {precise(aminoTons)} + {precise(anthraquinoneTons)} = {precise(fumingRaw)} t</span><strong>产量 {fmtRecorded(production.fuming)} t</strong></div>
         </section>
 
         <section className="pc-section pc-final">
           <h3>4. 只在总产量处折 98%</h3>
           <p>发烟硫酸折标：{precise(fumingRaw)} × 105 ÷ 98 = <strong>{precise(fumingEquivalent)} t</strong></p>
           <p>总产量：{precise(acid98Raw)} + {precise(production.flow.acid93)} + {precise(reagentRaw)} + {precise(fumingEquivalent)} = {precise(rawTotal)} t</p>
-          <div className="pc-result"><span>折 98% 合计</span><strong>{fmt(production.total98Equivalent, 3)} t</strong></div>
-          <p className="pc-note">中间值按原始精度参与计算，表格产量显示到 0.1 t，本面板的最终结果显示到 0.001 t。</p>
+          <div className="pc-result"><span>折 98% 合计</span><strong>{fmtRecorded(production.total98Equivalent)} t</strong></div>
+          <p className="pc-note">中间值按原始精度参与计算；页面数值最多显示三位小数。</p>
         </section>
       </div>
     </Modal>

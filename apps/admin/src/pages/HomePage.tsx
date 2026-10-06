@@ -1,19 +1,25 @@
 import { Link } from 'react-router';
-import { FlaskConical, Users, type LucideIcon } from 'lucide-react';
-import { Role } from '@hgxt/shared';
+import { PagePermission, Role, type PagePermission as PagePermissionType } from '@hgxt/shared';
 import { useMe } from '../api/hooks';
+import { FactoryIcon, FormsNavIcon, PackageIcon, SunIcon, SystemNavIcon, TargetIcon, WrenchIcon } from '../components/icons';
 
 interface AppEntry {
   name: string;
   desc: string;
   path: string;
-  icon: LucideIcon;
+  icon: typeof FormsNavIcon;
   adminOnly?: boolean;
+  permission?: PagePermissionType;
 }
 
 const APPS: AppEntry[] = [
-  { name: '生产', desc: '日报填写、报表数据', path: '/forms', icon: FlaskConical },
-  { name: '系统', desc: '成员与账号管理', path: '/users', icon: Users, adminOnly: true },
+  { name: '全部表单', desc: '表单与报表数据', path: '/forms', icon: FormsNavIcon, adminOnly: true },
+  { name: '车间版面', desc: '生产看板', path: '/board', icon: FactoryIcon },
+  { name: '能源中心', desc: '能源消耗', path: '/energy', icon: SunIcon },
+  { name: '物料与库存', desc: '库存数据', path: '/materials', icon: PackageIcon },
+  { name: '计划与完成', desc: '生产计划进度', path: '/plan', icon: TargetIcon, permission: PagePermission.PLAN },
+  { name: '设备', desc: '维修总览', path: '/maintenance', icon: WrenchIcon, permission: PagePermission.MAINTENANCE },
+  { name: '系统', desc: '成员与账号管理', path: '/users', icon: SystemNavIcon, adminOnly: true },
 ];
 
 function greeting(): string {
@@ -38,10 +44,10 @@ export function HomePage() {
       <div className="hgxt-page-sub">{today}</div>
       <h2 className="hgxt-section-title">应用</h2>
       <div className="hgxt-appgrid">
-        {APPS.filter((app) => !app.adminOnly || isAdmin).map((app) => (
+        {APPS.filter((app) => (!app.adminOnly || isAdmin) && (!app.permission || isAdmin || me.data?.pagePermissions.includes(app.permission))).map((app) => (
           <Link key={app.path} to={app.path} className="hgxt-appcard">
             <span className="hgxt-appicon">
-              <app.icon size={20} strokeWidth={1.6} />
+              <app.icon width={20} height={20} strokeWidth={1.6} />
             </span>
             <span>
               <div className="hgxt-appcard-name">{app.name}</div>

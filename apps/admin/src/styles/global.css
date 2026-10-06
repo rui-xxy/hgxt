@@ -147,6 +147,22 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* 所有日期选择器共用面板层级与边界，选中和范围色由 theme/tokens.ts 控制。 */
+.ant-picker-dropdown .ant-picker-panel-container {
+  border: 1px solid var(--hg-line);
+  border-radius: var(--hg-radius-pop);
+  box-shadow: var(--hg-pop);
+  overflow: hidden;
+}
+
+.ant-picker-dropdown .ant-picker-header {
+  border-bottom-color: var(--hg-line);
+}
+
+.ant-picker-dropdown .ant-picker-header button:hover {
+  color: var(--hg-brand);
+}
+
 .serif {
   font-family: var(--font-serif);
 }

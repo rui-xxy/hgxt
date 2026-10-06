@@ -29,7 +29,7 @@ const PLAN_WORKSHOPS: Array<{ workshop: string; basis: string; code: string }> =
   { workshop: '硫酸', basis: '折 98% 硫酸', code: 'sulfuric' },
   { workshop: '氨基磺酸', basis: '单日汇总', code: 'aminosulfonic' },
   { workshop: '硫酸镁', basis: '单日汇总', code: 'magnesium' },
-  { workshop: '水滑石', basis: '4 牌号合计', code: 'hydrotalcite' },
+  { workshop: '水滑石', basis: '5 牌号合计', code: 'hydrotalcite' },
   { workshop: '二乙基蒽醌', basis: '总产量', code: 'anthraquinone' },
   { workshop: '丰联', basis: '焦磷酸哌嗪', code: 'fenglian' },
 ];
@@ -186,7 +186,12 @@ export class PlanService {
     // 序列聚合（sumByMonth/周区间）仍用全量日期对齐 values 下标，按月键过滤年度。
     const allDates = overview.dates;
     const dates = allDates.filter((d) => d.startsWith(String(year)));
-    const asOf = dates[dates.length - 1] ?? null;
+    // 库存快照归填报当天，可能比最后一条产量晚一天；计划进度以最近有产量的日期为准。
+    const productionDates = dates.filter((date) => {
+      const index = allDates.indexOf(date);
+      return overview.workshops.some((workshop) => workshop.values[index] !== null);
+    });
+    const asOf = productionDates.at(-1) ?? dates.at(-1) ?? null;
     const yearClosed = year < new Date().getFullYear();
     const dayOfYear = yearClosed
       ? daysInYear(year)
@@ -226,7 +231,7 @@ export class PlanService {
     const productSales: Record<string, string[]> = {
       aminosulfonic: [fieldByTitle('氨基磺酸销量')].filter((x): x is string => !!x),
       magnesium: [fieldByTitle('硫酸镁销量')].filter((x): x is string => !!x),
-      hydrotalcite: ['HG-200销量', 'HG-201销量', 'HG-300销量', 'HG-205销量']
+      hydrotalcite: ['HG-200销量', 'HG-200A销量', 'HG-201销量', 'HG-300销量', 'HG-205销量']
         .map(fieldByTitle)
         .filter((x): x is string => !!x),
     };
@@ -357,20 +362,25 @@ export class PlanService {
     });
 
     // ── 产销视图 ──
-    // 库存必须与看板 asOf 同一天；历史年度绝不混用“当前最新库存”。
+    // 产量 asOf 是生产日，产成品库存是填报日快照；取看板月份内最新库存，不混入其他年度。
     const inventoryOf = new Map<string, number>();
     if (asOf) {
-      const finishedAt = finishedForm.get(asOf);
+      const stockDates = [...finishedForm.keys()].filter((date) => monthKey(date) === currentMonth).sort().reverse();
       const stockByTitle = (title: string): number | null => {
         const field = fieldByTitle(title);
-        return field && finishedAt ? PlanService.toNum(finishedAt[field]) : null;
+        if (!field) return null;
+        for (const date of stockDates) {
+          const value = PlanService.toNum(finishedForm.get(date)?.[field]);
+          if (value !== null) return value;
+        }
+        return null;
       };
       const setIfNumber = (code: string, value: number | null): void => {
         if (value !== null) inventoryOf.set(code, value);
       };
       setIfNumber('aminosulfonic', stockByTitle('氨基磺酸库存'));
       setIfNumber('magnesium', stockByTitle('硫酸镁库存'));
-      const hydrotalciteStocks = ['HG-200库存', 'HG-201库存', 'HG-300库存', 'HG-205库存']
+      const hydrotalciteStocks = ['HG-200库存', 'HG-200A库存', 'HG-201库存', 'HG-300库存', 'HG-205库存']
         .map(stockByTitle)
         .filter((v): v is number => v !== null);
       if (hydrotalciteStocks.length) inventoryOf.set('hydrotalcite', +hydrotalciteStocks.reduce((s, v) => s + v, 0).toFixed(3));
@@ -385,10 +395,8 @@ export class PlanService {
       // 硫酸库存来自汇总服务的最新罐区快照；只有它与当前看板 asOf 完全一致时才展示。
       if (year === new Date().getFullYear()) {
         const materials = await this.overview.materials();
-        if (materials.date === asOf) {
-          const sulfuric = materials.finishedProducts.find((p) => p.name.startsWith('硫酸'));
-          if (sulfuric?.stock !== null && sulfuric?.stock !== undefined) inventoryOf.set('sulfuric', sulfuric.stock);
-        }
+        const sulfuric = materials.finishedProducts.find((p) => p.name === '硫酸（四酸合计·折98）');
+        if (sulfuric?.stockDate === asOf && sulfuric.stock !== null) inventoryOf.set('sulfuric', sulfuric.stock);
       }
     }
     const elapsedDaysInMonth = asOf ? Number(asOf.slice(8, 10)) : 0;
@@ -516,20 +524,23 @@ export class PlanService {
       source: Map<string, FormData>,
       fieldId: string,
       factor = 1,
+      fallback?: { source: Map<string, FormData>; fieldId: string },
     ): void => {
       const map = new Map<string, number>();
-      for (const [date, data] of source) {
-        const v = PlanService.toNum(data[fieldId]);
+      const dates = new Set([...source.keys(), ...(fallback?.source.keys() ?? [])]);
+      for (const date of dates) {
+        const v = PlanService.toNum(source.get(date)?.[fieldId])
+          ?? PlanService.toNum(fallback?.source.get(date)?.[fallback.fieldId]);
         if (v !== null) map.set(monthKey(date), (map.get(monthKey(date)) ?? 0) + v * factor);
       }
       materialConsumption.push(consumptionOf(workshop, materialName, 't', unit, map));
     };
-    formFieldUsage('氨基磺酸', '尿素', 't/t', aminoForm, 'field_urea');
+    formFieldUsage('氨基磺酸', '尿素', 't/t', warehouse, 'field_017', 1, { source: aminoForm, fieldId: 'field_urea' });
     formFieldUsage('氨基磺酸', '发烟硫酸', 't/t', aminoForm, 'field_nitric_acid', 1.92);
-    formFieldUsage('硫酸镁', '氧化镁', 't/t', magnesiumForm, 'field_mgo_consumption');
+    formFieldUsage('硫酸镁', '氧化镁', 't/t', warehouse, 'field_020', 1, { source: magnesiumForm, fieldId: 'field_mgo_consumption' });
     formFieldUsage('硫酸镁', '93%酸+稀酸', 't/t', magnesiumForm, 'field_sulfuric_93', 1.84);
-    formFieldUsage('水滑石', '氢氧化铝', 't/t', hydrotalciteForm, 'field_aluminum_hydroxide');
-    formFieldUsage('水滑石', '纯碱', 't/t', hydrotalciteForm, 'field_soda_ash');
+    formFieldUsage('水滑石', '氢氧化铝', 't/t', warehouse, 'field_029', 1, { source: hydrotalciteForm, fieldId: 'field_aluminum_hydroxide' });
+    formFieldUsage('水滑石', '纯碱', 't/t', warehouse, 'field_023', 1, { source: hydrotalciteForm, fieldId: 'field_soda_ash' });
     formFieldUsage('二乙基蒽醌', '苯酐', 't/t', anthraquinoneForm, 'field_phthalic_anhydride_consumption');
     formFieldUsage('二乙基蒽醌', '无水三氯化铝', 't/t', anthraquinoneForm, 'field_alcl3_consumption');
     formFieldUsage('二乙基蒽醌', '甲苯', 't/t', anthraquinoneForm, 'field_toluene_consumption');

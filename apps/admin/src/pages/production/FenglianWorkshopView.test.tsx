@@ -61,7 +61,7 @@ describe('丰联车间看板', () => {
     expect(screen.getByText('电表累计读数')).toBeTruthy();
     expect(screen.queryByText('PP8285E购入 t')).toBeNull();
     expect(screen.queryByText('DMPY购入 t')).toBeNull();
-    expect(screen.getByText('1,561.350')).toBeTruthy();
+    expect(screen.getByText('1,561.35')).toBeTruthy();
     fireEvent.click(screen.getByText('09-01'));
     expect(onSelect).toHaveBeenCalledWith('2026-09-01');
   });

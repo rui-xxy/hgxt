@@ -64,9 +64,9 @@ export function UsersPage() {
     mutationFn: ({ id, values }: { id: string; values: UserFormValues }) =>
       updateUserApi(id, {
         name: values.name,
-        email: values.email || null,
         phone: values.phone || null,
         role: values.role,
+        pagePermissions: values.pagePermissions ?? [],
       }),
     onSuccess: async (user) => {
       message.success('用户信息已更新');
@@ -117,9 +117,9 @@ export function UsersPage() {
         username: values.username,
         name: values.name,
         password: values.password ?? '',
-        email: values.email || undefined,
         phone: values.phone || undefined,
         role: values.role,
+        pagePermissions: values.pagePermissions ?? [],
       });
     }
   };
@@ -131,7 +131,7 @@ export function UsersPage() {
       width: 150,
       render: (username: string) => <span className="mono">{username}</span>,
     },
-    { title: '姓名', dataIndex: 'name', width: 120 },
+    { title: '姓名', dataIndex: 'name', ellipsis: true },
     {
       title: '角色',
       dataIndex: 'role',
@@ -153,13 +153,6 @@ export function UsersPage() {
         ) : (
           <Badge status="default" text="已禁用" />
         ),
-    },
-    {
-      // 关键业务列伸缩填充宽度，超长省略（避免右侧大片空白）
-      title: '邮箱',
-      dataIndex: 'email',
-      ellipsis: true,
-      render: (email: string | null) => email ?? <span className="hgxt-muted">—</span>,
     },
     {
       title: '手机号',
@@ -273,7 +266,7 @@ export function UsersPage() {
         <div className="hgxt-toolbar">
           <Input.Search
             allowClear
-            placeholder="搜索：用户名 / 姓名 / 手机 / 邮箱"
+            placeholder="搜索：用户名 / 姓名 / 手机"
             className="hgxt-toolbar-search"
             value={keywordInput}
             onChange={(event) => setKeywordInput(event.target.value)}

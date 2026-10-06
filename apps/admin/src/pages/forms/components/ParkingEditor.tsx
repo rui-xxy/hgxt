@@ -1,4 +1,5 @@
-import { Button, Input, Modal } from 'antd';
+import { Button, DatePicker, Input, Modal } from 'antd';
+import dayjs from 'dayjs';
 import { useState } from 'react';
 import { PlusIcon, TrashIcon } from '../../../components/icons';
 import { emptyParking, type ParkingRecord } from './parking';
@@ -18,9 +19,9 @@ export function ParkingEditor({ initial, date, onSave, onClose }: Props) {
       {records.map((record, index) => <div className="forms-parking-card" key={index}>
         <div className="forms-parking-card-head"><strong>记录 {index + 1}</strong><Button type="text" danger size="small" icon={<TrashIcon />} aria-label={`删除记录 ${index + 1}`} onClick={() => setRecords((current) => current.filter((_, i) => i !== index))} /></div>
         <div className="forms-parking-grid">
-          <label>开始日期<Input type="date" value={record.startDate} onChange={(e) => patch(index, { startDate: e.target.value })} /></label>
+          <label>开始日期<DatePicker aria-label="开始日期" value={record.startDate ? dayjs(record.startDate) : null} format="YYYY-MM-DD" onChange={(value) => patch(index, { startDate: value?.format('YYYY-MM-DD') ?? '' })} /></label>
           <label>开始时间<Input type="time" value={record.startTime} onChange={(e) => patch(index, { startTime: e.target.value })} /></label>
-          <label>结束日期<Input type="date" value={record.endDate} onChange={(e) => patch(index, { endDate: e.target.value })} /></label>
+          <label>结束日期<DatePicker aria-label="结束日期" value={record.endDate ? dayjs(record.endDate) : null} format="YYYY-MM-DD" onChange={(value) => patch(index, { endDate: value?.format('YYYY-MM-DD') ?? '' })} /></label>
           <label>结束时间<Input type="time" value={record.endTime} onChange={(e) => patch(index, { endTime: e.target.value })} /></label>
         </div>
         <label>原因<Input value={record.reason} placeholder="请输入停车原因" onChange={(e) => patch(index, { reason: e.target.value })} /></label>

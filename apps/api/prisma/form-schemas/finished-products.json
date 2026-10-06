@@ -80,6 +80,30 @@
     "precision": 3
   },
   {
+    "id": "field_hg200a_production",
+    "title": "HG-200A产量",
+    "type": "number",
+    "group": "水滑石产品",
+    "step": 0.001,
+    "precision": 3
+  },
+  {
+    "id": "field_hg200a_sales",
+    "title": "HG-200A销量",
+    "type": "number",
+    "group": "水滑石产品",
+    "step": 0.001,
+    "precision": 3
+  },
+  {
+    "id": "field_hg200a_stock",
+    "title": "HG-200A库存",
+    "type": "number",
+    "group": "水滑石产品",
+    "step": 0.001,
+    "precision": 3
+  },
+  {
     "id": "field_010",
     "title": "HG-201产量",
     "type": "number",

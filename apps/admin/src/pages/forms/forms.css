@@ -69,6 +69,7 @@
 .forms-parking-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .forms-parking-card label { display: grid; gap: 4px; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); }
 .forms-parking-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 8px; }
+.forms-parking-grid .ant-picker { width: 100%; min-width: 0; }
 
 .forms-fill-shell,
 .forms-fill-success { min-height: 100vh; display: flex; justify-content: center; background: var(--ant-color-bg-layout); }
@@ -96,22 +97,23 @@
 .forms-fill-last small { color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-xs); }
 .forms-fill-last strong { max-width: 100%; overflow: hidden; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-caption); text-overflow: ellipsis; white-space: nowrap; }
 .forms-fill-entry { flex: none; display: flex; align-items: center; gap: 4px; }
-.forms-fill-entry input,
+.forms-fill-entry > input,
 .forms-fill-entry select { box-sizing: border-box; height: 32px; padding: 0 8px; border: 1px solid var(--ant-color-border); border-radius: var(--ant-border-radius); background: var(--ant-color-bg-container); color: var(--ant-color-text); font-size: var(--ui-font-size-base); font-weight: 400; outline: none; font-variant-numeric: tabular-nums; }
-.forms-fill-entry-number input { font-family: var(--font-mono); width: 96px; text-align: right; font-weight: 500; }
-.forms-fill-entry-text input { width: 160px; text-align: left; }
-.forms-fill-entry-date input { width: 140px; text-align: left; }
+.forms-fill-entry-number > input { font-family: var(--font-mono); width: 96px; text-align: right; font-weight: 500; }
+.forms-fill-entry-text > input { width: 160px; text-align: left; }
+.forms-fill-entry-date .ant-picker { width: 11rem; max-width: 100%; }
+.forms-fill-entry-date .ant-picker-input > input { font-size: var(--hg-font-size-sm); font-variant-numeric: tabular-nums; }
 .forms-fill-entry-select select { width: 140px; text-align: left; }
-.forms-fill-entry input::placeholder { color: var(--ant-color-text-tertiary); }
+.forms-fill-entry > input::placeholder { color: var(--ant-color-text-tertiary); }
 .forms-fill-entry-notes{min-width:0;flex:1}
 .forms-fill-entry-notes textarea{box-sizing:border-box;width:100%;min-height:112px;padding:8px;border:1px solid var(--hg-line2);border-radius:var(--hg-radius-control);background:var(--hg-surface);color:var(--hg-ink);font:inherit;resize:vertical}
 .forms-fill-entry-notes textarea:focus{outline:2px solid var(--hg-brand);outline-offset:-2px}
-.forms-fill-entry input:hover,
+.forms-fill-entry > input:hover,
 .forms-fill-entry select:hover { border-color: var(--ink3); }
-.forms-fill-entry input:focus,
+.forms-fill-entry > input:focus,
 .forms-fill-entry select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
 .forms-fill-tabs button:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
-.forms-fill-entry span { min-width: 20px; color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); font-weight: 600; }
+.forms-fill-entry > span { min-width: 20px; color: var(--ant-color-text-tertiary); font-size: var(--ui-font-size-sm); font-weight: 600; }
 .forms-fill-parking { padding: 16px 20px; display: grid; gap: 10px; }
 .forms-fill-parking > strong { font-size: var(--ui-font-size-sm); }
 .forms-fill-parking > p { margin: 0; color: var(--ant-color-text-secondary); font-size: var(--ui-font-size-sm); }
@@ -126,8 +128,8 @@
   .forms-fill-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; padding-left: 16px; padding-right: 16px; gap: 6px 12px; }
   .forms-fill-last { width: auto; max-width: 92px; }
   .forms-fill-entry { grid-column: 1 / -1; width: 100%; }
-  .forms-fill-entry-text input,
-  .forms-fill-entry-date input,
+  .forms-fill-entry-text > input,
+  .forms-fill-entry-date .ant-picker,
   .forms-fill-entry-select select { width: 100%; }
   .forms-fill-entry-number input { width: 120px; }
 }

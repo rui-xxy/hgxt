@@ -2,8 +2,9 @@ import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
-import { Role } from '@hgxt/shared';
+import { PagePermission, Role } from '@hgxt/shared';
 import { Roles } from '../common/decorators/roles.decorator';
+import { PageAccess } from '../common/decorators/page-permission.decorator';
 import { MaintenanceRecordDto } from './maintenance.dto';
 import { MaintenanceService } from './maintenance.service';
 
@@ -19,6 +20,7 @@ class RecordsQuery {
 @ApiTags('maintenance 设备维修')
 @ApiBearerAuth()
 @Controller('maintenance')
+@PageAccess(PagePermission.MAINTENANCE)
 export class MaintenanceController {
   constructor(private readonly maintenance: MaintenanceService) {}
 

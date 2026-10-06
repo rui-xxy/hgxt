@@ -1,14 +1,19 @@
 import { useEffect } from 'react';
-import { Form, Input, Modal, Select } from 'antd';
-import { Role, type UserDTO } from '@hgxt/shared';
+import { Checkbox, Flex, Form, Input, Modal, Select } from 'antd';
+import { PagePermission, Role, type PagePermission as PagePermissionType, type UserDTO } from '@hgxt/shared';
+
+const PAGE_OPTIONS: { label: string; value: PagePermissionType }[] = [
+  { label: '计划与完成', value: PagePermission.PLAN },
+  { label: '设备与维修', value: PagePermission.MAINTENANCE },
+];
 
 export interface UserFormValues {
   username: string;
   name: string;
   password?: string;
-  email?: string;
   phone?: string;
   role: Role;
+  pagePermissions: PagePermissionType[];
 }
 
 interface UserFormModalProps {
@@ -25,6 +30,7 @@ interface UserFormModalProps {
 export function UserFormModal({ open, initial, submitting, onCancel, onSubmit }: UserFormModalProps) {
   const [form] = Form.useForm<UserFormValues>();
   const editing = Boolean(initial);
+  const role = Form.useWatch('role', form);
 
   useEffect(() => {
     if (open) {
@@ -33,9 +39,9 @@ export function UserFormModal({ open, initial, submitting, onCancel, onSubmit }:
         form.setFieldsValue({
           username: initial.username,
           name: initial.name,
-          email: initial.email ?? '',
           phone: initial.phone ?? '',
           role: initial.role,
+          pagePermissions: initial.pagePermissions,
         });
       }
     }
@@ -62,7 +68,7 @@ export function UserFormModal({ open, initial, submitting, onCancel, onSubmit }:
       confirmLoading={submitting}
       destroyOnHidden
     >
-      <Form form={form} layout="vertical" requiredMark={false} initialValues={{ role: Role.USER }}>
+      <Form form={form} layout="vertical" requiredMark={false} initialValues={{ role: Role.USER, pagePermissions: [] }}>
         <Form.Item
           name="username"
           label="用户名"
@@ -97,9 +103,6 @@ export function UserFormModal({ open, initial, submitting, onCancel, onSubmit }:
             <Input.Password placeholder="至少 8 位" />
           </Form.Item>
         )}
-        <Form.Item name="email" label="邮箱" rules={[{ type: 'email', message: '邮箱格式不正确' }]}>
-          <Input placeholder="选填" />
-        </Form.Item>
         <Form.Item name="phone" label="手机号" rules={[{ max: 32 }]}>
           <Input placeholder="选填" />
         </Form.Item>
@@ -111,6 +114,18 @@ export function UserFormModal({ open, initial, submitting, onCancel, onSubmit }:
             ]}
           />
         </Form.Item>
+        {role !== Role.SUPER_ADMIN && <Form.Item
+          name="pagePermissions"
+          label="可访问页面"
+          extra="车间版面、能源中心和物料与库存对所有登录用户开放；全部表单、生产计划设置和成员管理仅管理员可访问。"
+        >
+          <Checkbox.Group>
+            <Flex vertical gap="small">
+              {PAGE_OPTIONS.map((option) => <Checkbox key={option.value} value={option.value}>{option.label}</Checkbox>)}
+            </Flex>
+          </Checkbox.Group>
+        </Form.Item>}
+        {role === Role.SUPER_ADMIN && <div className="hgxt-muted">管理员可以访问全部页面。</div>}
       </Form>
     </Modal>
   );

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Avatar, Dropdown } from 'antd';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Role } from '@hgxt/shared';
+import { PagePermission, Role, type PagePermission as PagePermissionType } from '@hgxt/shared';
 import { logoutApi } from '../api/auth';
 import { listForms } from '../api/forms';
 import { useMe } from '../api/hooks';
@@ -23,11 +23,14 @@ import {
   WrenchIcon,
 } from '../components/icons';
 import { useThemeMode } from '../theme/ThemeProvider';
+import { landingPath } from '../auth/landing';
 
 interface ModuleItem {
   label: string;
   path: string;
   icon: typeof DashboardIcon;
+  permission?: PagePermissionType;
+  adminOnly?: boolean;
 }
 
 interface ModuleSection {
@@ -43,10 +46,11 @@ interface ModuleDef {
   title: string;
   /** 模块入口 */
   path: string;
-  /** 路径命中该前缀（或精确命中 '/'）即视为当前模块 */
+  /** 路径命中该前缀即视为当前模块 */
   match: (pathname: string) => boolean;
   sections: ModuleSection[];
   adminOnly?: boolean;
+  permission?: PagePermissionType;
 }
 
 /** 模块可插拔：新增业务系统只需在此加一份配置（design/00 · 布局架构） */
@@ -56,21 +60,21 @@ const MODULES: ModuleDef[] = [
     label: '首页',
     icon: DashboardIcon,
     title: '首页',
-    path: '/',
+    path: '/board',
     match: (p) =>
-      p === '/' || p.startsWith('/board') || p.startsWith('/energy') || p.startsWith('/materials') || p.startsWith('/plan'),
+      p === '/' || p === '/workspace' || p.startsWith('/board') || p.startsWith('/energy') || p.startsWith('/materials') || p.startsWith('/plan'),
     sections: [
-      { items: [{ label: '工作台', path: '/', icon: DashboardIcon }] },
+      { items: [{ label: '工作台', path: '/workspace', icon: DashboardIcon, adminOnly: true }] },
       {
         label: '生产看板',
         items: [
           { label: '车间版面', path: '/board', icon: FactoryIcon },
-          { label: '计划与完成', path: '/plan', icon: TargetIcon },
+          { label: '计划与完成', path: '/plan', icon: TargetIcon, permission: PagePermission.PLAN },
         ],
       },
       { label: '能源消耗', items: [{ label: '能源中心', path: '/energy', icon: SunIcon }] },
       { label: '库存', items: [{ label: '物料与库存', path: '/materials', icon: PackageIcon }] },
-      { label: '计划管理', items: [{ label: '生产计划设置', path: '/plan/settings', icon: SlidersIcon }] },
+      { label: '计划管理', items: [{ label: '生产计划设置', path: '/plan/settings', icon: SlidersIcon, adminOnly: true }] },
     ],
   },
   {
@@ -79,7 +83,8 @@ const MODULES: ModuleDef[] = [
     icon: FormsNavIcon,
     title: '表单',
     path: '/forms',
-    match: (p) => p.startsWith('/forms') || p.startsWith('/form-fill') || p.startsWith('/maintenance/new') || p.startsWith('/maintenance/records'),
+    adminOnly: true,
+    match: (p) => p.startsWith('/forms') || p.startsWith('/form-fill'),
     sections: [{ items: [{ label: '全部表单', path: '/forms', icon: FormsNavIcon }] }],
   },
   {
@@ -88,6 +93,7 @@ const MODULES: ModuleDef[] = [
     icon: WrenchIcon,
     title: '设备',
     path: '/maintenance',
+    permission: PagePermission.MAINTENANCE,
     match: (p) => p === '/maintenance' || p.startsWith('/maintenance/'),
     sections: [{
       items: [
@@ -109,7 +115,7 @@ const MODULES: ModuleDef[] = [
 
 /** 顶部路径栏的页面名 */
 function pageName(pathname: string): string {
-  if (pathname === '/') return '工作台';
+  if (pathname === '/workspace') return '工作台';
   if (pathname === '/forms') return '全部表单';
   if (pathname.startsWith('/forms/')) return '数据';
   if (pathname === '/maintenance') return '维修总览';
@@ -138,7 +144,7 @@ export function AdminLayout() {
   const formNavigation = useQuery({
     queryKey: ['forms', 'navigation'],
     queryFn: () => listForms({ page: 1, pageSize: 100, keyword: '' }),
-    enabled: !!me.data,
+    enabled: isAdmin,
   });
   const [hoverKey, setHoverKey] = useState<string | null>(null);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -155,11 +161,19 @@ export function AdminLayout() {
     closeTimer.current = window.setTimeout(() => setHoverKey(null), 140);
   };
 
-  const modules = MODULES.filter((m) => !m.adminOnly || isAdmin);
+  const canSee = (permission?: PagePermissionType) => !permission || isAdmin || !!me.data?.pagePermissions.includes(permission);
+  const modules = MODULES.filter((m) => (!m.adminOnly || isAdmin) && canSee(m.permission)).map((module) => ({
+    ...module,
+    path: module.key === 'home' ? landingPath() : module.path,
+    sections: module.sections.map((section) => ({
+      ...section,
+      items: section.items.filter((item) => (!item.adminOnly || isAdmin) && canSee(item.permission)),
+    })).filter((section) => section.items.length > 0),
+  })).filter((module) => module.sections.length > 0);
   const current = MODULES.find((m) => m.match(location.pathname)) ?? MODULES[0];
   const flyout = modules.find((m) => m.key === hoverKey) ?? null;
   const itemActive = (path: string) =>
-    path === '/' || path === '/forms' || path === '/plan' || path === '/maintenance'
+    path === '/workspace' || path === '/forms' || path === '/plan' || path === '/maintenance'
       ? location.pathname === path
       : location.pathname.startsWith(path);
 

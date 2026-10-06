@@ -160,8 +160,8 @@ describe('forms 权限模型（USER 只能填报，数据管理仅管理员）',
   });
   afterAll(async () => { await app.close(); });
 
-  it('USER 可以：表单列表 / 表单定义 / 上次值 / 填报提交', async () => {
-    await http(app).get('/api/forms').set('Authorization', `Bearer ${userToken}`).expect(200);
+  it('USER 不能看全部表单，但可通过已有链接填写表单', async () => {
+    await http(app).get('/api/forms').set('Authorization', `Bearer ${userToken}`).expect(403);
     await http(app).get(`/api/forms/${formId}`).set('Authorization', `Bearer ${userToken}`).expect(200);
     const latest = await http(app).get(`/api/forms/${formId}/submissions/latest`).set('Authorization', `Bearer ${userToken}`).expect(200);
     expect(latest.body.tank).toEqual({ value: 50, date: '2026-09-26' });

@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Input, Popover } from 'antd';
+import { DatePicker, Input, Popover } from 'antd';
+import dayjs from 'dayjs';
 import { Filter } from 'lucide-react';
 import type { PlanTask } from '@hgxt/shared';
 import { PageNavigator } from '../../components/PageNavigator';
@@ -114,8 +115,8 @@ export function PlanTasksTable({ tasks }: { tasks: PlanTask[] }) {
           {textHeader('owner', '负责人')}
           {header('dueDate', '计划完成', Boolean(filters.dueFrom || filters.dueTo), () => update({ dueFrom: '', dueTo: '' }),
             <div className="plan-task-date-filter">
-              <label>起始日期<Input type="date" value={filters.dueFrom} onChange={(event) => update({ dueFrom: event.target.value })} /></label>
-              <label>结束日期<Input type="date" value={filters.dueTo} onChange={(event) => update({ dueTo: event.target.value })} /></label>
+              <label>起始日期<DatePicker aria-label="起始日期" value={filters.dueFrom ? dayjs(filters.dueFrom) : null} format="YYYY-MM-DD" getPopupContainer={(trigger) => trigger.closest<HTMLElement>('.plan-task-filter-panel') ?? document.body} onChange={(date) => update({ dueFrom: date?.format('YYYY-MM-DD') ?? '' })} /></label>
+              <label>结束日期<DatePicker aria-label="结束日期" value={filters.dueTo ? dayjs(filters.dueTo) : null} format="YYYY-MM-DD" getPopupContainer={(trigger) => trigger.closest<HTMLElement>('.plan-task-filter-panel') ?? document.body} onChange={(date) => update({ dueTo: date?.format('YYYY-MM-DD') ?? '' })} /></label>
             </div>)}
           {header('progress', '进度', Boolean(filters.progress), () => update({ progress: '' }),
             <ChoiceList value={filters.progress} choices={progressOptions} onChange={(value) => { update({ progress: value }); setOpenFilter(null); }} />)}

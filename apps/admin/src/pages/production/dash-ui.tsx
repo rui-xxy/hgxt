@@ -19,6 +19,10 @@ export const PALETTE = {
 export const fmt = (v: number | null | undefined, digits = 0): string =>
   v === null || v === undefined ? '—' : v.toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits });
 
+/** 车间原始值和汇总值最多显示三位小数，不补零，并清除求和后的浮点尾数。 */
+export const fmtRecorded = (v: number | null | undefined): string =>
+  v === null || v === undefined ? '—' : v.toLocaleString(undefined, { maximumFractionDigits: 3 });
+
 /** 与上一期的变化百分比 */
 export function pctChange(current: number | null | undefined, prev: number | null | undefined): number | null {
   if (current === null || current === undefined || prev === null || prev === undefined || prev === 0) return null;
@@ -184,6 +188,10 @@ export function MonthBars({
   onSelect,
   height = 400,
   valueDigits = 0,
+  sourcePrecision = false,
+  showAverage = true,
+  axisLabelOf = (label: string) => label.slice(5),
+  tooltipTitleOf = (label: string) => label,
 }: {
   data: BarDatum[];
   unit: string;
@@ -192,6 +200,10 @@ export function MonthBars({
   onSelect: (label: string) => void;
   height?: number;
   valueDigits?: number;
+  sourcePrecision?: boolean;
+  showAverage?: boolean;
+  axisLabelOf?: (label: string) => string;
+  tooltipTitleOf?: (label: string) => string;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(720);
@@ -219,9 +231,11 @@ export function MonthBars({
   const slot = plotW / n;
   const barW = Math.max(4, Math.min(28, slot * 0.72));
   const avg = values.length ? values.reduce((s, v) => s + v, 0) / values.length : 0;
+  const displayValue = (value: number) => sourcePrecision ? fmtRecorded(value) : fmt(value, valueDigits);
+  const occupied = data.flatMap((item, index) => item.value === null ? [] : [index]);
   const gridLines = Array.from({ length: 5 }, (_, i) => {
     const v = (max / 4) * i;
-    return { v, y: yOf(v), label: valueDigits ? fmt(v, valueDigits) : Math.round(v).toLocaleString() };
+    return { v, y: yOf(v), label: sourcePrecision ? fmtRecorded(v) : valueDigits ? fmt(v, valueDigits) : Math.round(v).toLocaleString() };
   });
   const active = hover;
   const activeItem = data.find((d) => d.label === active);
@@ -241,6 +255,9 @@ export function MonthBars({
         {data.map((d, i) => {
           const x = padL + i * slot + (slot - barW) / 2;
           const isSel = d.label === selected;
+          const label = d.value === null ? '' : displayValue(d.value);
+          const nearestLabelGap = Math.min(...occupied.filter((index) => index !== i).map((index) => Math.abs(index - i) * slot), Infinity);
+          const showLabel = isSel || d.label === hover || (!sourcePrecision ? slot >= 15 : nearestLabelGap >= label.length * 6 + 6);
           return (
             <div key={d.label}>
               {d.value !== null ? (
@@ -255,9 +272,9 @@ export function MonthBars({
                       background: isSel || d.label === hover ? 'var(--brand)' : 'color-mix(in srgb, var(--brand) 32%, var(--bg))',
                     }}
                   />
-                  {slot >= 15 || isSel ? (
+                  {showLabel ? (
                     <div className="bv" style={{ left: x + barW / 2, top: yOf(d.value) - 16, color: isSel ? 'var(--ink)' : 'var(--ink2)', fontWeight: isSel ? 600 : 400 }}>
-                      {fmt(d.value, valueDigits)}
+                      {label}
                     </div>
                   ) : null}
                 </>
@@ -265,10 +282,10 @@ export function MonthBars({
             </div>
           );
         })}
-        {avg > 0 ? <div className="avg" style={{ top: yOf(avg) }} /> : null}
+        {showAverage && avg > 0 ? <div className="avg" style={{ top: yOf(avg) }} /> : null}
         {data.map((d, i) => (
           <div key={`x${d.label}`}>
-            {i % everyX === 0 ? <div className="xl" style={{ left: padL + i * slot + slot / 2, top: padT + plotH + 8 }}>{d.label.slice(5)}</div> : null}
+            {i % everyX === 0 ? <div className="xl" style={{ left: padL + i * slot + slot / 2, top: padT + plotH + 8 }}>{axisLabelOf(d.label)}</div> : null}
             <div
               className="hit"
               style={{ left: padL + i * slot, top: 0, width: slot, height: padT + plotH }}
@@ -280,7 +297,7 @@ export function MonthBars({
         ))}
         {active && activeItem && activeItem.value !== null ? (
           <div className="tip" style={{ left: Math.min(Math.max(tipX - 85, 4), Math.max(4, width - 220)) }}>
-            <div style={{ fontWeight: 600, marginBottom: 2 }}>{active}</div>
+            <div style={{ fontWeight: 600, marginBottom: 2 }}>{tooltipTitleOf(active)}</div>
             {tipRows ? (
               tipRows.map((row) => (
                 <div className="tr" key={row.name}>
@@ -290,7 +307,7 @@ export function MonthBars({
                 </div>
               ))
             ) : (
-              <div className="tr"><span className="muted">{unit}</span><b>{fmt(activeItem.value, valueDigits || 1)}</b></div>
+              <div className="tr"><span className="muted">{unit}</span><b>{sourcePrecision ? fmtRecorded(activeItem.value) : fmt(activeItem.value, valueDigits || 1)}</b></div>
             )}
           </div>
         ) : null}

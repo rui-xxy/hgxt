@@ -4,8 +4,18 @@ import { setAuthFailureHandler, setExternalLogoutHandler } from './api/client';
 import { queryClient } from './api/queryClient';
 import { RequireAuth } from './components/RequireAuth';
 import { RequireSuperAdmin } from './components/RequireSuperAdmin';
+import { RequirePageAccess } from './components/RequirePageAccess';
+import { PagePermission } from '@hgxt/shared';
 import { PageLoading } from './components/PageLoading';
 import { AdminLayout } from './layouts/AdminLayout';
+import { useMe } from './api/hooks';
+import { landingPath } from './auth/landing';
+
+function LandingRedirect() {
+  const me = useMe();
+  if (!me.data) return <PageLoading />;
+  return <Navigate to={landingPath()} replace />;
+}
 
 // F3：路由级拆包——业务页面按需加载，不进首屏主包
 const LoginPage = lazy(() =>
@@ -70,41 +80,21 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route path="form-fill/:id" element={<FormFillPage />} />
           <Route element={<AdminLayout />}>
-            <Route index element={<HomePage />} />
-            <Route path="forms" element={<FormsPage />} />
-            <Route path="maintenance" element={<MaintenanceOverviewPage />} />
-            <Route path="maintenance/records" element={<MaintenanceRecordsPage />} />
-            <Route path="maintenance/new" element={<MaintenanceNewPage />} />
-            <Route
-              path="board"
-              element={
-                <RequireSuperAdmin>
-                  <WorkshopBoardPage />
-                </RequireSuperAdmin>
-              }
-            />
-            <Route
-              path="energy"
-              element={
-                <RequireSuperAdmin>
-                  <EnergyCenterPage />
-                </RequireSuperAdmin>
-              }
-            />
-            <Route
-              path="materials"
-              element={
-                <RequireSuperAdmin>
-                  <MaterialsPage />
-                </RequireSuperAdmin>
-              }
-            />
+            <Route index element={<LandingRedirect />} />
+            <Route path="workspace" element={<RequireSuperAdmin><HomePage /></RequireSuperAdmin>} />
+            <Route path="forms" element={<RequireSuperAdmin><FormsPage /></RequireSuperAdmin>} />
+            <Route path="maintenance" element={<RequirePageAccess permission={PagePermission.MAINTENANCE}><MaintenanceOverviewPage /></RequirePageAccess>} />
+            <Route path="maintenance/records" element={<RequirePageAccess permission={PagePermission.MAINTENANCE}><MaintenanceRecordsPage /></RequirePageAccess>} />
+            <Route path="maintenance/new" element={<RequirePageAccess permission={PagePermission.MAINTENANCE}><MaintenanceNewPage /></RequirePageAccess>} />
+            <Route path="board" element={<WorkshopBoardPage />} />
+            <Route path="energy" element={<EnergyCenterPage />} />
+            <Route path="materials" element={<MaterialsPage />} />
             <Route
               path="plan"
               element={
-                <RequireSuperAdmin>
+                <RequirePageAccess permission={PagePermission.PLAN}>
                   <ProductionPlanPage />
-                </RequireSuperAdmin>
+                </RequirePageAccess>
               }
             />
             <Route

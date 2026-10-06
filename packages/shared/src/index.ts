@@ -24,14 +24,22 @@ export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
 export const ROLE_VALUES = Object.values(Role);
 export const USER_STATUS_VALUES = Object.values(UserStatus);
 
+/** 可由管理员分配给普通用户的页面；车间版面、能源中心和物料与库存对所有登录用户开放。 */
+export const PagePermission = {
+  PLAN: 'plan',
+  MAINTENANCE: 'maintenance',
+} as const;
+export type PagePermission = (typeof PagePermission)[keyof typeof PagePermission];
+export const PAGE_PERMISSION_VALUES: PagePermission[] = Object.values(PagePermission);
+
 /** 对外的用户结构（不含 passwordHash，任何接口都不允许返回它） */
 export interface UserDTO {
   id: string;
   username: string;
   name: string;
-  email: string | null;
   phone: string | null;
   role: Role;
+  pagePermissions: PagePermission[];
   status: UserStatus;
   lastLoginAt: string | null;
   createdAt: string;
@@ -56,7 +64,7 @@ export interface RefreshResponse {
 export interface UserPageQuery {
   page?: number;
   pageSize?: number;
-  /** 对 用户名/姓名/手机/邮箱 做模糊匹配 */
+  /** 对用户名、姓名和手机做模糊匹配 */
   keyword?: string;
 }
 
@@ -71,16 +79,16 @@ export interface CreateUserBody {
   username: string;
   name: string;
   password: string;
-  email?: string;
   phone?: string;
   role: Role;
+  pagePermissions?: PagePermission[];
 }
 
 export interface UpdateUserBody {
   name?: string;
-  email?: string | null;
   phone?: string | null;
   role?: Role;
+  pagePermissions?: PagePermission[];
 }
 
 export interface UpdateUserStatusBody {
@@ -432,6 +440,9 @@ export interface EnergyResult {
 export interface RawMaterialStockItem {
   name: string;
   workshop: string;
+  unit: string;
+  stockDate: string;
+  activityDate: string;
   /** 最新库存（吨） */
   stock: number | null;
   /** 当日购入 / 耗用（吨） */
@@ -445,6 +456,9 @@ export interface RawMaterialStockItem {
 
 export interface FinishedProductItem {
   name: string;
+  workshop: string;
+  stockDate: string;
+  activityDate: string;
   /** 当日产量 / 销量 / 库存（吨） */
   production: number | null;
   sales: number | null;
@@ -460,6 +474,7 @@ export interface InternalFlowItem {
   from: string;
   to: string;
   material: string;
+  date: string;
   /** 当日数量（吨） */
   quantity: number | null;
 }

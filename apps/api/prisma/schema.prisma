@@ -37,6 +37,7 @@ model User {
   phone         String?
   passwordHash  String
   role          Role           @default(USER)
+  pagePermissions String[]     @default([])
   status        UserStatus     @default(ACTIVE)
   /// 会话版本：签进 JWT 的 ver。重置密码/强制下线时 +1，使全部旧 Access Token 立即失效
   authVersion   Int            @default(1)
