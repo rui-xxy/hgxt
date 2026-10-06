@@ -3,12 +3,13 @@ import type {
   DetailedWorkshopCode,
   DetailedWorkshopResult,
   EnergyResult,
+  FenglianSummaryResult,
   MaterialsResult,
   PlanSettingsResult,
   PlanSettingsSaveBody,
-  PlanTargetSaveBody,
   ProductionPlanBoardResult,
   SulfuricSummaryResult,
+  SulfuricControlResult,
   ThermalSummaryResult,
   TankLevelsResult,
   WorkshopOverviewResult,
@@ -18,11 +19,17 @@ import { request } from './client';
 export function sulfuricSummary(days = 30): Promise<SulfuricSummaryResult> {
   return request(`/production/sulfuric?days=${days}`);
 }
+export function sulfuricControl(month?: string): Promise<SulfuricControlResult> {
+  return request(`/production/sulfuric/control${month ? `?month=${encodeURIComponent(month)}` : ''}`);
+}
 export function workshopOverview(days = 30): Promise<WorkshopOverviewResult> {
   return request(`/production/workshops?days=${days}`);
 }
 export function aminoSummary(days = 30): Promise<AminoSummaryResult> {
   return request(`/production/amino?days=${days}`);
+}
+export function fenglianSummary(days = 30): Promise<FenglianSummaryResult> {
+  return request(`/production/fenglian?days=${days}`);
 }
 export function thermalSummary(days = 30): Promise<ThermalSummaryResult> {
   return request(`/production/thermal?days=${days}`);
@@ -47,7 +54,4 @@ export function planSettings(year = new Date().getFullYear()): Promise<PlanSetti
 }
 export function savePlanSettings(body: PlanSettingsSaveBody): Promise<PlanSettingsResult> {
   return request('/production/plan/settings', { method: 'POST', body });
-}
-export function savePlanTargets(body: PlanTargetSaveBody): Promise<Array<{ workshop: string; material: string; unit: string; target: string }>> {
-  return request('/production/plan/targets', { method: 'POST', body });
 }

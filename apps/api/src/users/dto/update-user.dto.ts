@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Role } from '@hgxt/shared';
+import { PAGE_PERMISSION_VALUES, Role, type PagePermission } from '@hgxt/shared';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsIn, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { ArrayUnique, IsArray, IsIn, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
 
 /** class-transformer @Transform 的入参是 { value, ... }，只接收并返回值本身 */
 function trimString({ value }: { value: unknown }): unknown {
@@ -9,7 +9,7 @@ function trimString({ value }: { value: unknown }): unknown {
 }
 
 /**
- * E3 可空字段 PATCH 语义（对 email/phone 统一生效）：
+ * E3 可空字段 PATCH 语义（适用于 phone）：
  *   字段缺省（undefined）= 不修改
  *   显式 null            = 清空
  *   字符串               = 设置值
@@ -23,13 +23,6 @@ export class UpdateUserDto {
   @MaxLength(64)
   name?: string;
 
-  @ApiPropertyOptional({ description: '邮箱；null=清空，缺省=不修改（统一小写）', nullable: true, type: String })
-  @Transform(trimString)
-  @IsOptional()
-  @IsEmail({}, { message: '邮箱格式不正确' })
-  @MaxLength(128)
-  email?: string | null;
-
   @ApiPropertyOptional({ description: '手机号；null=清空，缺省=不修改', nullable: true, type: String })
   @Transform(trimString)
   @IsOptional()
@@ -41,4 +34,11 @@ export class UpdateUserDto {
   @IsOptional()
   @IsIn(Object.values(Role), { message: '角色不合法' })
   role?: Role;
+
+  @ApiPropertyOptional({ description: '普通用户可访问的页面', enum: PAGE_PERMISSION_VALUES, isArray: true })
+  @ValidateIf((_object, value) => value !== undefined)
+  @IsArray()
+  @ArrayUnique()
+  @IsIn(PAGE_PERMISSION_VALUES, { each: true, message: '页面权限不合法' })
+  pagePermissions?: PagePermission[];
 }

@@ -1,53 +1,56 @@
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, Dropdown } from 'antd';
-import {
-  BarChart3,
-  CalendarRange,
-  FlaskConical,
-  Home,
-  LogOut,
-  Moon,
-  Package,
-  Settings,
-  SlidersHorizontal,
-  Sun,
-  Users,
-  Zap,
-  type LucideIcon,
-} from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Role } from '@hgxt/shared';
+import { PagePermission, Role, type PagePermission as PagePermissionType } from '@hgxt/shared';
 import { logoutApi } from '../api/auth';
 import { listForms } from '../api/forms';
 import { useMe } from '../api/hooks';
 import { tokenStore } from '../api/client';
 import { queryClient } from '../api/queryClient';
+import {
+  DashboardIcon,
+  FactoryIcon,
+  FormsNavIcon,
+  LogoutIcon,
+  MoonIcon,
+  PackageIcon,
+  SlidersIcon,
+  SunIcon,
+  SystemNavIcon,
+  TargetIcon,
+  UsersIcon,
+  WrenchIcon,
+} from '../components/icons';
 import { useThemeMode } from '../theme/ThemeProvider';
+import { landingPath } from '../auth/landing';
 
 interface ModuleItem {
   label: string;
   path: string;
-  icon: LucideIcon;
+  icon: typeof DashboardIcon;
+  permission?: PagePermissionType;
+  adminOnly?: boolean;
 }
 
 interface ModuleSection {
-  label: string;
+  label?: string;
   items: ModuleItem[];
 }
 
 interface ModuleDef {
   key: string;
   label: string;
-  icon: LucideIcon;
+  icon: typeof DashboardIcon;
   /** 二级面板标题 */
   title: string;
   /** 模块入口 */
   path: string;
-  /** 路径命中该前缀（或精确命中 '/'）即视为当前模块 */
+  /** 路径命中该前缀即视为当前模块 */
   match: (pathname: string) => boolean;
   sections: ModuleSection[];
   adminOnly?: boolean;
+  permission?: PagePermissionType;
 }
 
 /** 模块可插拔：新增业务系统只需在此加一份配置（design/00 · 布局架构） */
@@ -55,58 +58,76 @@ const MODULES: ModuleDef[] = [
   {
     key: 'home',
     label: '首页',
-    icon: Home,
-    title: '生产',
-    path: '/',
+    icon: DashboardIcon,
+    title: '首页',
+    path: '/board',
     match: (p) =>
-      p === '/' || p.startsWith('/board') || p.startsWith('/energy') || p.startsWith('/materials') || p.startsWith('/plan'),
+      p === '/' || p === '/workspace' || p.startsWith('/board') || p.startsWith('/energy') || p.startsWith('/materials') || p.startsWith('/plan'),
     sections: [
-      { label: '页面', items: [{ label: '概览', path: '/', icon: Home }] },
+      { items: [{ label: '工作台', path: '/workspace', icon: DashboardIcon, adminOnly: true }] },
       {
-        label: '生产',
+        label: '生产看板',
         items: [
-          { label: '车间版面', path: '/board', icon: BarChart3 },
-          { label: '能源中心', path: '/energy', icon: Zap },
-          { label: '物料与库存', path: '/materials', icon: Package },
-          { label: '计划与完成', path: '/plan', icon: CalendarRange },
-          { label: '生产计划设置', path: '/plan/settings', icon: SlidersHorizontal },
+          { label: '车间版面', path: '/board', icon: FactoryIcon },
+          { label: '计划与完成', path: '/plan', icon: TargetIcon, permission: PagePermission.PLAN },
         ],
       },
+      { label: '能源消耗', items: [{ label: '能源中心', path: '/energy', icon: SunIcon }] },
+      { label: '库存', items: [{ label: '物料与库存', path: '/materials', icon: PackageIcon }] },
+      { label: '计划管理', items: [{ label: '生产计划设置', path: '/plan/settings', icon: SlidersIcon, adminOnly: true }] },
     ],
   },
   {
     key: 'production',
     label: '表单',
-    icon: FlaskConical,
+    icon: FormsNavIcon,
     title: '表单',
     path: '/forms',
-    match: (p) => p.startsWith('/forms'),
-    sections: [{ label: '页面', items: [{ label: '总览', path: '/forms', icon: FlaskConical }] }],
+    adminOnly: true,
+    match: (p) => p.startsWith('/forms') || p.startsWith('/form-fill'),
+    sections: [{ items: [{ label: '全部表单', path: '/forms', icon: FormsNavIcon }] }],
+  },
+  {
+    key: 'maintenance',
+    label: '设备',
+    icon: WrenchIcon,
+    title: '设备',
+    path: '/maintenance',
+    permission: PagePermission.MAINTENANCE,
+    match: (p) => p === '/maintenance' || p.startsWith('/maintenance/'),
+    sections: [{
+      items: [
+        { label: '维修总览', path: '/maintenance', icon: DashboardIcon },
+      ],
+    }],
   },
   {
     key: 'system',
     label: '系统',
-    icon: Settings,
+    icon: SystemNavIcon,
     title: '系统',
     path: '/users',
     match: (p) => p.startsWith('/users'),
     adminOnly: true,
-    sections: [{ label: '页面', items: [{ label: '成员', path: '/users', icon: Users }] }],
+    sections: [{ items: [{ label: '成员管理', path: '/users', icon: UsersIcon }] }],
   },
 ];
 
 /** 顶部路径栏的页面名 */
 function pageName(pathname: string): string {
-  if (pathname === '/') return '概览';
-  if (pathname === '/forms') return '总览';
+  if (pathname === '/workspace') return '工作台';
+  if (pathname === '/forms') return '全部表单';
   if (pathname.startsWith('/forms/')) return '数据';
+  if (pathname === '/maintenance') return '维修总览';
+  if (pathname.startsWith('/maintenance/records')) return '维修记录';
+  if (pathname.startsWith('/maintenance/new')) return '维修登记';
   if (pathname.startsWith('/board')) return '车间版面';
   if (pathname.startsWith('/energy')) return '能源中心';
   if (pathname.startsWith('/materials')) return '物料与库存';
   if (pathname === '/plan') return '计划与完成';
   if (pathname.startsWith('/plan/settings')) return '生产计划设置';
   if (pathname.startsWith('/plan')) return '计划与完成';
-  if (pathname.startsWith('/users')) return '成员';
+  if (pathname.startsWith('/users')) return '成员管理';
   return 'HGXT';
 }
 
@@ -123,7 +144,7 @@ export function AdminLayout() {
   const formNavigation = useQuery({
     queryKey: ['forms', 'navigation'],
     queryFn: () => listForms({ page: 1, pageSize: 100, keyword: '' }),
-    enabled: !!me.data,
+    enabled: isAdmin,
   });
   const [hoverKey, setHoverKey] = useState<string | null>(null);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -140,11 +161,21 @@ export function AdminLayout() {
     closeTimer.current = window.setTimeout(() => setHoverKey(null), 140);
   };
 
-  const modules = MODULES.filter((m) => !m.adminOnly || isAdmin);
+  const canSee = (permission?: PagePermissionType) => !permission || isAdmin || !!me.data?.pagePermissions.includes(permission);
+  const modules = MODULES.filter((m) => (!m.adminOnly || isAdmin) && canSee(m.permission)).map((module) => ({
+    ...module,
+    path: module.key === 'home' ? landingPath() : module.path,
+    sections: module.sections.map((section) => ({
+      ...section,
+      items: section.items.filter((item) => (!item.adminOnly || isAdmin) && canSee(item.permission)),
+    })).filter((section) => section.items.length > 0),
+  })).filter((module) => module.sections.length > 0);
   const current = MODULES.find((m) => m.match(location.pathname)) ?? MODULES[0];
   const flyout = modules.find((m) => m.key === hoverKey) ?? null;
   const itemActive = (path: string) =>
-    path === '/' || path === '/forms' ? location.pathname === path : location.pathname.startsWith(path);
+    path === '/workspace' || path === '/forms' || path === '/plan' || path === '/maintenance'
+      ? location.pathname === path
+      : location.pathname.startsWith(path);
 
   const logoutMutation = useMutation({
     mutationFn: () => logoutApi(tokenStore.getRefreshToken() ?? ''),
@@ -157,7 +188,7 @@ export function AdminLayout() {
   });
 
   const themeLabel = mode === 'dark' ? '浅色模式' : '深色模式';
-  const ThemeIcon = mode === 'dark' ? Sun : Moon;
+  const ThemeIcon = mode === 'dark' ? SunIcon : MoonIcon;
 
   const accountPanel = (
     <div className="hgxt-acct-menu">
@@ -177,7 +208,7 @@ export function AdminLayout() {
           toggleMode({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
         }}
       >
-        <ThemeIcon size={16} strokeWidth={1.6} />
+        <ThemeIcon width={16} height={16} strokeWidth={1.6} />
         {themeLabel}
       </button>
       <button
@@ -187,7 +218,7 @@ export function AdminLayout() {
           logoutMutation.mutate();
         }}
       >
-        <LogOut size={16} strokeWidth={1.6} />
+        <LogoutIcon width={16} height={16} strokeWidth={1.6} />
         退出登录
       </button>
     </div>
@@ -199,18 +230,21 @@ export function AdminLayout() {
         <Link to="/" className="hgxt-mark" aria-label="HGXT 首页">
           化
         </Link>
-        {modules.map((m) => (
-          <Link
+        {modules.map((m) => {
+          const isActive = m.key === current.key;
+          const RailIcon = m.icon;
+          return <Link
             key={m.key}
             to={m.path}
             aria-label={m.label}
-            className={`hgxt-rail-link${m.key === current.key ? ' is-on' : ''}`}
+            aria-current={isActive ? 'page' : undefined}
+            className={`hgxt-rail-link${isActive ? ' is-on' : ''}`}
             onMouseEnter={() => openFlyout(m.key)}
             onFocus={() => openFlyout(m.key)}
           >
-            <m.icon size={20} strokeWidth={1.6} />
-          </Link>
-        ))}
+            <RailIcon width={20} height={20} strokeWidth={1.6} />
+          </Link>;
+        })}
         <div className="hgxt-rail-foot">
           <Dropdown
             open={accountOpen}
@@ -237,8 +271,8 @@ export function AdminLayout() {
         >
           <div className="hgxt-flyout-title">{flyout.title}</div>
           {flyout.sections.map((section) => (
-            <div key={section.label} className="hgxt-flyout-section">
-              <div className="hgxt-flyout-label">{section.label}</div>
+            <div key={section.label ?? section.items[0]?.path ?? flyout.key} className="hgxt-flyout-section">
+              {section.label ? <div className="hgxt-flyout-label">{section.label}</div> : null}
               <div className="hgxt-flyout-nav">
                 {section.items.map((item) => (
                   <Link
@@ -248,7 +282,7 @@ export function AdminLayout() {
                     onClick={() => setHoverKey(null)}
                     className={`hgxt-flyout-link${itemActive(item.path) ? ' is-on' : ''}`}
                   >
-                    <item.icon size={18} strokeWidth={1.6} />
+                    <item.icon width={17} height={17} strokeWidth={1.6} />
                     <span>{item.label}</span>
                   </Link>
                 ))}

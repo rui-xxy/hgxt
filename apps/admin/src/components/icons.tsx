@@ -35,10 +35,93 @@ function createIcon(displayName: string, body: ReactNode) {
 
 /* ---------- 导航 ---------- */
 
+export const DashboardIcon = createIcon(
+  'DashboardIcon',
+  <>
+    <rect x="3.5" y="3.5" width="7" height="7" rx="1.75" />
+    <rect x="13.5" y="3.5" width="7" height="7" rx="1.75" />
+    <rect x="3.5" y="13.5" width="7" height="7" rx="1.75" />
+    <rect x="13.5" y="13.5" width="7" height="7" rx="1.75" />
+  </>,
+);
+
+export const FormsNavIcon = createIcon(
+  'FormsNavIcon',
+  <>
+    <rect x="5" y="3.5" width="14" height="17" rx="2.5" />
+    <path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h5" />
+  </>,
+);
+
+export const WrenchIcon = createIcon(
+  'WrenchIcon',
+  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" />,
+);
+
+export const SystemNavIcon = createIcon(
+  'SystemNavIcon',
+  <>
+    <path d="M4 7h3m4 0h9M4 12h9m4 0h3M4 17h4m4 0h8" />
+    <circle cx="9" cy="7" r="2" />
+    <circle cx="15" cy="12" r="2" />
+    <circle cx="10" cy="17" r="2" />
+  </>,
+);
+
 export const HomeIcon = createIcon(
   'HomeIcon',
   <>
     <path d="M4 10.2 12 4l8 6.2V18.5a1.5 1.5 0 0 1-1.5 1.5H15v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5H5.5A1.5 1.5 0 0 1 4 18.5z" />
+  </>,
+);
+
+export const FactoryIcon = createIcon(
+  'FactoryIcon',
+  <>
+    <path d="M12 16h.01M16 16h.01" />
+    <path d="M3 19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5a.5.5 0 0 0-.769-.422l-4.462 2.844A.5.5 0 0 1 15 10.5v-2a.5.5 0 0 0-.769-.422L9.77 10.922A.5.5 0 0 1 9 10.5V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z" />
+    <path d="M8 16h.01" />
+  </>,
+);
+
+export const TargetIcon = createIcon(
+  'TargetIcon',
+  <>
+    <circle cx="12" cy="12" r="9.5" />
+    <circle cx="12" cy="12" r="5.5" />
+    <circle cx="12" cy="12" r="1.5" />
+  </>,
+);
+
+export const PackageIcon = createIcon(
+  'PackageIcon',
+  <>
+    <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z" />
+    <path d="M12 22V12M3.3 7l7.703 4.734a2 2 0 0 0 1.994 0L20.7 7M7.5 4.27l9 5.15" />
+  </>,
+);
+
+export const SlidersIcon = createIcon(
+  'SlidersIcon',
+  <>
+    <path d="M20 7h-9M14 17H5" />
+    <circle cx="17" cy="17" r="3" />
+    <circle cx="7" cy="7" r="3" />
+  </>,
+);
+
+export const FlaskIcon = createIcon(
+  'FlaskIcon',
+  <>
+    <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2M8.5 2h7M7 16h10" />
+  </>,
+);
+
+export const SettingsIcon = createIcon(
+  'SettingsIcon',
+  <>
+    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+    <circle cx="12" cy="12" r="3" />
   </>,
 );
 
@@ -89,6 +172,11 @@ export const PanelLeftIcon = createIcon(
 );
 
 export const ChevronRightIcon = createIcon('ChevronRightIcon', <path d="M9.5 6l6 6-6 6" />);
+export const ChevronLeftIcon = createIcon('ChevronLeftIcon', <path d="m14.5 6-6 6 6 6" />);
+export const ProductionChartIcon = createIcon(
+  'ProductionChartIcon',
+  <><path d="M4 20V11M10 20V5M16 20v-8M22 20H2" /><path d="M5 8.5 10 4l6 5 4-3" /></>,
+);
 
 export const LogoutIcon = createIcon(
   'LogoutIcon',

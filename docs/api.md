@@ -20,13 +20,12 @@
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| GET | `/api/users?page&pageSize&keyword` | 分页列表；keyword 模糊匹配 用户名/姓名/手机/邮箱（不区分大小写），按创建时间倒序 |
+| GET | `/api/users?page&pageSize&keyword` | 分页列表；keyword 模糊匹配用户名、姓名、手机（不区分大小写），按创建时间倒序 |
 | GET | `/api/users/:id` | 用户详情 |
-| POST | `/api/users` | 新增用户：username 需匹配 `^[a-zA-Z0-9_-]{2,64}$`（入库统一小写、不区分大小写唯一）；密码 ≥8 位；email 同样统一小写 |
+| POST | `/api/users` | 新增用户：username 需匹配 `^[a-zA-Z0-9_-]{2,64}$`（入库统一小写、不区分大小写唯一）；密码 ≥8 位 |
 | PATCH | `/api/users/:id` | 编辑。可空字段 PATCH 语义：**缺省=不修改，null=清空，字符串=设置值**。不能降级最后一个管理员 |
 | PATCH | `/api/users/:id/status` | ACTIVE ↔ DISABLED；禁用即踢下线；不能禁用自己；不能禁用最后一个管理员 |
 | POST | `/api/users/:id/reset-password` | 重置密码：**旧 Access Token 与 Refresh Token 全部立即失效**（authVersion+1） |
-
-**没有 DELETE 用户接口**——员工离职走禁用，保留业务数据的引用完整性（设计取舍见 docs/architecture.md）。
+| DELETE | `/api/users/:id` | 删除成员，保留其表单提交记录并清空提交人引用 |
 
 所有用户接口永不返回 `passwordHash`。

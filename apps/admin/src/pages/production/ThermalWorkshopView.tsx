@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from 'react';
 import type { ThermalDaySummary, ThermalOutletDefinition, ThermalSummaryResult } from '@hgxt/shared';
-import { PALETTE, Seg, fmt } from './dash-ui';
+import { PALETTE, Seg, fmtRecorded } from './dash-ui';
 
 type ThermalGroup = 'external' | 'internal' | 'meters';
 type DetailEntry = { kind: 'day'; date: string; index: number } | { kind: 'summary'; month: string };
@@ -10,7 +10,7 @@ const sum = (values: Array<number | null | undefined>) => {
   const present = values.filter((value): value is number => value !== null && value !== undefined);
   return present.length ? present.reduce((total, value) => total + value, 0) : null;
 };
-const quantity = (value: number | null | undefined, unit: string) => value === null || value === undefined ? '—' : `${fmt(value, unit === 'kWh' ? 0 : 1)} ${unit}`;
+const quantity = (value: number | null | undefined, unit: string) => value === null || value === undefined ? '—' : `${fmtRecorded(value)} ${unit}`;
 const meterDefinitions = [
   { key: 'generation', name: '1#冷凝机发电', unit: 'kWh' },
   { key: 'water', name: '总水表供水', unit: 'm³' },
@@ -84,12 +84,12 @@ export function ThermalTable({ data, tab, entries, activeDate, onSelect }: {
           onClick={entry.kind === 'day' ? () => onSelect(entry.date) : undefined}>
           <td>{entry.kind === 'summary' ? '合计' : entry.date.slice(5)}</td>
           {tab === 'prod' ? <>
-            <td className="detail-total-cell">{fmt(total(days, 'totalSupply'), 1)}</td>
-            {external.map((outlet) => <td key={outlet.key} className="band-cell" style={accent(colors.external)}>{fmt(outletTotal(days, outlet), 1)}</td>)}
-            <td className="band-cell" style={accent(colors.external)}>{fmt(total(days, 'externalTotal'), 1)}</td>
-            {internal.map((outlet) => <td key={outlet.key} className="band-cell" style={accent(colors.internal)}>{fmt(outletTotal(days, outlet), 1)}</td>)}
-            <td className="band-cell" style={accent(colors.internal)}>{fmt(total(days, 'internalTotal'), 1)}</td>
-          </> : meterDefinitions.map((meter) => <td key={meter.key} className="band-cell" style={accent(meter.key === 'generation' ? PALETTE.brand : PALETTE.reagent)}>{fmt(meterTotal(days, meter.key), meter.unit === 'kWh' ? 0 : 1)}</td>)}
+            <td className="detail-total-cell">{fmtRecorded(total(days, 'totalSupply'))}</td>
+            {external.map((outlet) => <td key={outlet.key} className="band-cell" style={accent(colors.external)}>{fmtRecorded(outletTotal(days, outlet))}</td>)}
+            <td className="band-cell" style={accent(colors.external)}>{fmtRecorded(total(days, 'externalTotal'))}</td>
+            {internal.map((outlet) => <td key={outlet.key} className="band-cell" style={accent(colors.internal)}>{fmtRecorded(outletTotal(days, outlet))}</td>)}
+            <td className="band-cell" style={accent(colors.internal)}>{fmtRecorded(total(days, 'internalTotal'))}</td>
+          </> : meterDefinitions.map((meter) => <td key={meter.key} className="band-cell" style={accent(meter.key === 'generation' ? PALETTE.brand : PALETTE.reagent)}>{fmtRecorded(meterTotal(days, meter.key))}</td>)}
         </tr>)}
       </tbody>
     </table>

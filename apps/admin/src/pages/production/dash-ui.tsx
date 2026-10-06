@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon } from '../../components/icons';
 import './dash.css';
 
 /** 设计稿 11-13 的内容区包装 */
-export function Dash({ children }: { children: ReactNode }) {
-  return <div className="dash">{children}</div>;
+export function Dash({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <div className={`dash ${className}`.trim()}>{children}</div>;
 }
 
 /** 酸类 / 分组的固定色板（design/11） */
@@ -18,6 +18,10 @@ export const PALETTE = {
 
 export const fmt = (v: number | null | undefined, digits = 0): string =>
   v === null || v === undefined ? '—' : v.toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+
+/** 车间原始值和汇总值最多显示三位小数，不补零，并清除求和后的浮点尾数。 */
+export const fmtRecorded = (v: number | null | undefined): string =>
+  v === null || v === undefined ? '—' : v.toLocaleString(undefined, { maximumFractionDigits: 3 });
 
 /** 与上一期的变化百分比 */
 export function pctChange(current: number | null | undefined, prev: number | null | undefined): number | null {
@@ -122,15 +126,15 @@ export function Seg({
 }
 
 /** 月份步进器（‹ 2026 年 9 月 ›） */
-export function Stepper({ label, onPrev, onNext, prevDisabled, nextDisabled }: { label: string; onPrev: () => void; onNext: () => void; prevDisabled?: boolean; nextDisabled?: boolean }) {
+export function Stepper({ label, onPrev, onNext, prevDisabled, nextDisabled, prevLabel = '上一个月', nextLabel = '下一个月' }: { label: string; onPrev: () => void; onNext: () => void; prevDisabled?: boolean; nextDisabled?: boolean; prevLabel?: string; nextLabel?: string }) {
   return (
     <div className="stepper">
-      <button type="button" aria-label="上一个月" onClick={onPrev} disabled={prevDisabled}>
-        <ChevronLeft size={16} strokeWidth={1.6} />
+      <button type="button" aria-label={prevLabel} onClick={onPrev} disabled={prevDisabled}>
+        <ChevronLeftIcon width={16} height={16} />
       </button>
       <span>{label}</span>
-      <button type="button" aria-label="下一个月" onClick={onNext} disabled={nextDisabled}>
-        <ChevronRight size={16} strokeWidth={1.6} />
+      <button type="button" aria-label={nextLabel} onClick={onNext} disabled={nextDisabled}>
+        <ChevronRightIcon width={16} height={16} />
       </button>
     </div>
   );
@@ -152,7 +156,7 @@ export function downloadCsv(filename: string, rows: Array<Array<string | number 
 export function ExportButton({ onClick, label = '导出' }: { onClick: () => void; label?: string }) {
   return (
     <button type="button" className="btn ghost sm" onClick={onClick}>
-      <Download size={15} strokeWidth={1.6} />
+      <DownloadIcon width={15} height={15} />
       {label}
     </button>
   );
@@ -183,6 +187,11 @@ export function MonthBars({
   selected,
   onSelect,
   height = 400,
+  valueDigits = 0,
+  sourcePrecision = false,
+  showAverage = true,
+  axisLabelOf = (label: string) => label.slice(5),
+  tooltipTitleOf = (label: string) => label,
 }: {
   data: BarDatum[];
   unit: string;
@@ -190,6 +199,11 @@ export function MonthBars({
   selected: string | null;
   onSelect: (label: string) => void;
   height?: number;
+  valueDigits?: number;
+  sourcePrecision?: boolean;
+  showAverage?: boolean;
+  axisLabelOf?: (label: string) => string;
+  tooltipTitleOf?: (label: string) => string;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(720);
@@ -217,9 +231,11 @@ export function MonthBars({
   const slot = plotW / n;
   const barW = Math.max(4, Math.min(28, slot * 0.72));
   const avg = values.length ? values.reduce((s, v) => s + v, 0) / values.length : 0;
+  const displayValue = (value: number) => sourcePrecision ? fmtRecorded(value) : fmt(value, valueDigits);
+  const occupied = data.flatMap((item, index) => item.value === null ? [] : [index]);
   const gridLines = Array.from({ length: 5 }, (_, i) => {
     const v = (max / 4) * i;
-    return { v, y: yOf(v), label: Math.round(v).toLocaleString() };
+    return { v, y: yOf(v), label: sourcePrecision ? fmtRecorded(v) : valueDigits ? fmt(v, valueDigits) : Math.round(v).toLocaleString() };
   });
   const active = hover;
   const activeItem = data.find((d) => d.label === active);
@@ -239,6 +255,9 @@ export function MonthBars({
         {data.map((d, i) => {
           const x = padL + i * slot + (slot - barW) / 2;
           const isSel = d.label === selected;
+          const label = d.value === null ? '' : displayValue(d.value);
+          const nearestLabelGap = Math.min(...occupied.filter((index) => index !== i).map((index) => Math.abs(index - i) * slot), Infinity);
+          const showLabel = isSel || d.label === hover || (!sourcePrecision ? slot >= 15 : nearestLabelGap >= label.length * 6 + 6);
           return (
             <div key={d.label}>
               {d.value !== null ? (
@@ -253,9 +272,9 @@ export function MonthBars({
                       background: isSel || d.label === hover ? 'var(--brand)' : 'color-mix(in srgb, var(--brand) 32%, var(--bg))',
                     }}
                   />
-                  {slot >= 15 || isSel ? (
+                  {showLabel ? (
                     <div className="bv" style={{ left: x + barW / 2, top: yOf(d.value) - 16, color: isSel ? 'var(--ink)' : 'var(--ink2)', fontWeight: isSel ? 600 : 400 }}>
-                      {Math.round(d.value).toLocaleString()}
+                      {label}
                     </div>
                   ) : null}
                 </>
@@ -263,10 +282,10 @@ export function MonthBars({
             </div>
           );
         })}
-        {avg > 0 ? <div className="avg" style={{ top: yOf(avg) }} /> : null}
+        {showAverage && avg > 0 ? <div className="avg" style={{ top: yOf(avg) }} /> : null}
         {data.map((d, i) => (
           <div key={`x${d.label}`}>
-            {i % everyX === 0 ? <div className="xl" style={{ left: padL + i * slot + slot / 2, top: padT + plotH + 8 }}>{d.label.slice(5)}</div> : null}
+            {i % everyX === 0 ? <div className="xl" style={{ left: padL + i * slot + slot / 2, top: padT + plotH + 8 }}>{axisLabelOf(d.label)}</div> : null}
             <div
               className="hit"
               style={{ left: padL + i * slot, top: 0, width: slot, height: padT + plotH }}
@@ -278,7 +297,7 @@ export function MonthBars({
         ))}
         {active && activeItem && activeItem.value !== null ? (
           <div className="tip" style={{ left: Math.min(Math.max(tipX - 85, 4), Math.max(4, width - 220)) }}>
-            <div style={{ fontWeight: 600, marginBottom: 2 }}>{active}</div>
+            <div style={{ fontWeight: 600, marginBottom: 2 }}>{tooltipTitleOf(active)}</div>
             {tipRows ? (
               tipRows.map((row) => (
                 <div className="tr" key={row.name}>
@@ -288,7 +307,7 @@ export function MonthBars({
                 </div>
               ))
             ) : (
-              <div className="tr"><span className="muted">{unit}</span><b>{fmt(activeItem.value, 1)}</b></div>
+              <div className="tr"><span className="muted">{unit}</span><b>{sourcePrecision ? fmtRecorded(activeItem.value) : fmt(activeItem.value, valueDigits || 1)}</b></div>
             )}
           </div>
         ) : null}

@@ -37,6 +37,7 @@ model User {
   phone         String?
   passwordHash  String
   role          Role           @default(USER)
+  pagePermissions String[]     @default([])
   status        UserStatus     @default(ACTIVE)
   /// 会话版本：签进 JWT 的 ver。重置密码/强制下线时 +1，使全部旧 Access Token 立即失效
   authVersion   Int            @default(1)
@@ -116,7 +117,7 @@ model Meter {
   formCode   String  @default("sulfuric_daily")
 }
 
-// 生产计划：年度计划录入后按天数自动拆到各月，months 存手工值（null=自动拆分）
+// 生产计划：年度计划与各月计划分别录入，months 的 null 表示未填写
 // 计划与完成看板按 year+workshop 取计划，实际值全部从表单现算
 
 model ProductionPlan {
@@ -126,7 +127,7 @@ model ProductionPlan {
   workshop  String
   /// 年度计划（t）
   annual    Float    @default(0)
-  /// 12 个月的手工计划值：{"1": 8600, ...}，缺省/null = 按天数自动拆分
+  /// 12 个月的计划值：{"1": 8600, ...}，缺省/null = 未填写
   months    Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -134,7 +135,7 @@ model ProductionPlan {
   @@unique([year, workshop])
 }
 
-// 单耗目标（对标与预警）：目标值是区间/上限文本（"85 – 95"、"≤ 0.660"），不做数值解析
+// 单耗上限（对标与预警）：旧区间目标仅使用上限值
 
 model ConsumptionTarget {
   id        String   @id @default(uuid())
@@ -143,10 +144,41 @@ model ConsumptionTarget {
   material  String
   /// 单耗单位：kWh/t、t/t、m³/t、kg/t
   unit      String
-  /// 目标文本（区间或上限），原样展示
+  /// 上限数值文本；空字符串表示未设置
   target    String   @default("")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([workshop, material])
+}
+
+// 设备维修日志：仅保存登记/Excel 主表原值，首页统计全部从这些记录实时计算。
+// reportYear/reportMonth 是原表「统计月份」的归属期，不能从自然日期反推。
+model MaintenanceRecord {
+  id              String   @id @default(uuid())
+  sourceWorkbook  String?
+  sourceRow       Int?
+  sourceDateText  String
+  date            DateTime? @db.Date
+  reportYear      Int
+  reportMonth     Int
+  personnel       String   @default("")
+  department      String   @default("")
+  location        String   @default("")
+  equipmentModel  String   @default("")
+  workContent     String   @default("")
+  workTimeText    String   @default("")
+  replacedParts   String   @default("")
+  faultType       String   @default("")
+  faultCause      String   @default("")
+  repairHours     Float?
+  isRework        Boolean  @default(false)
+  remarks         String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([reportYear, reportMonth])
+  @@index([date])
+  @@index([department])
+  @@unique([sourceWorkbook, sourceRow])
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { App, Badge, Button, Card, Input, Popconfirm, Space, Table, Tag } from 'antd';
 import { Plus } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -6,7 +6,9 @@ import dayjs from 'dayjs';
 import { Role, UserStatus, type UserDTO } from '@hgxt/shared';
 import { useMe, useUsers } from '../../api/hooks';
 import { createUserApi, deleteUserApi, resetPasswordApi, updateUserApi, updateUserStatusApi } from '../../api/users';
+import { TablePageFooter } from '../../components/PageNavigator';
 import { PageHeader } from '../../components/PageHeader';
+import { pagedViewportStyle } from '../../styles/pagedViewport';
 import { UserFormModal, type UserFormValues } from './UserFormModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
 
@@ -28,12 +30,17 @@ export function UsersPage() {
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserDTO | null>(null);
   const [resettingUser, setResettingUser] = useState<UserDTO | null>(null);
 
   const usersQuery = useUsers({ page, pageSize, keyword });
+  useLayoutEffect(() => {
+    const body = tableRef.current?.querySelector<HTMLElement>('.ant-table-body');
+    if (body) body.scrollTop = 0;
+  }, [page, pageSize, keyword]);
 
   const invalidateUsers = () => queryClient.invalidateQueries({ queryKey: ['users'] });
   /** 变更目标是当前登录用户时，同步刷新 me（角色/姓名变化立即反映到顶栏与权限判断） */
@@ -57,9 +64,9 @@ export function UsersPage() {
     mutationFn: ({ id, values }: { id: string; values: UserFormValues }) =>
       updateUserApi(id, {
         name: values.name,
-        email: values.email || null,
         phone: values.phone || null,
         role: values.role,
+        pagePermissions: values.pagePermissions ?? [],
       }),
     onSuccess: async (user) => {
       message.success('用户信息已更新');
@@ -110,9 +117,9 @@ export function UsersPage() {
         username: values.username,
         name: values.name,
         password: values.password ?? '',
-        email: values.email || undefined,
         phone: values.phone || undefined,
         role: values.role,
+        pagePermissions: values.pagePermissions ?? [],
       });
     }
   };
@@ -124,7 +131,7 @@ export function UsersPage() {
       width: 150,
       render: (username: string) => <span className="mono">{username}</span>,
     },
-    { title: '姓名', dataIndex: 'name', width: 120 },
+    { title: '姓名', dataIndex: 'name', ellipsis: true },
     {
       title: '角色',
       dataIndex: 'role',
@@ -146,13 +153,6 @@ export function UsersPage() {
         ) : (
           <Badge status="default" text="已禁用" />
         ),
-    },
-    {
-      // 关键业务列伸缩填充宽度，超长省略（避免右侧大片空白）
-      title: '邮箱',
-      dataIndex: 'email',
-      ellipsis: true,
-      render: (email: string | null) => email ?? <span className="hgxt-muted">—</span>,
     },
     {
       title: '手机号',
@@ -266,7 +266,7 @@ export function UsersPage() {
         <div className="hgxt-toolbar">
           <Input.Search
             allowClear
-            placeholder="搜索：用户名 / 姓名 / 手机 / 邮箱"
+            placeholder="搜索：用户名 / 姓名 / 手机"
             className="hgxt-toolbar-search"
             value={keywordInput}
             onChange={(event) => setKeywordInput(event.target.value)}
@@ -277,23 +277,18 @@ export function UsersPage() {
           />
           <span className="hgxt-toolbar-meta">共 {usersQuery.data?.total ?? 0} 条</span>
         </div>
-        <Table<UserDTO>
+        <div ref={tableRef}><Table<UserDTO>
+          className="hgxt-paged-table"
+          style={pagedViewportStyle(pageSize, 55)}
           rowKey="id"
           columns={columns}
           dataSource={usersQuery.data?.items}
-          loading={usersQuery.isPending}
-          scroll={{ x: 1000 }}
-          pagination={{
-            current: page,
-            pageSize,
-            total: usersQuery.data?.total ?? 0,
-            showSizeChanger: true,
-            onChange: (nextPage, nextPageSize) => {
-              setPage(nextPage);
-              setPageSize(nextPageSize);
-            },
-          }}
-        />
+          loading={usersQuery.isFetching}
+          scroll={{ x: 1000, y: 'var(--hgxt-paged-viewport-height)', scrollToFirstRowOnChange: true }}
+          pagination={false}
+        /></div>
+        <TablePageFooter page={page} pageSize={pageSize} total={usersQuery.data?.total ?? 0}
+          onChange={setPage} onPageSizeChange={(size) => { setPage(1); setPageSize(size); }} />
       </Card>
 
       <UserFormModal

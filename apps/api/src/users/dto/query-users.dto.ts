@@ -18,7 +18,7 @@ export class QueryUsersDto {
   @Max(100)
   pageSize?: number = 10;
 
-  @ApiPropertyOptional({ description: '模糊匹配 用户名/姓名/手机/邮箱' })
+  @ApiPropertyOptional({ description: '模糊匹配用户名、姓名和手机' })
   @IsOptional()
   @IsString()
   @MaxLength(64)

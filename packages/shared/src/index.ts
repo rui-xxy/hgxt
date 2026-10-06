@@ -24,14 +24,22 @@ export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
 export const ROLE_VALUES = Object.values(Role);
 export const USER_STATUS_VALUES = Object.values(UserStatus);
 
+/** 可由管理员分配给普通用户的页面；车间版面、能源中心和物料与库存对所有登录用户开放。 */
+export const PagePermission = {
+  PLAN: 'plan',
+  MAINTENANCE: 'maintenance',
+} as const;
+export type PagePermission = (typeof PagePermission)[keyof typeof PagePermission];
+export const PAGE_PERMISSION_VALUES: PagePermission[] = Object.values(PagePermission);
+
 /** 对外的用户结构（不含 passwordHash，任何接口都不允许返回它） */
 export interface UserDTO {
   id: string;
   username: string;
   name: string;
-  email: string | null;
   phone: string | null;
   role: Role;
+  pagePermissions: PagePermission[];
   status: UserStatus;
   lastLoginAt: string | null;
   createdAt: string;
@@ -56,7 +64,7 @@ export interface RefreshResponse {
 export interface UserPageQuery {
   page?: number;
   pageSize?: number;
-  /** 对 用户名/姓名/手机/邮箱 做模糊匹配 */
+  /** 对用户名、姓名和手机做模糊匹配 */
   keyword?: string;
 }
 
@@ -71,16 +79,16 @@ export interface CreateUserBody {
   username: string;
   name: string;
   password: string;
-  email?: string;
   phone?: string;
   role: Role;
+  pagePermissions?: PagePermission[];
 }
 
 export interface UpdateUserBody {
   name?: string;
-  email?: string | null;
   phone?: string | null;
   role?: Role;
+  pagePermissions?: PagePermission[];
 }
 
 export interface UpdateUserStatusBody {
@@ -92,6 +100,7 @@ export interface ResetPasswordBody {
 }
 
 export { CURRENT_DEPARTMENTS, normalizeDepartmentValue, parseDepartmentNames } from './departments.js';
+export { calculateMaintenanceHours } from './maintenance-hours.js';
 
 export type FormFieldType = 'text' | 'number' | 'date' | 'select';
 export interface FormField {
@@ -99,6 +108,10 @@ export interface FormField {
   title: string;
   type: FormFieldType;
   group?: string;
+  /** A switchable table category inside a form group. */
+  section?: string;
+  /** A product or material switch inside a table category. */
+  subgroup?: string;
   options?: { label: string; value: string }[];
   /** 多选字段按逗号分隔的文本存储；options 是新记录的可选项。 */
   multiple?: boolean;
@@ -117,6 +130,7 @@ export interface FormField {
 export type FormData = Record<string, string | number | null>;
 export interface FormDTO {
   id: string;
+  code?: string | null;
   title: string;
   category: string;
   entryMode: 'form' | 'sheet';
@@ -261,6 +275,24 @@ export interface SulfuricSummaryResult {
   days: SulfuricDaySummary[];
 }
 
+export type SulfuricControlMetricKey =
+  | 's_raw' | 's_feed' | 'h2o' | 's_cyc' | 's_belt' | 's_slag'
+  | 'dry' | 'a1' | 'a2' | 'fum' | 'tail' | 'h2o2' | 'reag' | 'so2';
+
+export interface SulfuricControlDay {
+  date: string;
+  values: Record<SulfuricControlMetricKey, number | null>;
+  notes: string[];
+}
+
+export interface SulfuricControlResult {
+  formId: string | null;
+  month: string;
+  latestDate: string | null;
+  availableMonths: string[];
+  days: SulfuricControlDay[];
+}
+
 // ═══════════════════════════════════════════════════════════
 // 车间版面 / 能源中心 / 物料与库存 —— 读取时现算，不改写表单数据
 // ═══════════════════════════════════════════════════════════
@@ -341,6 +373,12 @@ export interface DetailedWorkshopResult {
   days: DetailedWorkshopDay[];
 }
 
+/** 丰联日报原值；水、电为累计表读数，不在接口中推算日耗。 */
+export interface FenglianSummaryResult {
+  fields: FormField[];
+  days: Array<{ date: string; values: Record<string, number | null> }>;
+}
+
 /** 热电日报的连续两次填报读数；缺少连续读数时不生成日量，回退视为清零重计。 */
 export interface ThermalMeterValue {
   previousReading: number | null;
@@ -402,6 +440,9 @@ export interface EnergyResult {
 export interface RawMaterialStockItem {
   name: string;
   workshop: string;
+  unit: string;
+  stockDate: string;
+  activityDate: string;
   /** 最新库存（吨） */
   stock: number | null;
   /** 当日购入 / 耗用（吨） */
@@ -415,6 +456,9 @@ export interface RawMaterialStockItem {
 
 export interface FinishedProductItem {
   name: string;
+  workshop: string;
+  stockDate: string;
+  activityDate: string;
   /** 当日产量 / 销量 / 库存（吨） */
   production: number | null;
   sales: number | null;
@@ -430,6 +474,7 @@ export interface InternalFlowItem {
   from: string;
   to: string;
   material: string;
+  date: string;
   /** 当日数量（吨） */
   quantity: number | null;
 }
@@ -473,17 +518,17 @@ export interface TankLevelsResult {
 export interface PlanWorkshopRow {
   /** 车间名（与表单/计划表一致） */
   workshop: string;
-  /** 产量口径副标题（折 98% 硫酸 / 4 牌号合计 / 精品 / 焦磷酸哌嗪…） */
+  /** 产量口径副标题（折 98% 硫酸 / 4 牌号合计 / 总产量 / 焦磷酸哌嗪…） */
   basis: string;
   /** 年度计划 t */
   annual: number;
-  /** 12 个月计划 t；manual=false 表示按天数自动拆分 */
-  months: Array<{ value: number; manual: boolean }>;
-  /** 月合计（校验用，≠ annual 时前端标红） */
+  /** 12 个月独立录入的计划 t；null 表示未填写 */
+  months: Array<number | null>;
+  /** 已填写月计划的合计 */
   monthTotal: number;
 }
 
-/** 单耗目标行 */
+/** 每项单耗的上限；空 target 表示不设置 */
 export interface PlanTargetRow {
   workshop: string;
   material: string;
@@ -499,11 +544,9 @@ export interface PlanSettingsResult {
 
 export interface PlanSettingsSaveBody {
   year: number;
-  /** 每车间年度值与 12 个月手工值（null=清除手工、回到自动拆分） */
+  /** 每车间年度值与 12 个月计划值（null=未填写） */
   rows: Array<{ workshop: string; annual: number; months: Array<number | null> }>;
-}
-
-export interface PlanTargetSaveBody {
+  /** 单耗上限一并保存：与计划在同一个事务里落库 */
   targets: PlanTargetRow[];
 }
 
@@ -537,12 +580,19 @@ export interface PlanWeekRow {
   productionThis: number;
   productionLast: number | null;
   productionDelta: number | null;
+  /** 周一到周日逐日产量：本周未来日为 null，上周为完整 7 天 */
+  productionDailyThis: Array<number | null>;
+  productionDailyLast: number[];
   /** 本周销量 / 上周同期销量 / 环比% */
   salesThis: number;
   salesLast: number | null;
   salesDelta: number | null;
-  /** 上周全周产量 */
+  /** 周一到周日逐日销量：本周未来日为 null，上周为完整 7 天 */
+  salesDailyThis: Array<number | null>;
+  salesDailyLast: number[];
+  /** 上周全周产量 / 销量 */
   productionLastFullWeek: number | null;
+  salesLastFullWeek: number | null;
 }
 
 /** 产销视图行 */
@@ -572,11 +622,11 @@ export interface PlanConsumptionRow {
   current: number | null;
   /** 上月单耗 */
   lastMonth: number | null;
-  /** 目标（来自 ConsumptionTarget，区间/上限文本） */
+  /** 单耗上限，用“≤ 数值”展示 */
   target: string | null;
-  /** 目标上限数值（可解析时），用于偏离计算 */
+  /** 上限数值，用于偏离计算 */
   targetMax: number | null;
-  /** (当前 ÷ 目标上限 − 1)×100%，正=超目标 */
+  /** 相对上限偏离：低于上限为负，高于上限为正 */
   deviationPct: number | null;
 }
 
@@ -609,3 +659,7 @@ export interface ProductionPlanBoardResult {
   materialConsumption: PlanConsumptionRow[];
   tasks: PlanTask[];
 }
+
+export { daysInYear, parsePlanUpperLimit } from './planning.js';
+export { PLAN_TARGET_CATALOG } from './plan-targets.js';
+export type { PlanTargetCategory, PlanTargetMetric } from './plan-targets.js';

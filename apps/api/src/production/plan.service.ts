@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { daysInYear, parsePlanUpperLimit, PLAN_TARGET_CATALOG } from '@hgxt/shared';
 import type {
   FormData,
   FormField,
@@ -8,7 +9,6 @@ import type {
   PlanSettingsResult,
   PlanSettingsSaveBody,
   PlanTargetRow,
-  PlanTargetSaveBody,
   PlanTask,
   PlanWorkshopRow,
   ProductionPlanBoardResult,
@@ -20,38 +20,30 @@ import { OverviewService } from './overview.service';
  * 生产计划与完成 —— 计划值入库（ProductionPlan / ConsumptionTarget），
  * 实际值全部从表单现算（复用 Overview 的车间产量序列与能源序列）。
  * 口径（design/plan/02）：
- *   时间进度 = 已过天数 ÷ 全年天数；按进度应完成 = 年度计划 × 时间进度
+ *   时间进度 = 已过天数 ÷ 全年天数（已结束年度恒为 100%）；按进度应完成 = 年度计划 × 时间进度
  *   达成 = 累计完成率 ≥ 时间进度（±2 个百分点显示「持平」）
- *   月度自动拆分 = 年度计划 × 当月天数 ÷ 全年天数；手工值覆盖
+ *   年度与月度计划分别录入；未填写的月份没有计划值
+ *   单耗目标只设置上限；旧区间数据沿用其上限
  */
 const PLAN_WORKSHOPS: Array<{ workshop: string; basis: string; code: string }> = [
   { workshop: '硫酸', basis: '折 98% 硫酸', code: 'sulfuric' },
   { workshop: '氨基磺酸', basis: '单日汇总', code: 'aminosulfonic' },
   { workshop: '硫酸镁', basis: '单日汇总', code: 'magnesium' },
-  { workshop: '水滑石', basis: '4 牌号合计', code: 'hydrotalcite' },
-  { workshop: '二乙基蒽醌', basis: '精品', code: 'anthraquinone' },
+  { workshop: '水滑石', basis: '5 牌号合计', code: 'hydrotalcite' },
+  { workshop: '二乙基蒽醌', basis: '总产量', code: 'anthraquinone' },
   { workshop: '丰联', basis: '焦磷酸哌嗪', code: 'fenglian' },
-];
-
-/** 单耗目标默认行（design/plan/02；库里无记录时展示，保存后以库为准） */
-const DEFAULT_TARGETS: PlanTargetRow[] = [
-  { workshop: '硫酸', material: '电', unit: 'kWh/t', target: '85 – 95' },
-  { workshop: '硫酸', material: '硫铁矿', unit: 't/t', target: '1.55 – 1.62' },
-  { workshop: '氨基磺酸', material: '尿素', unit: 't/t', target: '≤ 0.660' },
-  { workshop: '氨基磺酸', material: '蒸汽', unit: 't/t', target: '1.35 – 1.55' },
-  { workshop: '硫酸镁', material: '氧化镁', unit: 't/t', target: '≤ 0.200' },
-  { workshop: '水滑石', material: '蒸汽', unit: 't/t', target: '≤ 2.20' },
-  { workshop: '二乙基蒽醌', material: '苯酐', unit: 't/t', target: '≤ 1.10' },
-  { workshop: '丰联', material: '85%磷酸', unit: 't/t', target: '≤ 0.95' },
 ];
 
 const CODE_MATTERS = 'matters_2026';
 const CODE_SALES = 'sales_daily';
 const CODE_FINISHED = 'finished_products_daily';
 
-const daysInYear = (year: number): number => ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 366 : 365);
-const daysInMonth = (year: number, month: number): number => new Date(year, month, 0).getDate();
 const monthKey = (date: string): string => date.slice(0, 7);
+const dayBefore = (date: string): string => {
+  const day = new Date(`${date}T00:00:00Z`);
+  day.setUTCDate(day.getUTCDate() - 1);
+  return day.toISOString().slice(0, 10);
+};
 
 @Injectable()
 export class PlanService {
@@ -73,19 +65,11 @@ export class PlanService {
     workshop: string,
     basis: string,
     plan: { annual: number; months: unknown } | undefined,
-    year: number,
   ): PlanWorkshopRow {
     const annual = plan?.annual ?? 0;
     const monthsRaw = (plan?.months as Record<string, number | null> | null) ?? {};
-    const total = daysInYear(year);
-    const months = Array.from({ length: 12 }, (_, i) => {
-      const manual = monthsRaw[String(i + 1)] != null;
-      const value = manual
-        ? Number(monthsRaw[String(i + 1)])
-        : +(annual * (daysInMonth(year, i + 1) / total)).toFixed(0);
-      return { value, manual };
-    });
-    return { workshop, basis, annual, months, monthTotal: months.reduce((s, m) => s + m.value, 0) };
+    const months = Array.from({ length: 12 }, (_, i) => PlanService.toNum(monthsRaw[String(i + 1)]));
+    return { workshop, basis, annual, months, monthTotal: months.reduce<number>((s, m) => s + (m ?? 0), 0) };
   }
 
   async getSettings(year: number): Promise<PlanSettingsResult> {
@@ -95,60 +79,81 @@ export class PlanService {
     ]);
     const rows = PLAN_WORKSHOPS.map((w) => {
       const plan = plans.find((p) => p.workshop === w.workshop);
-      return this.buildPlanRow(w.workshop, w.basis, plan, year);
+      return this.buildPlanRow(w.workshop, w.basis, plan);
     });
-    const targetRows: PlanTargetRow[] = targets.length
-      ? targets.map((t) => ({ workshop: t.workshop, material: t.material, unit: t.unit, target: t.target }))
-      : DEFAULT_TARGETS;
+    const savedTargets = new Map(targets.map((t) => [`${t.workshop}|${t.material}`, t.target]));
+    const targetRows: PlanTargetRow[] = PLAN_TARGET_CATALOG.map((metric) => {
+      const saved = savedTargets.get(`${metric.workshop}|${metric.material}`);
+      const upper = parsePlanUpperLimit(saved ?? metric.defaultLimit ?? '');
+      return {
+        workshop: metric.workshop,
+        material: metric.material,
+        unit: metric.unit,
+        target: upper !== null && upper > 0 ? String(upper) : '',
+      };
+    });
     return { year, rows, targets: targetRows };
   }
 
-  async saveSettings(body: PlanSettingsSaveBody): Promise<PlanSettingsResult> {
+  /** 运行时校验：workshop 白名单、annual 非负、months 恰好 12 项且为 null 或非负数 */
+  private static validateSaveBody(body: PlanSettingsSaveBody): void {
+    const known = new Set(PLAN_WORKSHOPS.map((w) => w.workshop));
     for (const row of body.rows) {
-      const months: Record<string, number | null> = {};
-      row.months.forEach((v, i) => {
-        months[String(i + 1)] = v;
-      });
-      await this.prisma.productionPlan.upsert({
-        where: { year_workshop: { year: body.year, workshop: row.workshop } },
-        create: { year: body.year, workshop: row.workshop, annual: row.annual, months },
-        update: { annual: row.annual, months },
-      });
+      if (!known.has(row.workshop)) {
+        throw new BadRequestException(`未知车间：${row.workshop}`);
+      }
+      if (!Number.isInteger(row.annual) || row.annual < 0) {
+        throw new BadRequestException(`${row.workshop} 年度计划必须是非负整数吨`);
+      }
+      if (!Array.isArray(row.months) || row.months.length !== 12) {
+        throw new BadRequestException(`${row.workshop} months 必须是长度 12 的数组`);
+      }
+      for (const m of row.months) {
+        if (m !== null && (!Number.isFinite(m) || m < 0)) {
+          throw new BadRequestException(`${row.workshop} 月度计划必须是非负数字或 null`);
+        }
+      }
     }
+    const targetKeys = new Set<string>();
+    for (const t of body.targets ?? []) {
+      const key = `${t.workshop}|${t.material}`;
+      const metric = PLAN_TARGET_CATALOG.find((item) => item.workshop === t.workshop && item.material === t.material);
+      const value = typeof t.target === 'string' ? t.target.trim() : '';
+      if (!metric || metric.unit !== t.unit || targetKeys.has(key) || typeof t.target !== 'string' || t.target.length > 40 ||
+        (value !== '' && (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(value) || Number(value) <= 0 || !Number.isFinite(Number(value))))) {
+        throw new BadRequestException('单耗上限必须是对应指标的正数，留空表示不设置');
+      }
+      targetKeys.add(key);
+    }
+  }
+
+  /** 保存：计划与单耗目标在同一个事务里落库，任何一行失败整体回滚 */
+  async saveSettings(body: PlanSettingsSaveBody): Promise<PlanSettingsResult> {
+    PlanService.validateSaveBody(body);
+    await this.prisma.$transaction(async (tx) => {
+      for (const row of body.rows) {
+        const months: Record<string, number | null> = {};
+        row.months.forEach((v, i) => {
+          months[String(i + 1)] = v;
+        });
+        await tx.productionPlan.upsert({
+          where: { year_workshop: { year: body.year, workshop: row.workshop } },
+          create: { year: body.year, workshop: row.workshop, annual: row.annual, months },
+          update: { annual: row.annual, months },
+        });
+      }
+      for (const t of body.targets ?? []) {
+        await tx.consumptionTarget.upsert({
+          where: { workshop_material: { workshop: t.workshop, material: t.material } },
+          create: { workshop: t.workshop, material: t.material, unit: t.unit, target: t.target.trim() === '' ? '' : String(Number(t.target)) },
+          update: { unit: t.unit, target: t.target.trim() === '' ? '' : String(Number(t.target)) },
+        });
+      }
+    });
     return this.getSettings(body.year);
   }
 
-  async saveTargets(body: PlanTargetSaveBody): Promise<PlanTargetRow[]> {
-    for (const t of body.targets) {
-      await this.prisma.consumptionTarget.upsert({
-        where: { workshop_material: { workshop: t.workshop, material: t.material } },
-        create: { workshop: t.workshop, material: t.material, unit: t.unit, target: t.target },
-        update: { unit: t.unit, target: t.target },
-      });
-    }
-    return body.targets;
-  }
-
   // ── 看板 ─────────────────────────────────────────────────
-
-  /** 读某表单全部提交（不做归属日偏移，按主日期字段原值归组；同日取最新） */
-  private async rawByDate(code: string): Promise<Map<string, FormData>> {
-    const form = await this.prisma.form.findUnique({ where: { code } });
-    if (!form) return new Map();
-    const dateField = (form.schema as unknown as FormField[]).find((f) => f.type === 'date');
-    if (!dateField) return new Map();
-    const submissions = await this.prisma.formSubmission.findMany({
-      where: { formId: form.id },
-      orderBy: { createdAt: 'asc' },
-      select: { data: true },
-    });
-    const map = new Map<string, FormData>();
-    for (const s of submissions) {
-      const date = (s.data as FormData)[dateField.id];
-      if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) map.set(date, s.data as FormData);
-    }
-    return map;
-  }
 
   /** 按月求和：日序列 → Map<'YYYY-MM', number> */
   private static sumByMonth(dates: string[], values: Array<number | null>): Map<string, number> {
@@ -161,34 +166,38 @@ export class PlanService {
     return map;
   }
 
-  /** 区间/上限文本解析出目标上限（"85 – 95"→95、"≤ 0.660"→0.66） */
-  private static targetMax(target: string | null | undefined): number | null {
-    if (!target) return null;
-    const match = target.match(/(\d+(?:\.\d+)?)\s*$/);
-    return match ? Number(match[1]) : null;
-  }
-
   async board(year: number): Promise<ProductionPlanBoardResult> {
     const [overview, energy, settings, salesForm, finishedForm, aminoForm, magnesiumForm, hydrotalciteForm, anthraquinoneForm, fenglianForm] =
       await Promise.all([
         this.overview.workshopOverview(0),
         this.overview.energy(0),
         this.getSettings(year),
-        this.rawByDate(CODE_SALES),
-        this.rawByDate(CODE_FINISHED),
-        this.rawByDate('aminosulfonic_daily'),
-        this.rawByDate('magnesium_daily'),
-        this.rawByDate('hydrotalcite_daily'),
-        this.rawByDate('anthraquinone_daily'),
-        this.rawByDate('fenglian_daily'),
+        this.overview.byDate(CODE_SALES),
+        this.overview.byDate(CODE_FINISHED),
+        this.overview.byDate('aminosulfonic_daily'),
+        this.overview.byDate('magnesium_daily'),
+        this.overview.byDate('hydrotalcite_daily'),
+        this.overview.byDate('anthraquinone_daily'),
+        this.overview.byDate('fenglian_daily'),
       ]);
 
-    const dates = overview.dates;
-    const asOf = dates[dates.length - 1] ?? null;
-    const now = asOf ? new Date(`${asOf}T00:00:00Z`) : null;
-    const dayOfYear = now
-      ? Math.round((now.getTime() - Date.UTC(now.getUTCFullYear(), 0, 1)) / 86400000) + 1
-      : null;
+    // 年度坐标系：asOf 必须取「选中年度内」的最后一个归属日——
+    // 直接取全史最后一天会把历史年度看板混入当前最新月/周的数据。
+    // 序列聚合（sumByMonth/周区间）仍用全量日期对齐 values 下标，按月键过滤年度。
+    const allDates = overview.dates;
+    const dates = allDates.filter((d) => d.startsWith(String(year)));
+    // 库存快照归填报当天，可能比最后一条产量晚一天；计划进度以最近有产量的日期为准。
+    const productionDates = dates.filter((date) => {
+      const index = allDates.indexOf(date);
+      return overview.workshops.some((workshop) => workshop.values[index] !== null);
+    });
+    const asOf = productionDates.at(-1) ?? dates.at(-1) ?? null;
+    const yearClosed = year < new Date().getFullYear();
+    const dayOfYear = yearClosed
+      ? daysInYear(year)
+      : asOf
+        ? Math.round((new Date(`${asOf}T00:00:00Z`).getTime() - Date.UTC(year, 0, 1)) / 86400000) + 1
+        : null;
     const timeProgress = dayOfYear
       ? { pct: +((dayOfYear / daysInYear(year)) * 100).toFixed(1), dayOfYear, daysInYear: daysInYear(year) }
       : null;
@@ -197,7 +206,7 @@ export class PlanService {
     const productionByCode = new Map<string, Map<string, number>>();
     for (const w of overview.workshops) {
       if (w.code === 'thermal') continue;
-      productionByCode.set(w.code, PlanService.sumByMonth(dates, w.values));
+      productionByCode.set(w.code, PlanService.sumByMonth(allDates, w.values));
     }
     const currentMonth = asOf ? monthKey(asOf) : '';
 
@@ -222,11 +231,9 @@ export class PlanService {
     const productSales: Record<string, string[]> = {
       aminosulfonic: [fieldByTitle('氨基磺酸销量')].filter((x): x is string => !!x),
       magnesium: [fieldByTitle('硫酸镁销量')].filter((x): x is string => !!x),
-      hydrotalcite: ['HG-200销量', 'HG-201销量', 'HG-300销量', 'HG-205销量']
+      hydrotalcite: ['HG-200销量', 'HG-200A销量', 'HG-201销量', 'HG-300销量', 'HG-205销量']
         .map(fieldByTitle)
         .filter((x): x is string => !!x),
-      anthraquinone: ['field_fine_sales'],
-      fenglian: ['field_205'],
     };
     for (const [date, data] of finishedForm) {
       for (const [code, fields] of Object.entries(productSales)) {
@@ -236,27 +243,38 @@ export class PlanService {
         }
       }
     }
+    for (const [date, data] of fenglianForm) {
+      const value = PlanService.toNum(data.field_205);
+      if (value !== null) pushSales('fenglian', date, value);
+    }
+    for (const [date, data] of anthraquinoneForm) {
+      for (const field of ['field_crude_sales', 'field_fine_sales']) {
+        const value = PlanService.toNum(data[field]);
+        if (value !== null) pushSales('anthraquinone', date, value);
+      }
+    }
 
     // ── 计划完成 + 月度趋势 ──
     const planByWorkshop = new Map(settings.rows.map((r) => [r.workshop, r]));
     const completion: PlanCompletionRow[] = PLAN_WORKSHOPS.map((w) => {
       const plan = planByWorkshop.get(w.workshop)!;
       const monthly = productionByCode.get(w.code) ?? new Map();
-      const monthActual = +(monthly.get(currentMonth) ?? 0).toFixed(1);
+      const monthActual = +(monthly.get(currentMonth) ?? 0).toFixed(3);
       const yearActual = +[...monthly.entries()]
         .filter(([k]) => k.startsWith(String(year)))
         .reduce((s, [, v]) => s + v, 0)
-        .toFixed(1);
-      const monthPlan = plan.annual > 0 ? plan.months[Number(currentMonth.slice(5)) - 1]?.value ?? null : null;
+        .toFixed(3);
+      const currentMonthPlan = currentMonth ? plan.months[Number(currentMonth.slice(5)) - 1] : undefined;
+      const monthPlan = currentMonthPlan ?? null;
       const yearRate = plan.annual > 0 ? +((yearActual / plan.annual) * 100).toFixed(1) : null;
-      const expected = plan.annual > 0 && timeProgress ? +((plan.annual * timeProgress.pct) / 100).toFixed(1) : null;
+      const expected = plan.annual > 0 && timeProgress ? +((plan.annual * timeProgress.pct) / 100).toFixed(2) : null;
       const statusPoints = yearRate !== null && timeProgress
         ? +(yearRate - timeProgress.pct).toFixed(1)
         : null;
       const months = Array.from({ length: 12 }, (_, i) => {
         const key = `${year}-${String(i + 1).padStart(2, '0')}`;
-        const planValue = plan.annual > 0 ? plan.months[i].value : null;
-        const actual = monthly.has(key) ? +(monthly.get(key)!).toFixed(1) : null;
+        const planValue = plan.months[i];
+        const actual = monthly.has(key) ? +(monthly.get(key)!).toFixed(3) : null;
         return {
           month: i + 1,
           plan: planValue,
@@ -274,77 +292,114 @@ export class PlanService {
         yearActual,
         yearRate,
         expectedByProgress: expected,
-        aheadOfProgress: expected !== null ? +(yearActual - expected).toFixed(1) : null,
+        aheadOfProgress: expected !== null ? +(yearActual - expected).toFixed(2) : null,
         status: statusPoints === null ? null : statusPoints > 2 ? 'ahead' : statusPoints < -2 ? 'behind' : 'onTrack',
         statusPoints,
         months,
       };
     });
 
-    // ── 本周 vs 上周（以 asOf 所在周的周一为界） ──
+    // ── 本周 vs 上周（以 asOf 所在周的周一为界；逐日数据供新版卡片图使用） ──
+    const shiftDate = (date: string, days: number): string => {
+      const dt = new Date(`${date}T00:00:00Z`);
+      dt.setUTCDate(dt.getUTCDate() + days);
+      return dt.toISOString().slice(0, 10);
+    };
+    const dateIndex = new Map(allDates.map((d, i) => [d, i]));
     const week = PLAN_WORKSHOPS.map((w) => {
       const series = overview.workshops.find((s) => s.code === w.code);
-      const sumRange = (from: string, to: string, seriesValues?: Array<number | null>): number => {
-        if (!seriesValues) return 0;
-        let sum = 0;
-        dates.forEach((d, i) => {
-          if (d >= from && d <= to && seriesValues[i] !== null) sum += seriesValues[i] ?? 0;
-        });
-        return sum;
+      const productionAt = (date: string): number => {
+        const i = dateIndex.get(date);
+        return i === undefined ? 0 : +(series?.values[i] ?? 0).toFixed(3);
       };
-      const shift = (date: string, days: number): string => {
-        const dt = new Date(`${date}T00:00:00Z`);
-        dt.setUTCDate(dt.getUTCDate() + days);
-        return dt.toISOString().slice(0, 10);
-      };
-      const salesSumRange = (code: string, from: string, to: string): number => {
-        let sum = 0;
-        for (const [d, v] of salesOfDay.get(code) ?? []) if (d >= from && d <= to) sum += v;
-        return sum;
-      };
+      const salesAt = (date: string): number => +(salesOfDay.get(w.code)?.get(date) ?? 0).toFixed(3);
+      const sum = (values: Array<number | null>): number => +values.reduce<number>((s, v) => s + (v ?? 0), 0).toFixed(3);
       if (!asOf) {
-        return { workshop: w.workshop, productionThis: 0, productionLast: null, productionDelta: null, salesThis: 0, salesLast: null, salesDelta: null, productionLastFullWeek: null };
+        return {
+          workshop: w.workshop,
+          productionThis: 0,
+          productionLast: null,
+          productionDelta: null,
+          productionDailyThis: Array.from({ length: 7 }, () => null),
+          productionDailyLast: Array.from({ length: 7 }, () => 0),
+          salesThis: 0,
+          salesLast: null,
+          salesDelta: null,
+          salesDailyThis: Array.from({ length: 7 }, () => null),
+          salesDailyLast: Array.from({ length: 7 }, () => 0),
+          productionLastFullWeek: null,
+          salesLastFullWeek: null,
+        };
       }
       const weekday = new Date(`${asOf}T00:00:00Z`).getUTCDay();
-      const mondayOffset = weekday === 0 ? -6 : 1 - weekday;
-      const monday = shift(asOf, mondayOffset);
-      const lastMonday = shift(monday, -7);
-      const lastSunday = shift(monday, -1);
-      const values = series?.values;
-      const productionThis = +sumRange(monday, asOf, values).toFixed(1);
-      const productionLast = +sumRange(lastMonday, shift(asOf, -7), values).toFixed(1);
-      const salesThis = +salesSumRange(w.code, monday, asOf).toFixed(1);
-      const salesLast = +salesSumRange(w.code, lastMonday, shift(asOf, -7)).toFixed(1);
+      const elapsedDays = weekday === 0 ? 7 : weekday;
+      const monday = shiftDate(asOf, weekday === 0 ? -6 : 1 - weekday);
+      const lastMonday = shiftDate(monday, -7);
+      const productionDailyThis = Array.from({ length: 7 }, (_, i) => i < elapsedDays ? productionAt(shiftDate(monday, i)) : null);
+      const productionDailyLast = Array.from({ length: 7 }, (_, i) => productionAt(shiftDate(lastMonday, i)));
+      const salesDailyThis = Array.from({ length: 7 }, (_, i) => i < elapsedDays ? salesAt(shiftDate(monday, i)) : null);
+      const salesDailyLast = Array.from({ length: 7 }, (_, i) => salesAt(shiftDate(lastMonday, i)));
+      const productionThis = sum(productionDailyThis);
+      const productionLast = sum(productionDailyLast.slice(0, elapsedDays));
+      const salesThis = sum(salesDailyThis);
+      const salesLast = sum(salesDailyLast.slice(0, elapsedDays));
       const delta = (a: number, b: number): number | null => (b > 0 ? +(((a - b) / b) * 100).toFixed(1) : null);
       return {
         workshop: w.workshop,
         productionThis,
         productionLast,
         productionDelta: delta(productionThis, productionLast),
+        productionDailyThis,
+        productionDailyLast,
         salesThis,
         salesLast,
         salesDelta: delta(salesThis, salesLast),
-        productionLastFullWeek: +sumRange(lastMonday, lastSunday, values).toFixed(1),
+        salesDailyThis,
+        salesDailyLast,
+        productionLastFullWeek: sum(productionDailyLast),
+        salesLastFullWeek: sum(salesDailyLast),
       };
     });
 
     // ── 产销视图 ──
+    // 产量 asOf 是生产日，产成品库存是填报日快照；取看板月份内最新库存，不混入其他年度。
     const inventoryOf = new Map<string, number>();
-    {
-      const materials = await this.overview.materials();
-      for (const p of materials.finishedProducts) {
-        if (p.name.startsWith('硫酸')) inventoryOf.set('sulfuric', p.stock ?? 0);
-        if (p.name === '氨基磺酸') inventoryOf.set('aminosulfonic', p.stock ?? 0);
-        if (p.name === '硫酸镁') inventoryOf.set('magnesium', p.stock ?? 0);
-        if (p.name === '蒽醌·精品') inventoryOf.set('anthraquinone', p.stock ?? 0);
+    if (asOf) {
+      const stockDates = [...finishedForm.keys()].filter((date) => monthKey(date) === currentMonth).sort().reverse();
+      const stockByTitle = (title: string): number | null => {
+        const field = fieldByTitle(title);
+        if (!field) return null;
+        for (const date of stockDates) {
+          const value = PlanService.toNum(finishedForm.get(date)?.[field]);
+          if (value !== null) return value;
+        }
+        return null;
+      };
+      const setIfNumber = (code: string, value: number | null): void => {
+        if (value !== null) inventoryOf.set(code, value);
+      };
+      setIfNumber('aminosulfonic', stockByTitle('氨基磺酸库存'));
+      setIfNumber('magnesium', stockByTitle('硫酸镁库存'));
+      const hydrotalciteStocks = ['HG-200库存', 'HG-200A库存', 'HG-201库存', 'HG-300库存', 'HG-205库存']
+        .map(stockByTitle)
+        .filter((v): v is number => v !== null);
+      if (hydrotalciteStocks.length) inventoryOf.set('hydrotalcite', +hydrotalciteStocks.reduce((s, v) => s + v, 0).toFixed(3));
+      const anthraStock = anthraquinoneForm.get(asOf);
+      const crudeStock = PlanService.toNum(anthraStock?.field_crude_stock);
+      const fineStock = PlanService.toNum(anthraStock?.field_fine_stock);
+      setIfNumber('anthraquinone', crudeStock === null && fineStock === null
+        ? null
+        : (crudeStock ?? 0) + (fineStock ?? 0));
+      setIfNumber('fenglian', PlanService.toNum(fenglianForm.get(asOf)?.field_206));
+
+      // 硫酸库存来自汇总服务的最新罐区快照；只有它与当前看板 asOf 完全一致时才展示。
+      if (year === new Date().getFullYear()) {
+        const materials = await this.overview.materials();
+        const sulfuric = materials.finishedProducts.find((p) => p.name === '硫酸（四酸合计·折98）');
+        if (sulfuric?.stockDate === asOf && sulfuric.stock !== null) inventoryOf.set('sulfuric', sulfuric.stock);
       }
-      const hydrotalciteStock = materials.finishedProducts
-        .filter((p) => /^HG-/.test(p.name))
-        .reduce((s, p) => s + (p.stock ?? 0), 0);
-      inventoryOf.set('hydrotalcite', +hydrotalciteStock.toFixed(1));
-      const fenglianLatest = [...fenglianForm.keys()].sort().pop();
-      if (fenglianLatest) inventoryOf.set('fenglian', PlanService.toNum(fenglianForm.get(fenglianLatest)!.field_206) ?? 0);
     }
+    const elapsedDaysInMonth = asOf ? Number(asOf.slice(8, 10)) : 0;
     const lastMonthKey = (() => {
       if (!currentMonth) return '';
       const [y, m] = currentMonth.split('-').map(Number);
@@ -357,15 +412,18 @@ export class PlanService {
       const lastMonthProduction = monthly.get(lastMonthKey) ?? null;
       let salesSum = 0;
       for (const [d, v] of salesOfDay.get(w.code) ?? []) if (monthKey(d) === currentMonth) salesSum += v;
-      salesSum = +salesSum.toFixed(1);
+      salesSum = +salesSum.toFixed(3);
+      const inventory = inventoryOf.get(w.code) ?? null;
       return {
         workshop: w.workshop,
-        production: +production.toFixed(1),
+        production: +production.toFixed(3),
         sales: salesSum,
         salesRatio: production > 0 ? Math.round((salesSum / production) * 100) : null,
-        inventory: inventoryOf.get(w.code) ?? null,
-        inventoryDays: salesSum > 0 ? +((inventoryOf.get(w.code) ?? 0) / (salesSum / 30)).toFixed(1) : null,
-        lastMonthProduction: lastMonthProduction !== null ? +lastMonthProduction.toFixed(1) : null,
+        inventory,
+        inventoryDays: inventory !== null && salesSum > 0 && elapsedDaysInMonth > 0
+          ? +(inventory / (salesSum / elapsedDaysInMonth)).toFixed(1)
+          : null,
+        lastMonthProduction: lastMonthProduction !== null ? +lastMonthProduction.toFixed(3) : null,
         productionDelta:
           production !== null && lastMonthProduction && lastMonthProduction > 0
             ? +(((production - lastMonthProduction) / lastMonthProduction) * 100).toFixed(1)
@@ -390,19 +448,21 @@ export class PlanService {
       const useLast = usageByMonth.get(lastMonthKey) ?? null;
       const current = useThis !== null && prodThis > 0 ? +(useThis / prodThis).toFixed(3) : null;
       const lastMonth = useLast !== null && prodLast > 0 ? +(useLast / prodLast).toFixed(3) : null;
-      const target = targetOf.get(`${workshop}|${material}`)?.target ?? null;
-      const targetMax = PlanService.targetMax(target);
+      const targetValue = targetOf.get(`${workshop}|${material}`)?.target ?? '';
+      const targetMaxNumber = parsePlanUpperLimit(targetValue);
       return {
         workshop,
         material,
         usageUnit,
         unit,
-        monthUsage: current !== null && prodThis > 0 ? +(current * prodThis).toFixed(1) : useThis !== null ? +useThis.toFixed(1) : null,
+        monthUsage: useThis !== null ? +useThis.toFixed(2) : null,
         current,
         lastMonth,
-        target,
-        targetMax,
-        deviationPct: current !== null && targetMax !== null && targetMax > 0 ? +(((current / targetMax - 1) * 100)).toFixed(1) : null,
+        target: targetMaxNumber !== null ? `≤ ${targetValue}` : null,
+        targetMax: targetMaxNumber,
+        deviationPct: current !== null && targetMaxNumber !== null
+          ? +(((current / targetMaxNumber) - 1) * 100).toFixed(1)
+          : null,
       };
     };
     const seriesUsageByMonth = (values: Array<number | null>): Map<string, number> =>
@@ -419,19 +479,23 @@ export class PlanService {
     }
     for (const s of energy.water.workshops) {
       const workshop = s.name.replace('·总水表', '') === '蒽醌' ? '二乙基蒽醌' : s.name.replace('·总水表', '');
-      energyConsumption.push(consumptionOf(workshop, '水', 't', 't/t', seriesUsageByMonth(s.values)));
+      energyConsumption.push(consumptionOf(workshop, '水', 'm³', 'm³/t', seriesUsageByMonth(s.values)));
     }
-    // 蒽醌天然气（表差 ×1）
+    // 蒽醌天然气优先取报表耗用；旧数据按结余与购入反推。
     {
       const usage = new Map<string, number>();
-      const sorted = [...anthraquinoneForm.keys()].sort();
-      for (const date of sorted) {
-        const prev = sorted[sorted.indexOf(date) - 1];
-        if (!prev) continue;
-        const a = PlanService.toNum(anthraquinoneForm.get(prev)!.field_gas_meter);
-        const b = PlanService.toNum(anthraquinoneForm.get(date)!.field_gas_meter);
-        if (a !== null && b !== null && b >= a) {
-          usage.set(monthKey(date), (usage.get(monthKey(date)) ?? 0) + (b - a));
+      for (const [date, data] of anthraquinoneForm) {
+        let amount = PlanService.toNum(data.field_gas_consumption);
+        if (amount === null) {
+          const previous = PlanService.toNum(anthraquinoneForm.get(dayBefore(date))?.field_gas_meter);
+          const current = PlanService.toNum(data.field_gas_meter);
+          const purchase = PlanService.toNum(data.field_gas_recharge) ?? 0;
+          if (previous !== null && current !== null && previous + purchase >= current) {
+            amount = previous + purchase - current;
+          }
+        }
+        if (amount !== null) {
+          usage.set(monthKey(date), (usage.get(monthKey(date)) ?? 0) + amount);
         }
       }
       energyConsumption.push(consumptionOf('二乙基蒽醌', '天然气', 'm³', 'm³/t', usage));
@@ -439,7 +503,7 @@ export class PlanService {
 
     // 原辅料：仓库三件套 + 各车间表单消耗字段（体积量按密度折吨）
     const materialConsumption: PlanConsumptionRow[] = [];
-    const warehouse = await this.rawByDate('warehouse_daily');
+    const warehouse = await this.overview.byDate('warehouse_daily');
     const warehouseUsageByTitle = (title: string): Map<string, number> => {
       const map = new Map<string, number>();
       const schema = finishedWarehouseSchema;
@@ -460,20 +524,23 @@ export class PlanService {
       source: Map<string, FormData>,
       fieldId: string,
       factor = 1,
+      fallback?: { source: Map<string, FormData>; fieldId: string },
     ): void => {
       const map = new Map<string, number>();
-      for (const [date, data] of source) {
-        const v = PlanService.toNum(data[fieldId]);
+      const dates = new Set([...source.keys(), ...(fallback?.source.keys() ?? [])]);
+      for (const date of dates) {
+        const v = PlanService.toNum(source.get(date)?.[fieldId])
+          ?? PlanService.toNum(fallback?.source.get(date)?.[fallback.fieldId]);
         if (v !== null) map.set(monthKey(date), (map.get(monthKey(date)) ?? 0) + v * factor);
       }
       materialConsumption.push(consumptionOf(workshop, materialName, 't', unit, map));
     };
-    formFieldUsage('氨基磺酸', '尿素', 't/t', aminoForm, 'field_urea');
+    formFieldUsage('氨基磺酸', '尿素', 't/t', warehouse, 'field_017', 1, { source: aminoForm, fieldId: 'field_urea' });
     formFieldUsage('氨基磺酸', '发烟硫酸', 't/t', aminoForm, 'field_nitric_acid', 1.92);
-    formFieldUsage('硫酸镁', '氧化镁', 't/t', magnesiumForm, 'field_mgo_consumption');
+    formFieldUsage('硫酸镁', '氧化镁', 't/t', warehouse, 'field_020', 1, { source: magnesiumForm, fieldId: 'field_mgo_consumption' });
     formFieldUsage('硫酸镁', '93%酸+稀酸', 't/t', magnesiumForm, 'field_sulfuric_93', 1.84);
-    formFieldUsage('水滑石', '氢氧化铝', 't/t', hydrotalciteForm, 'field_aluminum_hydroxide');
-    formFieldUsage('水滑石', '纯碱', 't/t', hydrotalciteForm, 'field_soda_ash');
+    formFieldUsage('水滑石', '氢氧化铝', 't/t', warehouse, 'field_029', 1, { source: hydrotalciteForm, fieldId: 'field_aluminum_hydroxide' });
+    formFieldUsage('水滑石', '纯碱', 't/t', warehouse, 'field_023', 1, { source: hydrotalciteForm, fieldId: 'field_soda_ash' });
     formFieldUsage('二乙基蒽醌', '苯酐', 't/t', anthraquinoneForm, 'field_phthalic_anhydride_consumption');
     formFieldUsage('二乙基蒽醌', '无水三氯化铝', 't/t', anthraquinoneForm, 'field_alcl3_consumption');
     formFieldUsage('二乙基蒽醌', '甲苯', 't/t', anthraquinoneForm, 'field_toluene_consumption');

@@ -7,6 +7,42 @@
     "description": "每日生产数据填报"
   },
   {
+    "file": "sulfuric-control-assay.json",
+    "title": "硫酸中控 01｜矿样·干吸·风机",
+    "category": "品质",
+    "entryMode": "form",
+    "parkingEnabled": false,
+    "code": "sulfuric_control_assay",
+    "description": "矿样、干吸酸浓与风机出口分析"
+  },
+  {
+    "file": "sulfuric-control-washing.json",
+    "title": "硫酸中控 02｜动力波·水洗塔",
+    "category": "品质",
+    "entryMode": "form",
+    "parkingEnabled": false,
+    "code": "sulfuric_control_washing",
+    "description": "动力波与水洗塔分析"
+  },
+  {
+    "file": "sulfuric-control-acid.json",
+    "title": "硫酸中控 03｜预干燥·酸浓缩·尾吸·试剂酸",
+    "category": "品质",
+    "entryMode": "form",
+    "parkingEnabled": false,
+    "code": "sulfuric_control_acid",
+    "description": "预干燥、酸浓缩、尾吸塔与试剂酸分析"
+  },
+  {
+    "file": "sulfuric-control-notes.json",
+    "title": "硫酸中控 04｜生产情况记录",
+    "category": "品质",
+    "entryMode": "form",
+    "parkingEnabled": false,
+    "code": "sulfuric_control_notes",
+    "description": "每日生产情况记录"
+  },
+  {
     "file": "aminosulfonic.json",
     "title": "氨基磺酸车间生产日报（单日汇总）",
     "parkingEnabled": false,
@@ -68,6 +104,15 @@
     "parkingEnabled": false,
     "code": "finished_products_daily",
     "description": "各车间产成品产销存"
+  },
+  {
+    "file": "maintenance.json",
+    "title": "设备维修登记",
+    "category": "设备",
+    "entryMode": "form",
+    "parkingEnabled": false,
+    "code": "maintenance_log",
+    "description": "设备维修原始记录"
   },
   {
     "file": "matters-2026.json",

@@ -1,0 +1,327 @@
+[
+  {
+    "id": "field_date",
+    "title": "日期",
+    "type": "date",
+    "required": true,
+    "group": "矿样·干吸·风机",
+    "hidden": true
+  },
+  {
+    "id": "field_B",
+    "title": "有效硫（%）",
+    "type": "text",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "原料配矿",
+    "width": 170
+  },
+  {
+    "id": "field_C",
+    "title": "有效硫（前晚班）",
+    "type": "text",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "原料配矿",
+    "width": 170
+  },
+  {
+    "id": "field_D",
+    "title": "铅（%）",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "原料配矿",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_E",
+    "title": "锌（%）",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "原料配矿",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_F",
+    "title": "有效硫（%）",
+    "type": "text",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "入炉矿",
+    "width": 170
+  },
+  {
+    "id": "field_G",
+    "title": "水分（%）",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "入炉矿",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_H",
+    "title": "铅（%）",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "入炉矿",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_I",
+    "title": "锌（%）",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "入炉矿",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_J",
+    "title": "有效硫（%）",
+    "type": "text",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "后室排渣",
+    "width": 170
+  },
+  {
+    "id": "field_K",
+    "title": "有效硫（前一天晚班）",
+    "type": "text",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "后室排渣",
+    "width": 170
+  },
+  {
+    "id": "field_L",
+    "title": "铅（%）",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "后室排渣",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_M",
+    "title": "锌（%）",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "后室排渣",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_N",
+    "title": "有效硫（%）",
+    "type": "text",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "入炉矿  (晚班)",
+    "width": 170
+  },
+  {
+    "id": "field_O",
+    "title": "水分（%）",
+    "type": "text",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "入炉矿  (晚班)",
+    "width": 170
+  },
+  {
+    "id": "field_P",
+    "title": "有效硫（%）",
+    "type": "text",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "旋风灰",
+    "width": 170
+  },
+  {
+    "id": "field_Q",
+    "title": "有效硫 白班",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "皮带渣",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_R",
+    "title": "有效硫前天晚班",
+    "type": "text",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "皮带渣",
+    "width": 170
+  },
+  {
+    "id": "field_S",
+    "title": "铅（%）",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "皮带渣",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_T",
+    "title": "锌（%）",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "皮带渣",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_U",
+    "title": "铁(%)",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "铁精粉",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_V",
+    "title": "水分(%)",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "矿样",
+    "subgroup": "铁精粉",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AK",
+    "title": "干燥（93-98）",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "干吸酸浓",
+    "subgroup": "干吸酸浓",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AL",
+    "title": "一吸98-98.5",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "干吸酸浓",
+    "subgroup": "干吸酸浓",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AM",
+    "title": "二吸97.8-98.5",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "干吸酸浓",
+    "subgroup": "干吸酸浓",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_AN",
+    "title": "烟酸104.5-105.5",
+    "type": "text",
+    "group": "矿样·干吸·风机",
+    "section": "干吸酸浓",
+    "subgroup": "干吸酸浓",
+    "width": 170
+  },
+  {
+    "id": "field_AO",
+    "title": "洗涤塔105.5-106.5",
+    "type": "text",
+    "group": "矿样·干吸·风机",
+    "section": "干吸酸浓",
+    "subgroup": "干吸酸浓",
+    "width": 170
+  },
+  {
+    "id": "field_BB",
+    "title": "二氧化硫（%）",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "风机出口",
+    "subgroup": "风机出口",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_BD",
+    "title": "砷（mg/m3)",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "风机出口",
+    "subgroup": "风机出口",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_BE",
+    "title": "氟（mg/m3)",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "风机出口",
+    "subgroup": "风机出口",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_BG",
+    "title": "水 分（g/m3)",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "风机出口",
+    "subgroup": "风机出口",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_BH",
+    "title": "酸 雾（g/m3)",
+    "type": "text",
+    "group": "矿样·干吸·风机",
+    "section": "风机出口",
+    "subgroup": "风机出口",
+    "width": 170
+  },
+  {
+    "id": "field_BC",
+    "title": "二氧化硫（%）",
+    "type": "number",
+    "group": "矿样·干吸·风机",
+    "section": "风机出口",
+    "subgroup": "硫酸尾气",
+    "width": 136,
+    "step": 0.01
+  },
+  {
+    "id": "field_BI",
+    "title": "转化率（%）",
+    "type": "text",
+    "group": "矿样·干吸·风机",
+    "section": "风机出口",
+    "subgroup": "转化率（%）",
+    "width": 170
+  }
+]

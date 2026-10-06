@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { App as AntApp } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { energySummary, workshopOverview } from '../../api/production';
+import { stableViewportStyle } from '../../styles/pagedViewport';
 import { Dash, ExportButton, Kpi, Seg, Spark, Stepper, downloadCsv, fmt, pctChange } from './dash-ui';
 
 type Tab = 'el' | 'st' | 'wa';
@@ -36,6 +37,10 @@ export function EnergyCenterPage() {
   const [tab, setTab] = useState<Tab>('el');
   const [range, setRange] = useState<'month' | '30d'>('month');
   const [month, setMonth] = useState<string | null>(null);
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (tableScrollRef.current) tableScrollRef.current.scrollTop = 0;
+  }, [tab, range, month]);
   const query = useQuery({ queryKey: ['production', 'energy', 120], queryFn: () => energySummary(120) });
   const overview = useQuery({ queryKey: ['production', 'workshops', 120], queryFn: () => workshopOverview(120) });
   useEffect(() => { if (query.error) message.error(query.error.message); }, [query.error, message]);
@@ -174,6 +179,7 @@ export function EnergyCenterPage() {
             </div>
           </div>
         </div>
+        <div className="hgxt-stable-viewport energy-table-viewport" ref={tableScrollRef} style={stableViewportStyle(8, 52, 34)}>
         <div className="swap" key={tab}>
           <div className="erow ehead">
             <div>车间</div>
@@ -206,6 +212,7 @@ export function EnergyCenterPage() {
             );
           })}
           {!rows.length ? <div className="empty">暂无数据</div> : null}
+        </div>
         </div>
         <div className="faint" style={{ fontSize: 13, padding: '10px 0 12px' }}>
           单耗 = 用量 ÷ 当日产量（硫酸为折 98%）；无产量口径的行（外供客户等）不计单耗。

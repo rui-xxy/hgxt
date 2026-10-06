@@ -2,6 +2,8 @@ import { beforeAll, afterAll, describe, expect, it } from 'vitest';
 import type { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/database/prisma.service';
 import { createTestApp, http, loginOk, resetDbWithAdmin } from './utils';
+import finishedProductsSchema from '../prisma/form-schemas/finished-products.json';
+import warehouseSchema from '../prisma/form-schemas/warehouse.json';
 
 /**
  * 精确断言差值法公式：库存=液位%×罐容×密度；产量=库存差+销售流出；电耗=读数差×倍率（负归0）
@@ -91,8 +93,9 @@ describe('production 硫酸生产指标', () => {
   });
   afterAll(async () => { await app.close(); });
 
-  it('USER 访问被拒（403），管理员可用', async () => {
-    await http(app).get('/api/production/sulfuric').set('Authorization', `Bearer ${userToken}`).expect(403);
+  it('普通用户与管理员可查看车间版面，未登录仍须认证', async () => {
+    await http(app).get('/api/production/sulfuric').expect(401);
+    await http(app).get('/api/production/sulfuric').set('Authorization', `Bearer ${userToken}`).expect(200);
     await http(app).get('/api/production/sulfuric').set('Authorization', `Bearer ${token}`).expect(200);
   });
 
@@ -182,13 +185,7 @@ describe('production 硫酸生产指标', () => {
       ] as never,
     } });
     const warehouse = await prisma.form.create({ data: {
-      title: '原辅料', code: 'warehouse_daily', schema: [
-        { id: 'field_date', title: '日期', type: 'date', required: true },
-        { id: 'field_002', title: '双氧水耗用', type: 'number' },
-        { id: 'field_016', title: '尿素购入', type: 'number' },
-        { id: 'field_017', title: '尿素耗用', type: 'number' },
-        { id: 'field_018', title: '尿素库存', type: 'number' },
-      ] as never,
+      title: '原辅料', code: 'warehouse_daily', schema: warehouseSchema as never,
     } });
     await submit(thermal.id, { field_date: '2026-09-01', field_transformer1: 100, field_transformer2: 200, field_transformer3: 300, field_water_meter: 1000 });
     await submit(thermal.id, { field_date: '2026-09-02', field_transformer1: 102, field_transformer2: 203, field_transformer3: 304, field_water_meter: 1035 });
@@ -236,8 +233,8 @@ describe('production 硫酸生产指标', () => {
       ] as never },
     });
     await submit(amino.id, { field_date: '2026-09-02', field_nitric_acid: 2 });
-    await submit(anthraquinone.id, { field_date: '2026-09-01', field_fuming_sulfuric_flow: 100 });
-    await submit(anthraquinone.id, { field_date: '2026-09-02', field_fuming_sulfuric_flow: 103 });
+    await submit(anthraquinone.id, { field_date: '2026-08-31', field_fuming_sulfuric_flow: 100 });
+    await submit(anthraquinone.id, { field_date: '2026-09-01', field_fuming_sulfuric_flow: 103 });
 
     const res = await http(app).get('/api/production/sulfuric?days=0').set('Authorization', `Bearer ${token}`).expect(200);
     const day = res.body.days.find((d: { date: string }) => d.date === '2026-09-02');
@@ -261,12 +258,7 @@ describe('production 硫酸生产指标', () => {
     const amino = await prisma.form.findUniqueOrThrow({ where: { code: 'aminosulfonic_daily' } });
     const warehouse = await prisma.form.findUniqueOrThrow({ where: { code: 'warehouse_daily' } });
     const finished = await prisma.form.create({ data: {
-      title: '产成品', code: 'finished_products_daily', schema: [
-        { id: 'field_date', title: '日期', type: 'date', required: true },
-        { id: 'field_001', title: '氨基磺酸产量', type: 'number' },
-        { id: 'field_002', title: '氨基磺酸销量', type: 'number' },
-        { id: 'field_003', title: '氨基磺酸库存', type: 'number' },
-      ] as never,
+      title: '产成品', code: 'finished_products_daily', schema: finishedProductsSchema as never,
     } });
     await submit(amino.id, { field_date: '2026-09-01', field_steam_1: 100, field_steam_2: 200, field_steam_phase2: 300, field_water_meter: 1000, field_electricity_meter: 200 });
     await submit(amino.id, { field_date: '2026-09-02', field_production: 56, field_urea: 20, field_nitric_acid: 2,
@@ -274,14 +266,16 @@ describe('production 硫酸生产指标', () => {
     await submit(warehouse.id, { field_date: '2026-09-02', field_016: 15, field_017: 20, field_018: 123 });
     await submit(finished.id, { field_date: '2026-09-02', field_001: 56, field_002: 21, field_003: 77 });
 
-    await http(app).get('/api/production/amino?days=0').set('Authorization', `Bearer ${userToken}`).expect(403);
+    await http(app).get('/api/production/amino?days=0').set('Authorization', `Bearer ${userToken}`).expect(200);
     const res = await http(app).get('/api/production/amino?days=0').set('Authorization', `Bearer ${token}`).expect(200);
     const day = res.body.days.find((entry: { date: string }) => entry.date === '2026-09-01');
     expect(day).toMatchObject({
       production: 56, electricity: 36000, steam: 65, water: 40, urea: 20, fuming: 3.84,
-      finishedProduction: 56, finishedSales: 21, finishedStock: 77,
-      ureaPurchase: 15, ureaWarehouseConsumption: 20, ureaStock: 123, fumingStock: 153.6,
+      finishedProduction: 56, finishedSales: 21, finishedStock: null,
+      ureaPurchase: 15, ureaWarehouseConsumption: 20, ureaStock: null, fumingStock: 153.6,
     });
+    expect(res.body.days.find((entry: { date: string }) => entry.date === '2026-09-02'))
+      .toMatchObject({ finishedStock: 77, ureaStock: 123 });
     expect(res.body.days.find((entry: { date: string }) => entry.date === '2026-08-31').electricity).toBeNull();
   });
 
@@ -307,39 +301,91 @@ describe('production 硫酸生产指标', () => {
       field_electricity_meter: 20, field_gas_meter: 100, field_steam_meter: 200, field_water_meter: 300 });
     await put(anthraquinone.id, { field_date: '2026-09-02', field_crude_output: 8, field_fine_output: 2,
       field_crude_sales: 3, field_crude_stock: 18, field_fine_sales: 1, field_fine_stock: 5,
+      field_dilute_output: 7, field_dilute_out_v2006: 2, field_dilute_out_v2009b: 1, field_dilute_stock: 4,
       field_toluene_purchase: 4, field_toluene_consumption: 2, field_toluene_stock: 12,
+      field_granular_caustic_purchase: 1, field_granular_caustic_consumption: 0.2, field_granular_caustic_stock: 3,
+      field_flake_caustic_consumption: 0.00775, field_flake_caustic_stock: 1.15055,
       field_fuming_sulfuric_flow: 103, field_electricity_meter: 21, field_gas_meter: 90,
-      field_steam_meter: 207, field_water_meter: 315 });
+      field_gas_consumption: 9, field_steam_meter: 207, field_water_meter: 315 });
     await put(warehouse.id, { field_date: '2026-09-02', field_019: 25, field_020: 50, field_021: 150,
       field_022: 12, field_023: 4, field_024: 40, field_025: 16, field_026: 8, field_027: 60,
       field_028: 18, field_029: 6, field_030: 70 });
-    await put(finished.id, { field_date: '2026-09-02', field_004: 120, field_005: 30, field_006: 400,
+    await put(finished.id, { field_date: '2026-09-02', field_004: 120.12345, field_005: 30, field_006: 400,
       field_007: 10, field_008: 3, field_009: 50, field_010: 20, field_011: 4, field_012: 60,
-      field_013: 5, field_014: 2, field_015: 30, field_016: 2, field_017: 1, field_018: 20 });
+      field_013: 5, field_014: 2, field_015: 30, field_016: 2, field_017: 1, field_018: 20,
+      field_hg200a_production: 3.5, field_hg200a_sales: 1.5, field_hg200a_stock: 12.5 });
 
-    await http(app).get('/api/production/workshops/magnesium/detail?days=0').set('Authorization', `Bearer ${userToken}`).expect(403);
-    const getDay = async (code: string) => {
+    await http(app).get('/api/production/workshops/magnesium/detail?days=0').set('Authorization', `Bearer ${userToken}`).expect(200);
+    const getDay = async (code: string, date = '2026-09-01') => {
       const res = await http(app).get(`/api/production/workshops/${code}/detail?days=0`).set('Authorization', `Bearer ${token}`).expect(200);
-      return res.body.days.find((day: { date: string }) => day.date === '2026-09-01');
+      return res.body.days.find((day: { date: string }) => day.date === date);
     };
     const mg = await getDay('magnesium');
-    expect(mg.production).toBe(120);
+    expect(mg.production).toBe(120.12345);
     expect(mg.metrics).toMatchObject({ electricity: 8200, steam: 30, water: 25, mgo: 50, sulfuric93: 10 });
-    expect(mg.stocks).toMatchObject({ magnesium: { incoming: 120, outgoing: 30, closing: 400 },
-      mgo: { incoming: 25, outgoing: 50, closing: 150 }, sulfuric93: { incoming: null, outgoing: 10, closing: null } });
+    expect(mg.stocks).toMatchObject({ magnesium: { incoming: 120.12345, outgoing: 30, closing: null },
+      mgo: { incoming: 25, outgoing: 50, closing: null }, sulfuric93: { incoming: null, outgoing: 10, closing: null } });
+    const overview = await http(app).get('/api/production/workshops?days=0').set('Authorization', `Bearer ${token}`).expect(200);
+    const dayIndex = overview.body.dates.indexOf('2026-09-01');
+    expect(overview.body.workshops.find((workshop: { code: string }) => workshop.code === 'magnesium').values[dayIndex]).toBe(120.12345);
+    expect(overview.body.workshops.find((workshop: { code: string }) => workshop.code === 'hydrotalcite').values[dayIndex]).toBe(40.5);
 
     const hyd = await getDay('hydrotalcite');
-    expect(hyd.production).toBe(37);
+    expect(hyd.production).toBe(40.5);
     expect(hyd.metrics).toMatchObject({ mediumSteam: 3, lowSteam: 5, mgo: 8, aluminum: 6, soda: 4 });
-    expect(hyd.stocks).toMatchObject({ hg200: { incoming: 10, outgoing: 3, closing: 50 },
-      soda: { incoming: 12, outgoing: 4, closing: 40 } });
+    expect(hyd.stocks).toMatchObject({ hg200: { incoming: 10, outgoing: 3, closing: null },
+      hg200a: { incoming: 3.5, outgoing: 1.5, closing: null },
+      soda: { incoming: 12, outgoing: 4, closing: null } });
+    expect((await getDay('hydrotalcite', '2026-09-02')).stocks)
+      .toMatchObject({ hg200: { closing: 50 }, hg200a: { closing: 12.5 }, soda: { closing: 40 } });
 
-    const aq = await getDay('anthraquinone');
+    const aq = await getDay('anthraquinone', '2026-09-02');
     expect(aq.production).toBe(10);
-    expect(aq.metrics).toMatchObject({ electricity: 600, steam: 7, water: 15, gas: 10, fuming: 5.76 });
+    expect(aq.metrics).toMatchObject({ electricity: 600, steam: 7, water: 15, gas: 9, fuming: 5.76, granular: 0.2, flake: 0.00775 });
     expect(aq.stocks).toMatchObject({ crude: { incoming: 8, outgoing: 3, closing: 18 },
-      fine: { incoming: 2, outgoing: 1, closing: 5 }, toluene: { incoming: 4, outgoing: 2, closing: 12 },
-      fuming: { incoming: null, outgoing: 5.76, closing: 153.6 } });
+      fine: { incoming: 2, outgoing: 1, closing: 5 }, dilute: { incoming: 7, outgoing: 3, closing: 4 },
+      toluene: { incoming: 4, outgoing: 2, closing: 12 }, granular: { incoming: 1, outgoing: 0.2, closing: 3 },
+      flake: { incoming: null, outgoing: 0.00775, closing: 1.15055 },
+      fuming: { incoming: null, outgoing: 5.76, closing: null } });
+  });
+
+  it('产成品与原辅料按前日产销购耗、当日库存显示，车间产量读取产成品表', async () => {
+    const finished = await prisma.form.findUniqueOrThrow({ where: { code: 'finished_products_daily' } });
+    const warehouse = await prisma.form.findUniqueOrThrow({ where: { code: 'warehouse_daily' } });
+    const put = (formId: string, data: Record<string, string | number>) =>
+      prisma.formSubmission.create({ data: { formId, data: data as never } });
+    await put(finished.id, { field_date: '2026-10-01', field_001: 11, field_004: 15,
+      field_007: 10, field_008: 1, field_009: 50 });
+    await put(finished.id, { field_date: '2026-10-02', field_001: 22, field_004: 33,
+      field_007: 14, field_008: 3, field_009: 61 });
+    await put(warehouse.id, { field_date: '2026-10-01', field_023: 1, field_024: 20,
+      field_026: 2, field_027: 100, field_029: 1, field_030: 80 });
+    await put(warehouse.id, { field_date: '2026-10-02', field_023: 1.5, field_024: 18.5,
+      field_026: 7.5, field_027: 92.5, field_029: 5.6, field_030: 74.4 });
+
+    const detail = await http(app).get('/api/production/workshops/hydrotalcite/detail?days=0')
+      .set('Authorization', `Bearer ${token}`).expect(200);
+    const oct1 = detail.body.days.find((day: { date: string }) => day.date === '2026-10-01');
+    expect(oct1.production).toBe(14);
+    expect(oct1.metrics).toMatchObject({ mediumSteam: null, lowSteam: null, mgo: 7.5, aluminum: 5.6, soda: 1.5 });
+    expect(oct1.stocks).toMatchObject({ hg200: { incoming: 14, outgoing: 3, closing: 50 },
+      mgo: { outgoing: 7.5, closing: 100 }, soda: { outgoing: 1.5, closing: 20 } });
+    expect(detail.body.days.find((day: { date: string }) => day.date === '2026-10-02'))
+      .toMatchObject({ production: null, stocks: { hg200: { closing: 61 }, mgo: { closing: 92.5 } } });
+
+    const overview = await http(app).get('/api/production/workshops?days=0')
+      .set('Authorization', `Bearer ${token}`).expect(200);
+    const index = overview.body.dates.indexOf('2026-10-01');
+    expect(index).toBeGreaterThanOrEqual(0);
+    expect(overview.body.workshops.find((w: { code: string }) => w.code === 'hydrotalcite').values[index]).toBe(14);
+    expect(overview.body.workshops.find((w: { code: string }) => w.code === 'magnesium').values[index]).toBe(33);
+    expect(overview.body.workshops.find((w: { code: string }) => w.code === 'aminosulfonic').values[index]).toBe(22);
+    const magnesium = await http(app).get('/api/production/workshops/magnesium/detail?days=0')
+      .set('Authorization', `Bearer ${token}`).expect(200);
+    expect(magnesium.body.days.find((day: { date: string }) => day.date === '2026-10-01').production).toBe(33);
+    const amino = await http(app).get('/api/production/amino?days=0')
+      .set('Authorization', `Bearer ${token}`).expect(200);
+    expect(amino.body.days.find((day: { date: string }) => day.date === '2026-10-01').production).toBe(22);
   });
 
   it('热电车间按次日填报读数差汇总十路供汽，并保留能源计量和断天状态', async () => {
@@ -355,7 +401,7 @@ describe('production 硫酸生产指标', () => {
       field_condenser_gen_active: 10.5, field_line2_active: 21, field_water_meter: 125, field_steam_meter: 580 });
     await put({ field_date: '2026-10-04', field_jianheng_steam: 130, field_water_meter: 150 });
 
-    await http(app).get('/api/production/thermal?days=0').set('Authorization', `Bearer ${userToken}`).expect(403);
+    await http(app).get('/api/production/thermal?days=0').set('Authorization', `Bearer ${userToken}`).expect(200);
     const res = await http(app).get('/api/production/thermal?days=0').set('Authorization', `Bearer ${token}`).expect(200);
     const day = res.body.days.find((item: { date: string }) => item.date === '2026-10-01');
     expect(day).toMatchObject({ externalTotal: 34, internalTotal: 37, totalSupply: 71,
@@ -367,5 +413,57 @@ describe('production 硫酸生产指标', () => {
     expect(res.body.days.find((item: { date: string }) => item.date === '2026-10-03').totalSupply).toBeNull();
     const overview = await http(app).get('/api/production/workshops?days=0').set('Authorization', `Bearer ${token}`).expect(200);
     expect(overview.body.workshops.find((item: { code: string }) => item.code === 'thermal').values[overview.body.dates.indexOf('2026-10-01')]).toBe(71);
+  });
+
+  it('硫酸中控按 Excel 日期展示，表单编辑后中控视图同步更新', async () => {
+    const form = await prisma.form.create({ data: {
+      code: 'sulfuric_control', title: '硫酸中控数据', entryMode: 'sheet',
+      schema: [
+        { id: 'field_date', title: '日期', type: 'date', required: true },
+        { id: 'field_AK', title: '干燥', type: 'number' },
+        { id: 'field_AL', title: '一吸塔酸浓', type: 'number' },
+        { id: 'field_AV', title: '尾吸塔酸浓', type: 'number' },
+        { id: 'field_notes', title: '生产异常与处理记录', type: 'text' },
+      ] as never,
+    } });
+    const row = await prisma.formSubmission.create({ data: { formId: form.id,
+      data: { field_date: '2026-09-28', field_AK: 94.48, field_AL: 98.44, field_AV: 38.94, field_notes: '一班正常\n二班检修' } } });
+    await http(app).get('/api/production/sulfuric/control').set('Authorization', `Bearer ${userToken}`).expect(200);
+    const before = await http(app).get('/api/production/sulfuric/control?month=2026-09').set('Authorization', `Bearer ${token}`).expect(200);
+    expect(before.body).toMatchObject({ formId: form.id, month: '2026-09', latestDate: '2026-09-28', availableMonths: ['2026-09'] });
+    expect(before.body.days[0]).toMatchObject({ date: '2026-09-28', values: { dry: 94.48, tail: 38.94, fum: null }, notes: ['一班正常', '二班检修'] });
+
+    await http(app).post(`/api/forms/${form.id}/submissions/batch`).set('Authorization', `Bearer ${token}`)
+      .send({ created: [], updated: [{ id: row.id, data: { field_date: '2026-09-28', field_AK: 92.6, field_AL: 98.44, field_AV: null, field_notes: '干燥酸浓偏低' } }], deleted: [] }).expect(201);
+    const after = await http(app).get('/api/production/sulfuric/control?month=2026-09').set('Authorization', `Bearer ${token}`).expect(200);
+    expect(after.body.days[0]).toMatchObject({ values: { dry: 92.6, tail: null }, notes: ['干燥酸浓偏低'] });
+
+    await prisma.formSubmission.create({ data: { formId: form.id,
+      data: { field_date: '2026-08-31', field_AK: 95.1, field_notes: '旧表历史记录' } } });
+
+    const assay = await prisma.form.create({ data: { code: 'sulfuric_control_assay', title: '矿样干吸', category: '品质', schema: [
+      { id: 'field_date', title: '日期', type: 'date', required: true, hidden: true },
+      { id: 'field_AK', title: '干燥', type: 'number' },
+      { id: 'field_AL', title: '一吸塔酸浓', type: 'number' },
+    ] } });
+    const acid = await prisma.form.create({ data: { code: 'sulfuric_control_acid', title: '尾吸试剂酸', category: '品质', schema: [
+      { id: 'field_date', title: '日期', type: 'date', required: true, hidden: true },
+      { id: 'field_AV', title: '尾吸塔酸浓', type: 'number' },
+    ] } });
+    const notes = await prisma.form.create({ data: { code: 'sulfuric_control_notes', title: '生产情况记录', category: '品质', schema: [
+      { id: 'field_date', title: '日期', type: 'date', required: true, hidden: true },
+      { id: 'field_notes', title: '生产情况记录', type: 'text' },
+    ] } });
+    await http(app).post(`/api/forms/${assay.id}/submissions`).set('Authorization', `Bearer ${token}`)
+      .send({ data: { field_date: '2026-09-28', field_AK: 94.7 } }).expect(201);
+    await prisma.formSubmission.create({ data: { formId: acid.id, data: { field_date: '2026-09-28', field_AV: 39.92 } } });
+    await prisma.formSubmission.create({ data: { formId: notes.id, data: { field_date: '2026-09-28', field_notes: '生产正常' } } });
+    const split = await http(app).get('/api/production/sulfuric/control?month=2026-09').set('Authorization', `Bearer ${token}`).expect(200);
+    expect(split.body.formId).toBe(assay.id);
+    expect(split.body.availableMonths).toEqual(['2026-08', '2026-09']);
+    expect(split.body.days[0]).toMatchObject({ values: { dry: 94.7, a1: 98.44, tail: 39.92 }, notes: ['生产正常'] });
+    const legacyMonth = await http(app).get('/api/production/sulfuric/control?month=2026-08').set('Authorization', `Bearer ${token}`).expect(200);
+    expect(legacyMonth.body.days[0]).toMatchObject({ date: '2026-08-31', values: { dry: 95.1 }, notes: ['旧表历史记录'] });
+    await http(app).get('/api/production/sulfuric/control?month=2026-13').set('Authorization', `Bearer ${token}`).expect(400);
   });
 });

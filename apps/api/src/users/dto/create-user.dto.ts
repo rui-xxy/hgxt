@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Role } from '@hgxt/shared';
+import { PAGE_PERMISSION_VALUES, Role, type PagePermission } from '@hgxt/shared';
 import { Transform } from 'class-transformer';
 import {
-  IsEmail,
+  IsArray,
+  ArrayUnique,
   IsIn,
   IsNotEmpty,
   IsOptional,
@@ -10,6 +11,7 @@ import {
   Matches,
   MaxLength,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 
 /** E1：username 规则以后端为准（前端正则只是提前提示，不是系统规则） */
@@ -42,13 +44,6 @@ export class CreateUserDto {
   @MaxLength(128)
   password!: string;
 
-  @ApiProperty({ description: '邮箱（入库统一小写）', required: false })
-  @Transform(trimString)
-  @IsOptional()
-  @IsEmail({}, { message: '邮箱格式不正确' })
-  @MaxLength(128)
-  email?: string;
-
   @ApiProperty({ description: '手机号', required: false })
   @Transform(trimString)
   @IsOptional()
@@ -59,4 +54,11 @@ export class CreateUserDto {
   @ApiProperty({ description: '角色', enum: Role })
   @IsIn(Object.values(Role), { message: '角色不合法' })
   role!: Role;
+
+  @ApiProperty({ description: '普通用户可访问的页面', enum: PAGE_PERMISSION_VALUES, isArray: true, required: false })
+  @ValidateIf((_object, value) => value !== undefined)
+  @IsArray()
+  @ArrayUnique()
+  @IsIn(PAGE_PERMISSION_VALUES, { each: true, message: '页面权限不合法' })
+  pagePermissions?: PagePermission[];
 }

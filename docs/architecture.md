@@ -76,11 +76,13 @@ NestJS 侧的 CJS `require` 加载 ESM 由 Node ≥22.12/24 原生支持（本�
 
 ## 用户模型与权限
 
-字段：`id / username / name / email / phone / passwordHash / role / status / lastLoginAt / createdAt / updatedAt`。
+字段：`id / username / name / email / phone / passwordHash / role / pagePermissions / status / lastLoginAt / createdAt / updatedAt`。`email` 为兼容历史数据保留在数据库中，成员页面和用户接口均不再使用。
 
-- `role`：`SUPER_ADMIN | USER`——**不是** RBAC。等真实需求（"张三能看项目但不能删"）出现，再升级为 User–Role–Permission 多表，完全来得及。
-- `status`：`ACTIVE | DISABLED`。**没有 DELETE 接口**——企业系统的用户与业务数据关联，离职走禁用，不然将来查"这条审批谁提的"就断线了。
-- 用户管理接口全部要求 `SUPER_ADMIN`（RolesGuard）；`USER` 只能登录。
+- `role`：`SUPER_ADMIN | USER`。车间版面、能源中心和物料与库存对所有登录用户开放；管理员可访问全部页面，普通用户的 `pagePermissions` 只控制计划与完成、设备与维修。仍不使用 RBAC 多表。
+- 受限菜单与路由按权限显示，计划及设备接口由全局 `PagePermissionGuard` 使用数据库中的当前权限校验；修改权限无需用户重新登录。
+- 「全部表单」列表、生产计划设置和成员管理固定仅管理员可访问。普通用户可凭已有表单链接填写，但不能查看表单总目录与历史数据表格。
+- `status`：`ACTIVE | DISABLED`。删除成员会保留表单提交记录，并将提交人置空；日常离职仍可使用禁用。
+- 用户管理接口全部要求 `SUPER_ADMIN`（RolesGuard）。
 
 ## 表单系统（硫酸车间报表）
 

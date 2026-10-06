@@ -73,6 +73,12 @@ const dark: Palette = {
   pop: '0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 40px -8px rgba(0, 0, 0, 0.6)',
 };
 
+/** 中控趋势图的系列配色；与设计稿一致，并为暗色主题提供对应亮度。 */
+export const controlChartPalette = {
+  light: { blue: light.brand, paleBlue: '#9DB1DA', amber: '#EDA100', orange: '#EB6834', green: '#1BAF7A' },
+  dark: { blue: dark.brand, paleBlue: '#7186B4', amber: dark.amber, orange: dark.danger, green: dark.ok },
+} as const;
+
 const fontFamily =
   "'Geist', 'Noto Sans SC', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif";
 
@@ -106,6 +112,9 @@ function buildTheme(p: Palette, isDark: boolean): ThemeConfig {
       colorFill: p.active,
       colorBgTextHover: p.hover,
       colorBgTextActive: p.active,
+      // 主按钮使用墨色，但列表选中项采用品牌浅色，避免悬停时被推导成黑底。
+      controlItemBgActive: p.brandSoft,
+      controlItemBgActiveHover: p.brandSoft,
 
       fontFamily,
       fontFamilyCode: "'Geist Mono', ui-monospace, monospace",
@@ -156,6 +165,17 @@ function buildTheme(p: Palette, isDark: boolean): ThemeConfig {
         hoverBorderColor: p.ink3,
         activeShadow: `0 0 0 3px ${p.brandSoft}`,
       },
+      DatePicker: {
+        colorPrimary: p.brand,
+        colorTextLightSolid: p.bg,
+        activeBorderColor: p.brand,
+        hoverBorderColor: p.ink3,
+        activeShadow: `0 0 0 3px ${p.brandSoft}`,
+        cellHoverBg: p.hover,
+        cellActiveWithRangeBg: p.brandSoft,
+        cellHoverWithRangeBg: p.brandSoft,
+        cellRangeBorderColor: p.brand,
+      },
       InputNumber: {
         activeBorderColor: p.brand,
         hoverBorderColor: p.ink3,
@@ -165,9 +185,9 @@ function buildTheme(p: Palette, isDark: boolean): ThemeConfig {
         activeBorderColor: p.brand,
         hoverBorderColor: p.ink3,
         activeOutlineColor: p.brandSoft,
-        optionSelectedBg: p.active,
+        optionSelectedBg: p.brandSoft,
         optionSelectedColor: p.ink,
-        optionActiveBg: p.active,
+        optionActiveBg: p.hover,
         borderRadiusLG: 12,
         borderRadiusSM: 8,
       },

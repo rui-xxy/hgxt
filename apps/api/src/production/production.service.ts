@@ -3,6 +3,9 @@ import type {
   FormData,
   MeterUsage,
   SulfuricDaySummary,
+  SulfuricControlDay,
+  SulfuricControlMetricKey,
+  SulfuricControlResult,
   SulfuricFlow,
   SulfuricInventory,
   SulfuricProduction,
@@ -23,6 +26,10 @@ import { primaryDateField } from '../forms/forms.service';
  * 填报日 D 的生产归属日为 D−1；断天时 gapDays > 0，产量为多天累计差值。
  */
 const CODE_SULFURIC = 'sulfuric_daily';
+const CODE_SULFURIC_CONTROL = 'sulfuric_control';
+const SULFURIC_CONTROL_PARTS = [
+  'sulfuric_control_assay', 'sulfuric_control_washing', 'sulfuric_control_acid', 'sulfuric_control_notes',
+] as const;
 const CODE_SALES = 'sales_daily';
 const CODE_AMINO = 'aminosulfonic_daily';
 const CODE_ANTHRAQUINONE = 'anthraquinone_daily';
@@ -47,6 +54,13 @@ const toNumber = (value: unknown): number | null => {
   return null;
 };
 
+const CONTROL_COLUMNS: Record<SulfuricControlMetricKey, string> = {
+  s_raw: 'field_B', s_feed: 'field_F', h2o: 'field_G', s_cyc: 'field_P',
+  s_belt: 'field_Q', s_slag: 'field_J', dry: 'field_AK', a1: 'field_AL',
+  a2: 'field_AM', fum: 'field_AN', tail: 'field_AV', h2o2: 'field_AW',
+  reag: 'field_AX', so2: 'field_BB',
+};
+
 /** 销售表字段 → 四酸 */
 const SALES_FIELD_MAP: Record<keyof SulfuricFlow, string> = {
   acid98: 'field_acid98_sales',
@@ -58,6 +72,31 @@ const SALES_FIELD_MAP: Record<keyof SulfuricFlow, string> = {
 @Injectable()
 export class ProductionService {
   constructor(private readonly prisma: PrismaService) {}
+
+  /** 旧合表按归属日作历史底稿，四张拆分表的同日字段逐一覆盖。 */
+  async sulfuricControl(month?: string): Promise<SulfuricControlResult> {
+    const [form, legacyForm, legacyByDate, partMaps] = await Promise.all([
+      this.prisma.form.findUnique({ where: { code: SULFURIC_CONTROL_PARTS[0] }, select: { id: true } }),
+      this.prisma.form.findUnique({ where: { code: CODE_SULFURIC_CONTROL }, select: { id: true } }),
+      this.formDataByDate(CODE_SULFURIC_CONTROL),
+      Promise.all(SULFURIC_CONTROL_PARTS.map((code) => this.formDataByDate(code))),
+    ]);
+    const byDate = new Map<string, FormData>(legacyByDate);
+    for (const part of partMaps) {
+      for (const [date, data] of part) byDate.set(date, { ...byDate.get(date), ...data });
+    }
+    const dates = [...byDate.keys()].sort();
+    const latestDate = dates.at(-1) ?? null;
+    const selectedMonth = month ?? latestDate?.slice(0, 7) ?? new Date().toISOString().slice(0, 7);
+    const keys = Object.keys(CONTROL_COLUMNS) as SulfuricControlMetricKey[];
+    const days: SulfuricControlDay[] = dates.filter((date) => date.startsWith(`${selectedMonth}-`)).map((date) => {
+      const data = byDate.get(date)!;
+      const values = Object.fromEntries(keys.map((key) => [key, toNumber(data[CONTROL_COLUMNS[key]])])) as SulfuricControlDay['values'];
+      const notes = typeof data.field_notes === 'string' ? data.field_notes.split(/\r?\n/).map((note) => note.trim()).filter(Boolean) : [];
+      return { date, values, notes };
+    });
+    return { formId: form?.id ?? legacyForm?.id ?? null, month: selectedMonth, latestDate, availableMonths: [...new Set(dates.map((date) => date.slice(0, 7)))], days };
+  }
 
   /** 按填报日保留最后一次提交；原始表单数据不改写。 */
   private async formDataByDate(code: string): Promise<Map<string, FormData>> {
@@ -255,7 +294,7 @@ export class ProductionService {
     const dFuming = materialDelta('发烟硫酸');
     const dReagent = materialDelta('试剂酸');
 
-    // 氨基磺酸按日填体积；蒽醌填累计流量计读数，取两次填报的差值。两项均为 m³，按发烟酸密度折吨。
+    // 氨基磺酸沿用次日填报口径；蒽醌 Excel 读数按行日期归属生产日。
     let aminoVolume = 0;
     let aminoSeen = false;
     const aminosulfonic: Array<{ date: string; volumeM3: number | null }> = [];
@@ -265,8 +304,11 @@ export class ProductionService {
       if (volume !== null) { aminoVolume += volume; aminoSeen = true; }
     }
     const aminoTons = aminoSeen ? +(aminoVolume * FUMING_DENSITY).toFixed(3) : null;
-    const meterCurrent = anthraquinoneByDate.get(date)?.field_fuming_sulfuric_flow;
-    const meterPrevious = prevDate ? anthraquinoneByDate.get(prevDate)?.field_fuming_sulfuric_flow : undefined;
+    const anthraquinoneDate = dayBefore(date);
+    const anthraquinonePreviousDate = prevDate ? dayBefore(prevDate) : null;
+    const meterCurrent = anthraquinoneByDate.get(anthraquinoneDate)?.field_fuming_sulfuric_flow;
+    const meterPrevious = anthraquinonePreviousDate
+      ? anthraquinoneByDate.get(anthraquinonePreviousDate)?.field_fuming_sulfuric_flow : undefined;
     const currentMeter = toNumber(meterCurrent);
     const previousMeter = toNumber(meterPrevious);
     const anthraquinoneVolume = currentMeter !== null && previousMeter !== null && currentMeter >= previousMeter

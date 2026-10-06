@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from 'react';
 import type { DetailedWorkshopDay, DetailedWorkshopResult, WorkshopMetricDefinition, WorkshopStockDefinition } from '@hgxt/shared';
-import { PALETTE, Seg, downloadCsv, fmt } from './dash-ui';
+import { PALETTE, Seg, downloadCsv, fmt, fmtRecorded } from './dash-ui';
 
 type Entry = { kind: 'day'; date: string; index: number } | { kind: 'summary'; month: string };
 const sumOrNull = (values: Array<number | null | undefined>): number | null => {
@@ -10,8 +10,8 @@ const sumOrNull = (values: Array<number | null | undefined>): number | null => {
 const rateOf = (used: number | null | undefined, production: number | null | undefined) =>
   used !== null && used !== undefined && production !== null && production !== undefined && production > 0 ? used / production : null;
 const accent = (color: string): CSSProperties => ({ '--group-accent': color } as CSSProperties);
-const quantity = (value: number | null | undefined, unit: string, digits = 1) =>
-  value === null || value === undefined ? '—' : `${fmt(value, digits)} ${unit}`;
+const quantity = (value: number | null | undefined, unit: string) =>
+  value === null || value === undefined ? '—' : `${fmtRecorded(value)} ${unit}`;
 
 export function detailMetricColor(metric: WorkshopMetricDefinition, index: number, metrics: WorkshopMetricDefinition[]): string {
   const peers = metrics.filter((item) => item.category === metric.category);
@@ -57,7 +57,7 @@ export function DetailedWorkshopPanel({ data, days }: {
           const color = detailMetricColor(metric, 0, data.metrics);
           return <div className="amino-panel-row" key={metric.key} style={accent(color)}>
             <span className="amino-panel-name"><i style={{ background: color }} />{metric.name}</span>
-            <strong>{quantity(used, metric.unit, metric.unit === 'kWh' ? 0 : 1)}</strong>
+            <strong>{quantity(used, metric.unit)}</strong>
           </div>;
         })}
       </div>;
@@ -144,11 +144,11 @@ export function DetailedWorkshopTable({ data, tab, entries, activeDate, onSelect
             onClick={entry.kind === 'day' ? () => onSelect(entry.date) : undefined}>
             <td>{entry.kind === 'summary' ? '合计' : entry.date.slice(5)}</td>
             {tab === 'prod' ? <>
-              <td>{fmt(production, 1)}</td>
+              <td>{fmtRecorded(production)}</td>
               {data.metrics.flatMap((metric) => {
                 const used = sumOrNull(days.map((item) => item?.metrics[metric.key]));
                 const color = detailMetricColor(metric, 0, data.metrics);
-                return [<td key={`${metric.key}-used`} {...cellStyle(color)}>{fmt(used, metric.unit === 'kWh' ? 0 : 1)}</td>,
+                return [<td key={`${metric.key}-used`} {...cellStyle(color)}>{fmtRecorded(used)}</td>,
                   <td key={`${metric.key}-rate`} {...cellStyle(color)}>{fmt(rateOf(used, production), metric.unit === 'kWh' ? 1 : 2)}</td>];
               })}
             </> : data.stockItems.flatMap((item) => {
@@ -157,9 +157,9 @@ export function DetailedWorkshopTable({ data, tab, entries, activeDate, onSelect
               const outgoing = entry.kind === 'summary' ? sumOrNull(monthDays.map((itemDay) => itemDay.stocks[item.key]?.outgoing)) : values?.outgoing ?? null;
               const closing = entry.kind === 'summary' ? latestStock(item.key) : values?.closing ?? null;
               const color = stockColor(item, 0, data.stockItems);
-              return [<td key={`${item.key}-in`} {...cellStyle(color)}>{fmt(incoming, 1)}</td>,
-                <td key={`${item.key}-out`} {...cellStyle(color)}>{fmt(outgoing, 1)}</td>,
-                <td key={`${item.key}-stock`} {...cellStyle(color)}>{fmt(closing, 1)}</td>];
+              return [<td key={`${item.key}-in`} {...cellStyle(color)}>{fmtRecorded(incoming)}</td>,
+                <td key={`${item.key}-out`} {...cellStyle(color)}>{fmtRecorded(outgoing)}</td>,
+                <td key={`${item.key}-stock`} {...cellStyle(color)}>{fmtRecorded(closing)}</td>];
             })}
           </tr>;
         })}

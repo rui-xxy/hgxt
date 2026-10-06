@@ -19,12 +19,8 @@ import { hashPassword } from '../common/utils/argon';
 import { isRecordNotFound, isUniqueViolation } from '../common/utils/prisma-errors';
 import { toUserDTO } from './user.mapper';
 
-/** E2：用户名与邮箱统一小写存储，唯一性与登录都不区分大小写 */
+/** E2：用户名统一小写存储，唯一性与登录都不区分大小写 */
 function normalizeUsername(value: string): string {
-  return value.trim().toLowerCase();
-}
-
-function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
 }
 
@@ -43,7 +39,6 @@ export class UsersService {
             { username: { contains: keyword, mode: 'insensitive' } },
             { name: { contains: keyword, mode: 'insensitive' } },
             { phone: { contains: keyword, mode: 'insensitive' } },
-            { email: { contains: keyword, mode: 'insensitive' } },
           ],
         }
       : {};
@@ -75,16 +70,16 @@ export class UsersService {
         data: {
           username: normalizeUsername(dto.username),
           name: dto.name.trim(),
-          email: dto.email ? normalizeEmail(dto.email) : null,
           phone: dto.phone?.trim() || null,
           passwordHash,
           role: dto.role,
+          pagePermissions: dto.pagePermissions ?? [],
         },
       });
       return toUserDTO(user);
     } catch (error) {
       if (isUniqueViolation(error)) {
-        throw new ConflictException('用户名或邮箱已被占用（不区分大小写）');
+        throw new ConflictException('用户名已被占用（不区分大小写）');
       }
       throw error;
     }
@@ -100,11 +95,9 @@ export class UsersService {
           data: {
             ...(dto.name !== undefined && { name: dto.name.trim() }),
             // E3 语义：undefined = 不修改；null = 清空；string = 设置值
-            ...(dto.email !== undefined && {
-              email: dto.email === null ? null : normalizeEmail(dto.email),
-            }),
             ...(dto.phone !== undefined && { phone: dto.phone === null ? null : dto.phone.trim() }),
             ...(dto.role !== undefined && { role: dto.role }),
+            ...(dto.pagePermissions !== undefined && { pagePermissions: dto.pagePermissions }),
           },
         });
         return toUserDTO(user);
@@ -112,7 +105,6 @@ export class UsersService {
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
       if (isRecordNotFound(error)) throw new NotFoundException('用户不存在');
-      if (isUniqueViolation(error)) throw new ConflictException('邮箱已被占用（不区分大小写）');
       throw error;
     }
   }

@@ -9,7 +9,8 @@ import { FormListQuery, SubmissionListQuery } from './query.dto';
 
 /**
  * 权限模型：
- * - 登录即可（USER 员工填报）：表单列表 / 表单定义 / 提交填报
+ * - 登录即可（USER 员工填报）：已有链接的表单定义 / 提交填报
+ * - 仅 SUPER_ADMIN：全部表单列表
  * - 仅 SUPER_ADMIN（数据管理）：读历史提交 / 批量保存（含改、删）
  */
 @ApiTags('forms 表单')
@@ -19,6 +20,7 @@ export class FormsController {
   constructor(private readonly forms: FormsService) {}
 
   @Get()
+  @Roles(Role.SUPER_ADMIN)
   @ApiOperation({ summary: '表单列表，最新填写日期来自提交内容' })
   list(@Query() query: FormListQuery) { return this.forms.list(query); }
 

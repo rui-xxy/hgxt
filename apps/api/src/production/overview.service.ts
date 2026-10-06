@@ -9,6 +9,7 @@ import type {
   FinishedProductItem,
   FormData,
   FormField,
+  FenglianSummaryResult,
   InternalFlowItem,
   MaterialsResult,
   RawMaterialStockItem,
@@ -32,7 +33,7 @@ import { ProductionService } from './production.service';
  *   车间产量：硫酸=差值法折98；热电=十路供汽表差合计；其余车间=表单直接上报字段
  *   电：读数差 × 倍率（硫酸 4 表用 Meter 档案；氨基二期 2000 / 镁一期 200 二期 4000 为 b2 代码常量）
  *   汽/水：热电与各车间表单的流量计/水表读数差（倍率 1）
- *   物料：仓库表与产成品表的「三件套」字段；可用天数=库存÷近7日平均耗用
+ *   物料：仓库、产成品、蒽醌、丰联表的出入与库存字段；可用天数=库存÷近7条有效日均耗用
  */
 const CODE = {
   sulfuric: 'sulfuric_daily',
@@ -72,6 +73,7 @@ type StockSpec = WorkshopStockDefinition & {
   source: 'main' | 'warehouse' | 'finished' | 'sulfuric';
   incomingField?: string;
   outgoingField?: string;
+  outgoingFields?: string[];
   closingField?: string;
   outgoingMetric?: string;
 };
@@ -83,7 +85,7 @@ export class OverviewService {
     private readonly production: ProductionService,
   ) {}
 
-  /** 填报日 D 的当日产出/消耗归属 D−1；库存是 D−1 的期末快照。 */
+  /** 产成品/仓库日报：填报日 D 的产销或购耗归 D−1，库存快照归 D。 */
   async byDate(code: string): Promise<ByDate> {
     const form = await this.prisma.form.findUnique({ where: { code } });
     if (!form) return new Map();
@@ -95,10 +97,24 @@ export class OverviewService {
       select: { data: true },
     });
     const map: ByDate = new Map();
+    const splitStockDate = code === CODE.finished || code === CODE.warehouse;
+    const fields = form.schema as unknown as FormField[];
     for (const s of submissions) {
       const date = (s.data as FormData)[dateField.id];
       if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
-        map.set(this.dayBefore(date), s.data as FormData);
+        const data = s.data as FormData;
+        if (splitStockDate) {
+          for (const field of fields) {
+            if (field.id === dateField.id || !Object.prototype.hasOwnProperty.call(data, field.id)) continue;
+            const businessDate = field.title.endsWith('库存') ? date : this.dayBefore(date);
+            const merged = map.get(businessDate) ?? { [dateField.id]: businessDate };
+            merged[field.id] = data[field.id];
+            map.set(businessDate, merged);
+          }
+          continue;
+        }
+        const directDate = code === CODE.anthraquinone || (code === CODE.fenglian && date >= '2026-09-01');
+        map.set(directDate ? date : this.dayBefore(date), data);
       }
     }
     return map;
@@ -163,8 +179,26 @@ export class OverviewService {
           total += v;
         }
       }
-      return seen ? +total.toFixed(3) : null;
+      return seen ? total : null;
     });
+  }
+
+  private sumReportedFields(data: FormData | undefined, fields: string[]): number | null {
+    if (!data) return null;
+    const values = fields.map((field) => OverviewService.toNum(data[field])).filter((value): value is number => value !== null);
+    return values.length ? values.reduce((sum, value) => sum + value, 0) : null;
+  }
+
+  private anthraquinoneGasUsage(source: ByDate, date: string): number | null {
+    const current = source.get(date);
+    const reported = OverviewService.toNum(current?.field_gas_consumption);
+    if (reported !== null) return reported;
+    const stock = OverviewService.toNum(current?.field_gas_meter);
+    const previous = OverviewService.toNum(source.get(this.dayBefore(date))?.field_gas_meter);
+    if (stock === null || previous === null) return null;
+    const purchase = OverviewService.toNum(current?.field_gas_recharge) ?? 0;
+    const usage = previous + purchase - stock;
+    return usage >= 0 ? +usage.toFixed(3) : null;
   }
 
   private static sumOrNull(...values: Array<number | null>): number | null {
@@ -222,23 +256,27 @@ export class OverviewService {
   // ── 车间版面 ─────────────────────────────────────────────
 
   async workshopOverview(days = 30): Promise<WorkshopOverviewResult> {
-    const [sulfuric, amino, magnesium, hydrotalcite, anthraquinone, fenglian, thermal] = await Promise.all([
+    const [sulfuric, amino, magnesium, anthraquinone, fenglian, thermal, finished] = await Promise.all([
       this.production.sulfuricSummary(days),
       this.byDate(CODE.amino),
       this.byDate(CODE.magnesium),
-      this.byDate(CODE.hydrotalcite),
       this.byDate(CODE.anthraquinone),
       this.byDate(CODE.fenglian),
       this.byDate(CODE.thermal),
+      this.byDate(CODE.finished),
     ]);
 
     const sulfuricByDate = new Map<string, unknown>(
       sulfuric.days.map((d) => [d.productionDate, d.production?.total98Equivalent ?? null]),
     );
     const dates = this.windowOf(
-      [sulfuricByDate, amino, magnesium, hydrotalcite, anthraquinone, fenglian, thermal],
+      [sulfuricByDate, amino, magnesium, finished, anthraquinone, fenglian, thermal],
       days,
     );
+    const aminoReported = this.reportedSeries(amino, dates, ['field_production']);
+    const aminoFinished = this.reportedSeries(finished, dates, ['field_001']);
+    const magnesiumReported = this.reportedSeries(magnesium, dates, ['field_mgso4_production']);
+    const magnesiumFinished = this.reportedSeries(finished, dates, ['field_004']);
 
     const workshops: WorkshopSeries[] = [
       {
@@ -251,24 +289,19 @@ export class OverviewService {
         code: 'aminosulfonic',
         name: '氨基磺酸',
         unit: 't',
-        values: this.reportedSeries(amino, dates, ['field_production']),
+        values: aminoFinished.map((value, index) => value ?? aminoReported[index]),
       },
       {
         code: 'magnesium',
         name: '硫酸镁',
         unit: 't',
-        values: this.reportedSeries(magnesium, dates, ['field_mgso4_production']),
+        values: magnesiumFinished.map((value, index) => value ?? magnesiumReported[index]),
       },
       {
         code: 'hydrotalcite',
         name: '水滑石',
         unit: 't',
-        values: this.reportedSeries(hydrotalcite, dates, [
-          'field_hg200_output',
-          'field_hg201_output',
-          'field_hg300_output',
-          'field_hg205_output',
-        ]),
+        values: this.reportedSeries(finished, dates, ['field_007', 'field_hg200a_production', 'field_010', 'field_013', 'field_016']),
       },
       {
         code: 'anthraquinone',
@@ -322,11 +355,11 @@ export class OverviewService {
         const acidVolume = read(amino.get(date), 'field_nitric_acid');
         return {
           date,
-          production: read(amino.get(date), 'field_production'),
+          production: read(finished.get(date), 'field_001') ?? read(amino.get(date), 'field_production'),
           electricity: phase1[i] === null && phase2[i] === null ? null : OverviewService.sumOrNull(phase1[i], phase2[i]),
           steam: steam[i],
           water: water[i],
-          urea: read(amino.get(date), 'field_urea'),
+          urea: read(warehouse.get(date), 'field_017') ?? read(amino.get(date), 'field_urea'),
           fuming: acidVolume === null ? null : +(acidVolume * 1.92).toFixed(3),
           finishedProduction: read(finished.get(date), 'field_001'),
           finishedSales: read(finished.get(date), 'field_002'),
@@ -340,7 +373,24 @@ export class OverviewService {
     };
   }
 
-  /** 三个车间的统一明细：日报耗用、仪表差值和产销存均归属填报日前一天。 */
+  /** 丰联三车间与标准厂房的日报原值，保留 Excel 的空白和日期。 */
+  async fenglianSummary(days = 30): Promise<FenglianSummaryResult> {
+    const [form, reports] = await Promise.all([
+      this.prisma.form.findUnique({ where: { code: CODE.fenglian } }),
+      this.byDate(CODE.fenglian),
+    ]);
+    const fields = ((form?.schema ?? []) as never as FormField[]).filter((field) => field.type === 'number');
+    const dates = this.windowOf([reports], days);
+    return {
+      fields,
+      days: dates.map((date) => ({
+        date,
+        values: Object.fromEntries(fields.map((field) => [field.id, OverviewService.toNum(reports.get(date)?.[field.id])])),
+      })),
+    };
+  }
+
+  /** 三个车间的统一明细；蒽醌按附件日期直接归属。 */
   async detailedWorkshop(code: DetailedWorkshopCode, days = 30): Promise<DetailedWorkshopResult> {
     if (code !== 'magnesium' && code !== 'hydrotalcite' && code !== 'anthraquinone') {
       throw new BadRequestException('不支持的车间');
@@ -403,6 +453,7 @@ export class OverviewService {
       ];
       stocks = [
         finishedStock('hg200', 'HG-200', 'field_007', 'field_008', 'field_009'),
+        finishedStock('hg200a', 'HG-200A', 'field_hg200a_production', 'field_hg200a_sales', 'field_hg200a_stock'),
         finishedStock('hg201', 'HG-201', 'field_010', 'field_011', 'field_012'),
         finishedStock('hg300', 'HG-300', 'field_013', 'field_014', 'field_015'),
         finishedStock('hg205', 'HG-205', 'field_016', 'field_017', 'field_018'),
@@ -428,16 +479,19 @@ export class OverviewService {
           ['carbon', '活性炭', 'field_carbon_consumption'],
           ['lye', '液碱', 'field_lye_consumption'],
           ['flake', '片碱', 'field_flake_caustic_consumption'],
+          ['granular', '粒碱', 'field_granular_caustic_consumption'],
         ].map(([key, name, field]): MetricSpec => ({ key, name, field, unit: 't', category: 'raw', featured: false })),
       ];
       stocks = [
         { key: 'crude', name: '蒽醌粗品', kind: 'finished', incomingLabel: '产量', outgoingLabel: '销量', unit: 't', source: 'main', incomingField: 'field_crude_output', outgoingField: 'field_crude_sales', closingField: 'field_crude_stock' },
         { key: 'fine', name: '蒽醌精品', kind: 'finished', incomingLabel: '产量', outgoingLabel: '销量', unit: 't', source: 'main', incomingField: 'field_fine_output', outgoingField: 'field_fine_sales', closingField: 'field_fine_stock' },
+        { key: 'dilute', name: '蒽醌稀酸', kind: 'finished', incomingLabel: '产量', outgoingLabel: '出库', unit: 't', source: 'main', incomingField: 'field_dilute_output', outgoingFields: ['field_dilute_out_v2006', 'field_dilute_out_v2009b'], closingField: 'field_dilute_stock' },
         ...[
           ['toluene', '甲苯', 'field_toluene'], ['ethylbenzene', '乙苯', 'field_ethylbenzene'],
           ['chlorobenzene', '氯苯', 'field_chlorobenzene'], ['phthalic', '苯酐', 'field_phthalic_anhydride'],
           ['alcl3', '无水三氯化铝', 'field_alcl3'], ['carbon', '活性炭', 'field_carbon'],
           ['lye', '液碱', 'field_lye'], ['flake', '片碱', 'field_flake_caustic'],
+          ['granular', '粒碱', 'field_granular_caustic'],
         ].map(([key, name, prefix]): StockSpec => ({
           key, name, kind: 'raw', incomingLabel: '购入', outgoingLabel: '耗用', unit: 't', source: 'main',
           incomingField: `${prefix}_purchase`, outgoingField: `${prefix}_consumption`, closingField: `${prefix}_stock`,
@@ -449,29 +503,41 @@ export class OverviewService {
     const metricSeries = new Map(metrics.map((metric) => [metric.key, metric.meter
       ? this.meterSeries(main, dates, metric.meter)
       : dates.map((date) => {
-        const value = read(main.get(date), metric.field);
-        return value === null ? null : +(value * (metric.factor ?? 1)).toFixed(3);
+        const warehouseField = code === 'hydrotalcite'
+          ? { mgo: 'field_026', aluminum: 'field_029', soda: 'field_023' }[metric.key]
+          : code === 'magnesium' && metric.key === 'mgo' ? 'field_020' : undefined;
+        const value = read(warehouse.get(date), warehouseField) ?? read(main.get(date), metric.field);
+        return value === null ? null : value * (metric.factor ?? 1);
       }),
     ]));
+    if (code === 'anthraquinone') {
+      metricSeries.set('gas', dates.map((date) => this.anthraquinoneGasUsage(main, date)));
+    }
     return {
       code, productionLabel,
       metrics: metrics.map(({ key, name, unit, category, featured }) => ({ key, name, unit, category, featured })),
       stockItems: stocks.map(({ key, name, kind, incomingLabel, outgoingLabel, unit, note }) => ({ key, name, kind, incomingLabel, outgoingLabel, unit, note })),
       days: dates.map((date, index) => {
-        const productionValues = productionFields.map((field) => read(main.get(date), field));
+        const productionValues = code === 'hydrotalcite'
+          ? ['field_007', 'field_hg200a_production', 'field_010', 'field_013', 'field_016'].map((field) => read(finished.get(date), field))
+          : code === 'magnesium'
+            ? [read(finished.get(date), 'field_004') ?? read(main.get(date), productionFields[0])]
+            : productionFields.map((field) => read(main.get(date), field));
         const present = productionValues.filter((value): value is number => value !== null);
         const values = Object.fromEntries(metrics.map((metric) => [metric.key, metricSeries.get(metric.key)?.[index] ?? null]));
         const stockValues = Object.fromEntries(stocks.map((stock) => {
           const data = stock.source === 'warehouse' ? warehouse.get(date) : stock.source === 'finished' ? finished.get(date) : main.get(date);
           return [stock.key, {
             incoming: read(data, stock.incomingField),
-            outgoing: stock.outgoingMetric ? values[stock.outgoingMetric] : read(data, stock.outgoingField),
+            outgoing: stock.outgoingMetric ? values[stock.outgoingMetric]
+              : stock.outgoingFields ? this.sumReportedFields(data, stock.outgoingFields)
+                : read(data, stock.outgoingField),
             closing: stock.source === 'sulfuric' ? sulfuricByDate.get(date)?.inventory?.fuming ?? null : read(data, stock.closingField),
           }];
         }));
         return {
           date,
-          production: present.length ? +present.reduce((sum, value) => sum + value, 0).toFixed(3) : null,
+          production: present.length ? present.reduce((sum, value) => sum + value, 0) : null,
           metrics: values,
           stocks: stockValues,
         };
@@ -564,16 +630,18 @@ export class OverviewService {
   private static fieldTriplets(
     schema: FormField[],
     suffixes: Readonly<Record<string, 'a' | 'b' | 'c'>>,
-  ): Array<{ name: string; group: string; a?: string; b?: string; c?: string }> {
-    const byName = new Map<string, { name: string; group: string; a?: string; b?: string; c?: string }>();
+  ): Array<{ name: string; group: string; unit: string; a?: string; b?: string; c?: string }> {
+    const byName = new Map<string, { name: string; group: string; unit: string; a?: string; b?: string; c?: string }>();
     for (const field of schema) {
       const title = field.title ?? '';
       for (const [suffix, slot] of Object.entries(suffixes)) {
         if (title.endsWith(suffix) && title !== suffix) {
           const name = title.slice(0, -suffix.length);
-          const entry = byName.get(name) ?? { name, group: field.group ?? '' };
+          const key = `${field.group ?? ''}\u0000${name}`;
+          const entry = byName.get(key) ?? { name, group: field.group ?? '', unit: field.unit ?? 't' };
+          if (slot === 'c') entry.unit = field.unit ?? 't';
           entry[slot] = field.id;
-          byName.set(name, entry);
+          byName.set(key, entry);
         }
       }
     }
@@ -581,16 +649,19 @@ export class OverviewService {
   }
 
   async materials(): Promise<MaterialsResult> {
-    const [warehouse, finished, magnesium, amino, anthraquinone, sulfuric, warehouseForm, finishedForm] =
+    const [warehouse, finished, magnesium, amino, anthraquinone, fenglian, sulfuric, warehouseForm, finishedForm, anthraquinoneForm, fenglianForm] =
       await Promise.all([
         this.byDate(CODE.warehouse),
         this.byDate(CODE.finished),
         this.byDate(CODE.magnesium),
         this.byDate(CODE.amino),
         this.byDate(CODE.anthraquinone),
+        this.byDate(CODE.fenglian),
         this.production.sulfuricSummary(2),
         this.prisma.form.findUnique({ where: { code: CODE.warehouse } }),
         this.prisma.form.findUnique({ where: { code: CODE.finished } }),
+        this.prisma.form.findUnique({ where: { code: CODE.anthraquinone } }),
+        this.prisma.form.findUnique({ where: { code: CODE.fenglian } }),
       ]);
 
     const latestOf = (m: ByDate): { date: string; data: FormData } | null => {
@@ -600,49 +671,79 @@ export class OverviewService {
     };
     const pick = (data: FormData, field?: string): number | null =>
       field ? OverviewService.toNum(data[field]) : null;
+    const latestRecorded = (rows: ByDate, field?: string): { date: string; value: number } | null => {
+      if (!field) return null;
+      for (const date of [...rows.keys()].sort().reverse()) {
+        const value = OverviewService.toNum(rows.get(date)?.[field]);
+        if (value !== null) return { date, value };
+      }
+      return null;
+    };
 
-    // 原辅料：最新库存 + 近 7 日平均耗用 → 可用天数与预警
+    // 每张来源表独立取最新记录；填报日 D 的仓库/产成品库存归 D，流量归 D−1。
+    // 蒽醌和丰联的历史表已按业务日入库，继续使用各自的原日期。
     const rawMaterials: RawMaterialStockItem[] = [];
-    const warehouseLatest = latestOf(warehouse);
-    if (warehouseForm && warehouseLatest) {
-      const triplets = OverviewService.fieldTriplets(warehouseForm.schema as never as FormField[], {
-        购入: 'a',
-        耗用: 'b',
-        消耗: 'b',
-        库存: 'c',
-      }).filter((t) => t.c || t.b);
-      const recentDates = [...warehouse.keys()].sort().slice(-7);
+    const rawSources = [
+      { code: CODE.warehouse, form: warehouseForm, rows: warehouse, workshop: '', split: true },
+      { code: CODE.anthraquinone, form: anthraquinoneForm, rows: anthraquinone, workshop: '蒽醌', split: false },
+      { code: CODE.fenglian, form: fenglianForm, rows: fenglian, workshop: '丰联', split: false },
+    ];
+    for (const source of rawSources) {
+      const latest = latestOf(source.rows);
+      if (!source.form || !latest) continue;
+      const activityDate = source.split ? this.dayBefore(latest.date) : latest.date;
+      const activity = source.rows.get(activityDate) ?? {};
+      const triplets = OverviewService.fieldTriplets(source.form.schema as never as FormField[], {
+        购入: 'a', 入库: 'a', 耗用: 'b', 消耗: 'b', 库存: 'c', 剩余: 'c',
+      }).filter((t) => {
+        if (!t.c || (!t.a && !t.b)) return false;
+        if (source.code === CODE.anthraquinone) return ['原辅料', '包材', '天然气', '干化'].includes(t.group);
+        if (source.code === CODE.fenglian) return !t.name.startsWith('焦磷酸哌嗪呆滞品');
+        return true;
+      });
+      const recentDates = [...source.rows.keys()].filter((d) => d <= activityDate).sort().slice(-7);
       for (const t of triplets) {
-        const stock = pick(warehouseLatest.data, t.c);
+        const recordedStock = latestRecorded(source.rows, t.c);
+        const stock = recordedStock?.value ?? null;
         const recent = recentDates
-          .map((d) => OverviewService.toNum(warehouse.get(d)![t.b ?? '']))
+          .map((d) => OverviewService.toNum(source.rows.get(d)![t.b ?? '']))
           .filter((v): v is number => v !== null);
         const avg = recent.length ? recent.reduce((s, v) => s + v, 0) / recent.length : 0;
         const daysOfUse = stock !== null && avg > 0 ? +(stock / avg).toFixed(1) : null;
         rawMaterials.push({
           name: t.name,
-          workshop: t.group,
+          workshop: source.workshop ? `${source.workshop}·${t.group}` : t.group,
+          unit: t.unit,
+          stockDate: recordedStock?.date ?? '',
+          activityDate,
           stock,
-          purchase: pick(warehouseLatest.data, t.a),
-          consumption: pick(warehouseLatest.data, t.b),
+          purchase: pick(activity, t.a),
+          consumption: pick(activity, t.b),
           daysOfUse,
           alert: daysOfUse === null ? null : daysOfUse < 3 ? 'low3' : daysOfUse < 7 ? 'low7' : null,
         });
       }
     }
 
-    // 产成品：产成品表三件套 + 硫酸（差值法现算）+ 蒽醌精品（蒽醌表）
+    // 产成品表、硫酸差值法、蒽醌与丰联表各自保留来源日期和完整品种。
     const finishedProducts: FinishedProductItem[] = [];
     const productItem = (
       name: string,
-      data: FormData,
-      fields: { production?: string; sales?: string; stock?: string },
+      workshop: string,
+      activityDate: string,
+      stockDate: string,
+      activity: FormData,
+      stockData: FormData,
+      fields: { production?: string; sales?: string[]; stock?: string },
+      stockRows?: ByDate,
     ): FinishedProductItem => {
-      const production = pick(data, fields.production);
-      const sales = pick(data, fields.sales);
-      const stock = pick(data, fields.stock);
+      const production = pick(activity, fields.production);
+      const salesValues = (fields.sales ?? []).map((field) => pick(activity, field)).filter((value): value is number => value !== null);
+      const sales = salesValues.length ? +salesValues.reduce((sum, value) => sum + value, 0).toFixed(3) : null;
+      const recordedStock = stockRows ? latestRecorded(stockRows, fields.stock) : null;
+      const stock = recordedStock?.value ?? pick(stockData, fields.stock);
       return {
-        name,
+        name, workshop, activityDate, stockDate: recordedStock?.date ?? (stock === null ? '' : stockDate),
         production,
         sales,
         stock,
@@ -652,6 +753,8 @@ export class OverviewService {
     };
     const finishedLatest = latestOf(finished);
     if (finishedForm && finishedLatest) {
+      const activityDate = this.dayBefore(finishedLatest.date);
+      const activity = finished.get(activityDate) ?? {};
       const triplets = OverviewService.fieldTriplets(finishedForm.schema as never as FormField[], {
         产量: 'a',
         销量: 'b',
@@ -659,34 +762,68 @@ export class OverviewService {
       });
       for (const t of triplets) {
         finishedProducts.push(
-          productItem(t.name, finishedLatest.data, { production: t.a, sales: t.b, stock: t.c }),
+          productItem(t.name, t.group, activityDate, finishedLatest.date, activity, finishedLatest.data,
+            { production: t.a, sales: t.b ? [t.b] : [], stock: t.c }, finished),
         );
       }
     }
     const sulfuricToday = sulfuric.days[sulfuric.days.length - 1];
     if (sulfuricToday) {
-      const flow = sulfuricToday.production?.flow;
+      const production = sulfuricToday.production;
+      const flow = production?.flow;
       const sales = flow
         ? +(flow.acid98 + flow.acid93 + flow.reagent + flow.fuming).toFixed(3)
         : null;
       finishedProducts.unshift({
         name: '硫酸（四酸合计·折98）',
+        workshop: '硫酸',
+        activityDate: sulfuricToday.productionDate,
+        stockDate: sulfuricToday.date,
         production: sulfuricToday.production?.total98Equivalent ?? null,
         sales,
         stock: sulfuricToday.inventory?.total ?? null,
         salesRatio: null,
         stockDays: null,
       });
+      const acids = [
+        { name: '98%硫酸', production: production?.acid98, sales: flow?.acid98, stock: sulfuricToday.inventory?.acid98 },
+        { name: '93%硫酸', production: production?.acid93, sales: flow?.acid93, stock: null },
+        { name: '试剂酸', production: production?.reagent, sales: flow?.reagent, stock: sulfuricToday.inventory?.reagent },
+        { name: '发烟硫酸', production: production?.fuming, sales: flow?.fuming, stock: sulfuricToday.inventory?.fuming },
+      ];
+      finishedProducts.splice(1, 0, ...acids.map((acid) => ({
+        name: acid.name, workshop: '硫酸', activityDate: sulfuricToday.productionDate, stockDate: acid.stock == null ? '' : sulfuricToday.date,
+        production: acid.production ?? null, sales: acid.sales ?? null, stock: acid.stock ?? null,
+        salesRatio: null, stockDays: null,
+      })));
     }
     const anthraquinoneLatest = latestOf(anthraquinone);
-    if (anthraquinoneLatest) {
-      finishedProducts.push(
-        productItem('蒽醌·精品', anthraquinoneLatest.data, {
-          production: 'field_fine_output',
-          sales: 'field_fine_sales',
-          stock: 'field_fine_stock',
-        }),
-      );
+    if (anthraquinoneForm && anthraquinoneLatest) {
+      const triplets = OverviewService.fieldTriplets(anthraquinoneForm.schema as never as FormField[], {
+        产量: 'a', 销量: 'b', 库存: 'c',
+      }).filter((t) => t.group === '产成品');
+      for (const t of triplets) {
+        finishedProducts.push(productItem(t.name, '蒽醌', anthraquinoneLatest.date, anthraquinoneLatest.date,
+          anthraquinoneLatest.data, anthraquinoneLatest.data, { production: t.a, sales: t.b ? [t.b] : [], stock: t.c }, anthraquinone));
+      }
+      finishedProducts.push(productItem('稀酸', '蒽醌', anthraquinoneLatest.date, anthraquinoneLatest.date,
+        anthraquinoneLatest.data, anthraquinoneLatest.data,
+        { production: 'field_dilute_output', sales: ['field_dilute_out_v2006', 'field_dilute_out_v2009b'], stock: 'field_dilute_stock' }, anthraquinone));
+    }
+    const fenglianLatest = latestOf(fenglian);
+    if (fenglianForm && fenglianLatest) {
+      const triplets = OverviewService.fieldTriplets(fenglianForm.schema as never as FormField[], {
+        产量: 'a', 销量: 'b', 出库: 'b', 库存: 'c',
+      }).filter((t) => t.a && t.c);
+      for (const t of triplets) {
+        finishedProducts.push(productItem(t.name, `丰联·${t.group}`, fenglianLatest.date, fenglianLatest.date,
+          fenglianLatest.data, fenglianLatest.data, { production: t.a, sales: t.b ? [t.b] : [], stock: t.c }, fenglian));
+      }
+      finishedProducts.push(productItem('焦磷酸哌嗪成品', '丰联·标准厂房', fenglianLatest.date, fenglianLatest.date,
+        fenglianLatest.data, fenglianLatest.data, { production: 'field_204', sales: ['field_205'], stock: 'field_206' }, fenglian));
+      finishedProducts.push(productItem('焦磷酸哌嗪呆滞品', '丰联·标准厂房', fenglianLatest.date, fenglianLatest.date,
+        fenglianLatest.data, fenglianLatest.data,
+        { production: 'field_dry_sluggish_output', stock: 'field_dry_sluggish_stock' }, fenglian));
     }
 
     // 车间间物料往来（当日值；酸的体积量 ×密度 折吨）
@@ -699,24 +836,26 @@ export class OverviewService {
     const aminoLatest = latestOf(amino);
     const mgLatest = latestOf(magnesium);
     if (aminoLatest) {
-      internalFlows.push({ from: '硫酸', to: '氨基磺酸', material: '发烟硫酸', quantity: flowQty(aminoLatest.data, 'field_nitric_acid', 1.92) });
+      internalFlows.push({ from: '硫酸', to: '氨基磺酸', material: '发烟硫酸', date: aminoLatest.date, quantity: flowQty(aminoLatest.data, 'field_nitric_acid', 1.92) });
     }
     if (anthraquinoneLatest) {
       const current = OverviewService.toNum(anthraquinoneLatest.data.field_fuming_sulfuric_flow);
       const previous = OverviewService.toNum(anthraquinone.get(this.dayBefore(anthraquinoneLatest.date))?.field_fuming_sulfuric_flow);
       internalFlows.push({
         from: '硫酸', to: '蒽醌', material: '发烟硫酸',
+        date: anthraquinoneLatest.date,
         quantity: current !== null && previous !== null && current >= previous
           ? +((current - previous) * 1.92).toFixed(3) : null,
       });
     }
     if (mgLatest) {
-      internalFlows.push({ from: '硫酸', to: '硫酸镁', material: '93%酸', quantity: flowQty(mgLatest.data, 'field_sulfuric_93', 1.84) });
-      internalFlows.push({ from: '氨基磺酸', to: '硫酸镁', material: '稀酸', quantity: flowQty(mgLatest.data, 'field_amino_dilute_acid') });
-      internalFlows.push({ from: '蒽醌', to: '硫酸镁', material: '稀酸', quantity: flowQty(mgLatest.data, 'field_anthraquinone_dilute_acid') });
+      internalFlows.push({ from: '硫酸', to: '硫酸镁', material: '93%酸', date: mgLatest.date, quantity: flowQty(mgLatest.data, 'field_sulfuric_93', 1.84) });
+      internalFlows.push({ from: '氨基磺酸', to: '硫酸镁', material: '稀酸', date: mgLatest.date, quantity: flowQty(mgLatest.data, 'field_amino_dilute_acid') });
+      internalFlows.push({ from: '蒽醌', to: '硫酸镁', material: '稀酸', date: mgLatest.date, quantity: flowQty(mgLatest.data, 'field_anthraquinone_dilute_acid') });
     }
 
-    const date = warehouseLatest?.date ?? finishedLatest?.date ?? sulfuricToday?.date ?? '';
+    const date = [latestOf(warehouse)?.date, finishedLatest?.date, sulfuricToday?.date, anthraquinoneLatest?.date, fenglianLatest?.date]
+      .filter((value): value is string => !!value).sort().at(-1) ?? '';
     return { date, rawMaterials, finishedProducts, internalFlows };
   }
 

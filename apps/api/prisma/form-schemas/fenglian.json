@@ -1,539 +1,1306 @@
 [
   {
     "id": "field_date",
-    "title": "日 期",
+    "title": "日期",
     "type": "date",
-    "group": "丰联车间产成品（一）",
+    "group": "三车间",
     "hidden": true,
-    "required": true,
-    "placeholder": "请选择日期"
+    "required": true
   },
   {
     "id": "field_201",
-    "title": "磷酸哌嗪湿料产量",
+    "title": "焦磷酸哌嗪湿料产量",
     "type": "number",
-    "group": "丰联车间产成品（一）",
+    "group": "三车间",
+    "section": "产成品",
+    "subgroup": "湿料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_202",
-    "title": "磷酸哌嗪湿料销量",
+    "title": "焦磷酸哌嗪湿料出库",
     "type": "number",
-    "group": "丰联车间产成品（一）",
+    "group": "三车间",
+    "section": "产成品",
+    "subgroup": "湿料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_203",
-    "title": "磷酸哌嗪湿料库存",
+    "title": "焦磷酸哌嗪湿料库存",
     "type": "number",
-    "group": "丰联车间产成品（一）",
+    "group": "三车间",
+    "section": "产成品",
+    "subgroup": "湿料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_004",
     "title": "85%磷酸购入",
     "type": "number",
-    "group": "三车间原辅料",
+    "group": "三车间",
+    "section": "原辅料",
+    "subgroup": "85%磷酸",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_005",
     "title": "85%磷酸耗用",
     "type": "number",
-    "group": "三车间原辅料",
+    "group": "三车间",
+    "section": "原辅料",
+    "subgroup": "85%磷酸",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_006",
     "title": "85%磷酸库存",
     "type": "number",
-    "group": "三车间原辅料",
+    "group": "三车间",
+    "section": "原辅料",
+    "subgroup": "85%磷酸",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_007",
-    "title": "68哌嗪购入",
+    "title": "68%哌嗪购入",
     "type": "number",
-    "group": "三车间原辅料",
+    "group": "三车间",
+    "section": "原辅料",
+    "subgroup": "68%哌嗪",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_008",
-    "title": "68哌嗪耗用",
+    "title": "68%哌嗪耗用",
     "type": "number",
-    "group": "三车间原辅料",
+    "group": "三车间",
+    "section": "原辅料",
+    "subgroup": "68%哌嗪",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_009",
-    "title": "68哌嗪库存",
+    "title": "68%哌嗪库存",
     "type": "number",
-    "group": "三车间原辅料",
+    "group": "三车间",
+    "section": "原辅料",
+    "subgroup": "68%哌嗪",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_010",
     "title": "椰壳活性炭购入",
     "type": "number",
-    "group": "三车间原辅料",
+    "group": "三车间",
+    "section": "原辅料",
+    "subgroup": "椰壳活性炭",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "kg"
   },
   {
     "id": "field_011",
     "title": "椰壳活性炭耗用",
     "type": "number",
-    "group": "三车间原辅料",
+    "group": "三车间",
+    "section": "原辅料",
+    "subgroup": "椰壳活性炭",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "kg"
   },
   {
     "id": "field_012",
     "title": "椰壳活性炭库存",
     "type": "number",
-    "group": "三车间原辅料",
+    "group": "三车间",
+    "section": "原辅料",
+    "subgroup": "椰壳活性炭",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "kg"
+  },
+  {
+    "id": "field_dry_drying",
+    "title": "焦磷酸哌嗪干燥量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "焦磷酸哌嗪干料",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_dry_crushing",
+    "title": "焦磷酸哌嗪粉碎量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "焦磷酸哌嗪干料",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_204",
-    "title": "焦磷酸哌嗪产量",
+    "title": "焦磷酸哌嗪打包数",
     "type": "number",
-    "group": "丰联车间产成品（二）",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "焦磷酸哌嗪干料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_205",
     "title": "焦磷酸哌嗪销量",
     "type": "number",
-    "group": "丰联车间产成品（二）",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "焦磷酸哌嗪干料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_dry_self_use",
+    "title": "焦磷酸哌嗪自耗数",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "焦磷酸哌嗪干料",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_dry_sluggish_output",
+    "title": "焦磷酸哌嗪呆滞品生产数",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "焦磷酸哌嗪干料",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_dry_sluggish_stock",
+    "title": "焦磷酸哌嗪呆滞品库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "焦磷酸哌嗪干料",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_dry_returns",
+    "title": "焦磷酸哌嗪退货数",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "焦磷酸哌嗪干料",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_206",
-    "title": "焦磷酸哌嗪库存",
+    "title": "焦磷酸哌嗪成品库存",
     "type": "number",
-    "group": "丰联车间产成品（二）",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "焦磷酸哌嗪干料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
-    "id": "field_207",
-    "title": "阻燃母粒产量",
+    "id": "field_3500_high_output",
+    "title": "3500阻燃母粒（优）产量",
     "type": "number",
-    "group": "丰联车间产成品（二）",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3500阻燃母粒（优）",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
-    "id": "field_208",
-    "title": "阻燃母粒销量",
+    "id": "field_3500_high_sales",
+    "title": "3500阻燃母粒（优）销量",
     "type": "number",
-    "group": "丰联车间产成品（二）",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3500阻燃母粒（优）",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
-    "id": "field_209",
-    "title": "阻燃母粒库存",
+    "id": "field_3500_high_stock",
+    "title": "3500阻燃母粒（优）库存",
     "type": "number",
-    "group": "丰联车间产成品（二）",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3500阻燃母粒（优）",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
-    "id": "field_210",
-    "title": "无卤阻燃剂产量",
+    "id": "field_3500_standard_output",
+    "title": "3500阻燃母粒（普）产量",
     "type": "number",
-    "group": "丰联车间产成品（二）",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3500阻燃母粒（普）",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
-    "id": "field_211",
-    "title": "无卤阻燃剂销量",
+    "id": "field_3500_standard_sales",
+    "title": "3500阻燃母粒（普）销量",
     "type": "number",
-    "group": "丰联车间产成品（二）",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3500阻燃母粒（普）",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
-    "id": "field_212",
-    "title": "无卤阻燃剂库存",
+    "id": "field_3500_standard_stock",
+    "title": "3500阻燃母粒（普）库存",
     "type": "number",
-    "group": "丰联车间产成品（二）",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3500阻燃母粒（普）",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3500_new_output",
+    "title": "新3500阻燃母粒产量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "新3500阻燃母粒",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3500_new_sales",
+    "title": "新3500阻燃母粒销量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "新3500阻燃母粒",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3500_new_stock",
+    "title": "新3500阻燃母粒库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "新3500阻燃母粒",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3500_rework_output",
+    "title": "返工3500阻燃母粒产量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "返工3500阻燃母粒",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3500_rework_sales",
+    "title": "返工3500阻燃母粒销量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "返工3500阻燃母粒",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3500_rework_stock",
+    "title": "返工3500阻燃母粒库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "返工3500阻燃母粒",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4000_masterbatch_output",
+    "title": "4000阻燃母粒产量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4000阻燃母粒",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4000_masterbatch_sales",
+    "title": "4000阻燃母粒销量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4000阻燃母粒",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4000_masterbatch_stock",
+    "title": "4000阻燃母粒库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4000阻燃母粒",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4500_high_output",
+    "title": "4500阻燃母粒（优）产量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4500阻燃母粒（优）",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4500_high_sales",
+    "title": "4500阻燃母粒（优）销量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4500阻燃母粒（优）",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4500_high_stock",
+    "title": "4500阻燃母粒（优）库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4500阻燃母粒（优）",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4500_standard_output",
+    "title": "4500阻燃母粒（普）产量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4500阻燃母粒（普）",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4500_standard_sales",
+    "title": "4500阻燃母粒（普）销量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4500阻燃母粒（普）",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4500_standard_stock",
+    "title": "4500阻燃母粒（普）库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4500阻燃母粒（普）",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3000_halogen_free_output",
+    "title": "3000无卤阻燃剂产量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3000无卤阻燃剂",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3000_halogen_free_sales",
+    "title": "3000无卤阻燃剂销量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3000无卤阻燃剂",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3000_halogen_free_stock",
+    "title": "3000无卤阻燃剂库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3000无卤阻燃剂",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4000_halogen_free_output",
+    "title": "4000无卤阻燃剂产量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4000无卤阻燃剂",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4000_halogen_free_sales",
+    "title": "4000无卤阻燃剂销量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4000无卤阻燃剂",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4000_halogen_free_self_use",
+    "title": "4000无卤阻燃剂自耗数",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4000无卤阻燃剂",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4000_halogen_free_stock",
+    "title": "4000无卤阻燃剂库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4000无卤阻燃剂",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3500_halogen_free_1_output",
+    "title": "3500无卤阻燃剂（第一组）产量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3500无卤阻燃剂（第一组）",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3500_halogen_free_1_sales",
+    "title": "3500无卤阻燃剂（第一组）销量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3500无卤阻燃剂（第一组）",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3500_halogen_free_1_stock",
+    "title": "3500无卤阻燃剂（第一组）库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3500无卤阻燃剂（第一组）",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3500_halogen_free_2_output",
+    "title": "3500无卤阻燃剂（第二组）产量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3500无卤阻燃剂（第二组）",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3500_halogen_free_2_sales",
+    "title": "3500无卤阻燃剂（第二组）销量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3500无卤阻燃剂（第二组）",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_3500_halogen_free_2_stock",
+    "title": "3500无卤阻燃剂（第二组）库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "3500无卤阻燃剂（第二组）",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_mb5000_output",
+    "title": "MB-5000产量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "MB-5000",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_mb5000_sales",
+    "title": "MB-5000销量",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "MB-5000",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_mb5000_stock",
+    "title": "MB-5000库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "MB-5000",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_4500_returns",
+    "title": "4500阻燃母粒退货数",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "产成品",
+    "subgroup": "4500阻燃母粒（普）",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_035",
-    "title": "焦磷酸哌嗪（湿料）入库",
+    "title": "焦磷酸哌嗪湿料入库",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "焦磷酸哌嗪湿料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_036",
-    "title": "焦磷酸哌嗪（湿料）耗用",
+    "title": "焦磷酸哌嗪湿料耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "焦磷酸哌嗪湿料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_037",
-    "title": "焦磷酸哌嗪（湿料）库存（2）",
+    "title": "焦磷酸哌嗪湿料库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "焦磷酸哌嗪湿料",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_038",
     "title": "MPP母粒级购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "MPP母粒级",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_039",
     "title": "MPP母粒级耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "MPP母粒级",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_040",
     "title": "MPP母粒级库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "MPP母粒级",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_041",
     "title": "MPP普通级购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "MPP普通级",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_042",
     "title": "MPP普通级耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "MPP普通级",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_043",
     "title": "MPP普通级库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "MPP普通级",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_044",
     "title": "MPP国标级购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "MPP国标级",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_045",
     "title": "MPP国标级耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "MPP国标级",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_046",
     "title": "MPP国标级库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "MPP国标级",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_047",
-    "title": "P450粉购入",
+    "title": "PP450粉购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "PP450粉",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_048",
-    "title": "P450粉耗用",
+    "title": "PP450粉耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "PP450粉",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_049",
-    "title": "P450粉库存",
+    "title": "PP450粉库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "PP450粉",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_053",
     "title": "氧化锌购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "氧化锌",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_054",
     "title": "氧化锌耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "氧化锌",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_055",
     "title": "氧化锌库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "氧化锌",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_056",
     "title": "2乙基次磷酸铝购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "2乙基次磷酸铝",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_057",
     "title": "2乙基次磷酸铝耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "2乙基次磷酸铝",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_058",
     "title": "2乙基次磷酸铝库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "2乙基次磷酸铝",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_059",
     "title": "三聚氰胺氰尿酸盐MCA购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "三聚氰胺氰尿酸盐MCA",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_060",
     "title": "三聚氰胺氰尿酸盐MCA耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "三聚氰胺氰尿酸盐MCA",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_061",
     "title": "三聚氰胺氰尿酸盐MCA库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "三聚氰胺氰尿酸盐MCA",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_062",
     "title": "PETS季戊四醇硬脂酸脂购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "PETS季戊四醇硬脂酸脂",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_063",
     "title": "PETS季戊四醇硬脂酸脂耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "PETS季戊四醇硬脂酸脂",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_064",
     "title": "PETS季戊四醇硬脂酸脂库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "PETS季戊四醇硬脂酸脂",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_065",
     "title": "抗氧化剂168购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "抗氧化剂168",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_066",
     "title": "抗氧化剂168耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "抗氧化剂168",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_067",
     "title": "抗氧化剂168库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "抗氧化剂168",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_068",
     "title": "抗氧化剂1010购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "抗氧化剂1010",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_069",
     "title": "抗氧化剂1010耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "抗氧化剂1010",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_070",
     "title": "抗氧化剂1010库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "抗氧化剂1010",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_071",
     "title": "气相二氧化硅购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "气相二氧化硅",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_072",
     "title": "气相二氧化硅耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "气相二氧化硅",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_073",
     "title": "气相二氧化硅库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "气相二氧化硅",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_074",
     "title": "助剂C购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "助剂C",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_075",
     "title": "助剂C耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "助剂C",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_076",
     "title": "助剂C库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "助剂C",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_080",
-    "title": "化学试剂助剂（改制剂）购入",
+    "title": "化学试剂助剂（改制剂810）购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "化学试剂助剂（改制剂810）",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_081",
-    "title": "化学试剂助剂（改制剂）耗用",
+    "title": "化学试剂助剂（改制剂810）耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "化学试剂助剂（改制剂810）",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_082",
-    "title": "化学试剂助剂（改制剂）库存",
+    "title": "化学试剂助剂（改制剂810）库存",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "化学试剂助剂（改制剂810）",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_120",
-    "title": "3-氨丙基三乙氧基硅烷购入",
+    "title": "3-氨丙基三乙氧基硅烷KH550购入",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "3-氨丙基三乙氧基硅烷KH550",
     "step": 0.001,
-    "precision": 3
+    "precision": 3,
+    "unit": "t"
   },
   {
     "id": "field_121",
-    "title": "3-氨丙基三乙氧基硅烷耗用",
+    "title": "3-氨丙基三乙氧基硅烷KH550耗用",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "3-氨丙基三乙氧基硅烷KH550",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_122",
+    "title": "3-氨丙基三乙氧基硅烷KH550库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "3-氨丙基三乙氧基硅烷KH550",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_pp8285e_purchase",
+    "title": "PP8285E购入",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "PP8285E",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_pp8285e_consumption",
+    "title": "PP8285E耗用",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "PP8285E",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_pp8285e_stock",
+    "title": "PP8285E库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "PP8285E",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_dmpy_purchase",
+    "title": "DMPY购入",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "DMPY",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_dmpy_consumption",
+    "title": "DMPY耗用",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "DMPY",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_dmpy_stock",
+    "title": "DMPY库存",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "原辅料",
+    "subgroup": "DMPY",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_nitrogen_purchase",
+    "title": "液氮购入",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "水电气",
+    "subgroup": "液氮",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_nitrogen_consumption",
+    "title": "液氮耗用",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "水电气",
+    "subgroup": "液氮",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_nitrogen_stock",
+    "title": "液氮剩余",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "水电气",
+    "subgroup": "液氮",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "t"
+  },
+  {
+    "id": "field_water_cumulative",
+    "title": "水表累计读数",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "水电气",
+    "subgroup": "自来水",
     "step": 0.001,
     "precision": 3
   },
   {
-    "id": "field_122",
-    "title": "3-氨丙基三乙氧基硅烷库存",
+    "id": "field_electricity_cumulative",
+    "title": "电表累计读数",
     "type": "number",
-    "group": "标准厂房原料消耗",
+    "group": "标准厂房",
+    "section": "水电气",
+    "subgroup": "用电",
     "step": 0.001,
     "precision": 3
+  },
+  {
+    "id": "field_gas_purchase",
+    "title": "天然气购入",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "水电气",
+    "subgroup": "天然气",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "m³"
+  },
+  {
+    "id": "field_gas_consumption",
+    "title": "天然气耗用",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "水电气",
+    "subgroup": "天然气",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "m³"
+  },
+  {
+    "id": "field_gas_stock",
+    "title": "天然气剩余",
+    "type": "number",
+    "group": "标准厂房",
+    "section": "水电气",
+    "subgroup": "天然气",
+    "step": 0.001,
+    "precision": 3,
+    "unit": "m³"
   }
 ]

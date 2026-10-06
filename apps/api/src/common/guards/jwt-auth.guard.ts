@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import type { AuthUser } from '../decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
+import { PAGE_PERMISSION_VALUES, type PagePermission } from '@hgxt/shared';
 
 /**
  * 全局 JWT 守卫：校验 Bearer Access Token，并核对用户当前状态与 authVersion，
@@ -39,7 +40,7 @@ export class JwtAuthGuard implements CanActivate {
 
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, username: true, name: true, role: true, status: true, authVersion: true },
+      select: { id: true, username: true, name: true, role: true, status: true, authVersion: true, pagePermissions: true },
     });
     if (!user || user.status !== 'ACTIVE') {
       throw new UnauthorizedException('账号不可用');
@@ -53,6 +54,8 @@ export class JwtAuthGuard implements CanActivate {
       username: user.username,
       name: user.name,
       role: user.role,
+      pagePermissions: user.pagePermissions.filter((permission): permission is PagePermission =>
+        PAGE_PERMISSION_VALUES.includes(permission as PagePermission)),
     } satisfies AuthUser;
     return true;
   }

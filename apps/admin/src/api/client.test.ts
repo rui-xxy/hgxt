@@ -71,10 +71,10 @@ describe('D1：错误分类', () => {
   });
 
   it('业务 4xx（409）→ kind=client', async () => {
-    mockFetch({ '/api/users': () => jsonResponse(409, { message: '用户名或邮箱已被占用' }) });
+    mockFetch({ '/api/users': () => jsonResponse(409, { message: '用户名已被占用' }) });
     const error = await expectApiError(request('/users', { method: 'POST', body: {} }));
     expect(error.kind).toBe('client');
-    expect(error.message).toBe('用户名或邮箱已被占用');
+    expect(error.message).toBe('用户名已被占用');
   });
 });
 

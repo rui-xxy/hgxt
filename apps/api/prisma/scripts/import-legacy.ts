@@ -60,7 +60,8 @@ async function importForms(): Promise<Map<string, string>> {
   const idByCode = new Map<string, string>();
   for (const entry of manifest) {
     const schema = (SCHEMAS as Record<string, unknown>)[entry.code];
-    if (!schema) throw new Error(`_schemas.json 缺少 ${entry.code}`);
+    // manifest 持续新增独立表单；旧库快照只负责导入当时存在的 code。
+    if (!schema) continue;
     const existing = (await prisma.form.findUnique({ where: { code: entry.code } }))
       ?? (await prisma.form.findFirst({ where: { title: entry.title } }));
     const form = existing
@@ -104,8 +105,12 @@ async function importTanksAndMeters(): Promise<void> {
 }
 
 async function importSubmissions(idByCode: Map<string, string>): Promise<number> {
-  const formIds = [...idByCode.values()];
-  const removed = await prisma.formSubmission.deleteMany({ where: { formId: { in: formIds } } });
+  const sourceRows = submissions as LegacySubmission[];
+  const importedCodes = [...new Set(sourceRows.map((row) => row.code))];
+  const unknownCode = importedCodes.find((code) => !idByCode.has(code));
+  if (unknownCode) throw new Error(`提交数据包含未知表单：${unknownCode}`);
+  // 仅重建快照中实际有提交的表单；事项表等独立维护的数据不能随旧数据导入清空。
+  const formIds = importedCodes.map((code) => idByCode.get(code)!);
 
   // 旧库把数字存成字符串（"9.05"）；入库前按 schema 的 number 字段规范化成真数字
   const numberFields = new Map<string, Set<string>>();
@@ -114,7 +119,7 @@ async function importSubmissions(idByCode: Map<string, string>): Promise<number>
     numberFields.set(entry.code, new Set(schema.filter((f) => f.type === 'number').map((f) => f.id)));
   }
 
-  const rows = (submissions as LegacySubmission[]).map((s) => {
+  const rows = sourceRows.map((s) => {
     const data = { ...s.data };
     // 旧系统 parkingRecords 是 jsonb 数组；本系统存字符串（空数组直接丢弃）
     if (Array.isArray(data.parkingRecords)) {
@@ -140,10 +145,14 @@ async function importSubmissions(idByCode: Map<string, string>): Promise<number>
     };
   });
 
-  for (let i = 0; i < rows.length; i += 500) {
-    await prisma.formSubmission.createMany({ data: rows.slice(i, i + 500) });
-  }
-  console.log(`提交 ${rows.length} 条已导入（清除旧数据 ${removed.count} 条）`);
+  const removedCount = await prisma.$transaction(async (tx) => {
+    const removed = await tx.formSubmission.deleteMany({ where: { formId: { in: formIds } } });
+    for (let i = 0; i < rows.length; i += 500) {
+      await tx.formSubmission.createMany({ data: rows.slice(i, i + 500) });
+    }
+    return removed.count;
+  }, { timeout: 60_000 });
+  console.log(`提交 ${rows.length} 条已导入（清除旧数据 ${removedCount} 条）`);
   return rows.length;
 }
 
