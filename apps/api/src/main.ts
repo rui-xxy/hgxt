@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
@@ -41,22 +41,30 @@ async function bootstrap(): Promise<void> {
 
   // B6：基础 HTTP 安全头。CSP 会拦 Swagger UI 的内联脚本，开发环境关闭、生产保留。
   // 生产模式下 API 同时托管前端静态产物（见下方 useStaticAssets）：
-  // AntD 会注入内联 <style>，默认 CSP 不含 'unsafe-inline' 会把整站样式拦掉，故显式放开 style-src
-  app.use(
-    helmet({
-      contentSecurityPolicy: isProduction
-        ? {
-            directives: {
-              styleSrc: ["'self'", "'unsafe-inline'"],
-              imgSrc: ["'self'", 'data:', 'blob:'],
-              // 纯 HTTP 直连部署必须关闭：helmet 默认开启会把页面资源强制升级为 https，
-              // 而本服务不提供 TLS，浏览器升级后全部资源加载失败导致白屏（HTTPS 反代部署可再打开）
-              upgradeInsecureRequests: null,
-            },
-          }
-        : false,
-    }),
-  );
+  // AntD 会注入内联 <style>，默认 CSP 不含 'unsafe-inline' 会把整站样式拦掉，故显式放开 style-src。
+  // 例外：登录页动画 /login-sulfur/（自带静态素材，内含内联启动脚本）会被 script-src 'self' 拦掉，
+  // 该路径单独豁免 CSP（helmet 其余安全头照常），全站其他路径仍保持严格策略
+  const strictHelmet = helmet({
+    contentSecurityPolicy: isProduction
+      ? {
+          directives: {
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", 'data:', 'blob:'],
+            // 纯 HTTP 直连部署必须关闭：helmet 默认开启会把页面资源强制升级为 https，
+            // 而本服务不提供 TLS，浏览器升级后全部资源加载失败导致白屏（HTTPS 反代部署可再打开）
+            upgradeInsecureRequests: null,
+          },
+        }
+      : false,
+  });
+  const looseHelmet = helmet({ contentSecurityPolicy: false });
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.path.startsWith('/login-sulfur/')) {
+      looseHelmet(req, res, next);
+      return;
+    }
+    strictHelmet(req, res, next);
+  });
 
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
