@@ -1,52 +1,39 @@
 import { App, Button, Form, Input } from 'antd';
-import { useEffect, useRef } from 'react';
+import type { CSSProperties } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { loginApi } from '../api/auth';
 import { tokenStore } from '../api/client';
 import { queryClient } from '../api/queryClient';
+import { loginPalette } from '../theme/tokens';
 
 interface LoginFormValues {
   username: string;
   password: string;
 }
 
-/** 登录页右侧保留现有表单，左侧挂载参考页的粒子影片。 */
+const loginColors = {
+  '--hg-login-paper': loginPalette.paper,
+  '--hg-login-ink': loginPalette.ink,
+  '--hg-login-muted': loginPalette.muted,
+  '--hg-login-line': loginPalette.line,
+  '--hg-login-card-idle': loginPalette.cardIdle,
+  '--hg-login-card-active': loginPalette.cardActive,
+  '--hg-login-card-shadow': loginPalette.cardShadow,
+  '--hg-login-teal': loginPalette.teal,
+  '--hg-login-blue': loginPalette.blue,
+  '--hg-login-white': loginPalette.white,
+  '--hg-login-focus': loginPalette.focus,
+} as CSSProperties;
+
+/** 登录表单悬浮在《以硫为源》影片上方。 */
 export function LoginPage() {
   const [form] = Form.useForm<LoginFormValues>();
-  const filmContainer = useRef<HTMLElement>(null);
   const { message } = App.useApp();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = (location.state as { from?: string } | null)?.from ?? '/';
-
-  useEffect(() => {
-    const desktop = window.matchMedia('(min-width: 901px)');
-    let cancelled = false;
-    let generation = 0;
-    let film: { destroy: () => void } | undefined;
-    const syncFilm = () => {
-      const currentGeneration = ++generation;
-      if (!desktop.matches) {
-        film?.destroy();
-        film = undefined;
-        return;
-      }
-      void import('./login-film').then(({ mountHgxtFilm }) => {
-        if (cancelled || currentGeneration !== generation || !filmContainer.current) return;
-        film = mountHgxtFilm(filmContainer.current, { brand: false, footer: false });
-      }).catch(() => undefined);
-    };
-    desktop.addEventListener('change', syncFilm);
-    syncFilm();
-    return () => {
-      cancelled = true;
-      generation++;
-      desktop.removeEventListener('change', syncFilm);
-      film?.destroy();
-    };
-  }, []);
 
   const loginMutation = useMutation({
     mutationFn: (values: LoginFormValues) => loginApi(values.username, values.password),
@@ -64,12 +51,14 @@ export function LoginPage() {
   // D1：不再凭「localStorage 有 token」自动跳后台——是否有有效会话由
   // RequireAuth 的 /me 结果决定，避免网络错误时的登录页↔后台循环跳转
   return (
-    <div className="hgxt-login">
-      <section ref={filmContainer} className="hgxt-login-hero" aria-hidden="true" />
+    <div className="hgxt-login" style={loginColors}>
+      <div className="hgxt-login-hero" aria-hidden="true">
+        <iframe src="/login-sulfur/film.html" title="以硫为源宣传动画" tabIndex={-1} />
+      </div>
       <section className="hgxt-login-panel">
         <div className="hgxt-login-form">
-          <h1 className="hgxt-login-title">登录</h1>
-          <div className="hgxt-login-desc">欢迎回来，请使用分配给你的账号登录</div>
+          <h1 className="hgxt-login-title">欢迎登录</h1>
+          <div className="hgxt-login-desc">恒光 · 衡阳基地</div>
           <Form
             form={form}
             layout="vertical"
@@ -79,17 +68,17 @@ export function LoginPage() {
           >
             <Form.Item
               name="username"
-              label="用户名"
+              label="账号"
               rules={[{ required: true, message: '请输入用户名' }]}
             >
-              <Input size="large" autoFocus autoComplete="username" placeholder="用户名" />
+              <Input size="large" variant="borderless" autoComplete="username" />
             </Form.Item>
             <Form.Item
               name="password"
               label="密码"
               rules={[{ required: true, message: '请输入密码' }]}
             >
-              <Input.Password size="large" autoComplete="current-password" placeholder="密码" />
+              <Input.Password size="large" variant="borderless" autoComplete="current-password" />
             </Form.Item>
             <Button
               type="primary"

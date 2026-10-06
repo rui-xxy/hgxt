@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>以硫为源</title>
+  <style>
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: transparent; }
+    canvas { display: block; width: 100%; height: 100%; object-fit: cover; }
+  </style>
+</head>
+<body>
+  <canvas id="c" width="1920" height="1080" aria-hidden="true"></canvas>
+  <script src="./logo_paths.js"></script>
+  <script src="./engine.js"></script>
+  <script src="./scenes_a.js"></script>
+  <script src="./scenes_b.js"></script>
+  <script>
+    const canvas = document.getElementById('c');
+    const context = canvas.getContext('2d');
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    const opening = document.createElement('canvas');
+    opening.width = W;
+    opening.height = H;
+    const openingContext = opening.getContext('2d');
+    let elapsed = 0;
+    let previous = performance.now();
+    let lastPaint = 0;
+    let frame;
+
+    function paint(time) {
+      renderFrame(context, time);
+      // Blend the last second into the first scene so the background loops cleanly.
+      if (time > DUR - 1) {
+        renderFrame(openingContext, time - (DUR - 1));
+        context.save();
+        context.globalAlpha = time - (DUR - 1);
+        context.drawImage(opening, 0, 0);
+        context.restore();
+      }
+    }
+
+    function tick(now) {
+      frame = requestAnimationFrame(tick);
+      const delta = Math.min((now - previous) / 1000, 0.1);
+      previous = now;
+      if (document.hidden) return;
+      elapsed = (elapsed + delta) % DUR;
+      if (now - lastPaint < 1000 / 30) return;
+      lastPaint = now;
+      paint(elapsed);
+    }
+
+    paint(reducedMotion.matches ? 58 : 0.01);
+    if (!reducedMotion.matches) frame = requestAnimationFrame(tick);
+    document.addEventListener('visibilitychange', () => { previous = performance.now(); });
+    addEventListener('pagehide', () => cancelAnimationFrame(frame));
+  </script>
+</body>
+</html>

@@ -78,10 +78,12 @@
   --hg-radius-tag: var(--r-tag);
   --hg-font-serif: var(--font-serif);
   --hg-font-mono: var(--font-mono);
+  --hg-font-size-title: var(--ui-font-size-title);
   --hg-font-size-xl: var(--ui-font-size-xl);
   --hg-font-size-lg: var(--ui-font-size-lg);
   --hg-font-size-sm: var(--ui-font-size-sm);
   --hg-font-size-xs: var(--ui-font-size-xs);
+  --hg-ease: var(--ease);
   /* 中控设计稿的局部字号等级，供同一视图的卡片和图表复用。 */
   --hg-control-title-size: 24px;
   --hg-control-value-size: 21px;

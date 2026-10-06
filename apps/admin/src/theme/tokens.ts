@@ -79,6 +79,21 @@ export const controlChartPalette = {
   dark: { blue: dark.brand, paleBlue: '#7186B4', amber: dark.amber, orange: dark.danger, green: dark.ok },
 } as const;
 
+/** 登录页与《以硫为源》影片共用的浅蓝纸面配色。 */
+export const loginPalette = {
+  paper: '#F5F8FC',
+  ink: '#0A1D3D',
+  muted: '#47597A',
+  line: '#B8CBE4',
+  cardIdle: 'rgba(245, 248, 252, 0.68)',
+  cardActive: 'rgba(245, 248, 252, 0.96)',
+  cardShadow: 'rgba(10, 29, 61, 0.12)',
+  teal: '#0D9184',
+  blue: '#1F6FD1',
+  white: '#FFFFFF',
+  focus: 'rgba(31, 111, 209, 0.14)',
+} as const;
+
 const fontFamily =
   "'Geist', 'Noto Sans SC', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif";
 

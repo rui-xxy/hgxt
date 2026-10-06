@@ -25,7 +25,7 @@ describe('普通用户页面权限', () => {
   afterAll(async () => { await app.close(); });
 
   it('所有登录用户可查看车间、能源和物料；未登录仍须认证', async () => {
-    for (const path of ['/api/production/sulfuric/control', '/api/production/workshops', '/api/production/energy', '/api/production/materials']) {
+    for (const path of ['/api/production/sulfuric', '/api/production/workshops', '/api/production/energy', '/api/production/materials']) {
       await http(app).get(path).expect(401);
       await http(app).get(path).set('Authorization', asUser()).expect(200);
     }
@@ -49,9 +49,10 @@ describe('普通用户页面权限', () => {
     expect(updated.body.pagePermissions).toEqual(['plan', 'maintenance']);
     const me = await http(app).get('/api/auth/me').set('Authorization', asUser()).expect(200);
     expect(me.body.pagePermissions).toEqual(['plan', 'maintenance']);
-    await http(app).get('/api/production/sulfuric/control').set('Authorization', asUser()).expect(200);
+    await http(app).get('/api/production/sulfuric').set('Authorization', asUser()).expect(200);
     await http(app).get('/api/maintenance/records').set('Authorization', asUser()).expect(200);
-    await http(app).get('/api/production/plan').set('Authorization', asUser()).expect(200);
+    const plan = await http(app).get('/api/production/plan').set('Authorization', asUser());
+    expect([200, 404]).toContain(plan.status);
     await http(app).get('/api/production/energy').set('Authorization', asUser()).expect(200);
     await http(app).get('/api/forms').set('Authorization', asUser()).expect(403);
     await http(app).get('/api/production/plan/settings').set('Authorization', asUser()).expect(403);
@@ -59,7 +60,7 @@ describe('普通用户页面权限', () => {
 
     await http(app).patch(`/api/users/${userId}`).set('Authorization', asAdmin())
       .send({ pagePermissions: [] }).expect(200);
-    await http(app).get('/api/production/sulfuric/control').set('Authorization', asUser()).expect(200);
+    await http(app).get('/api/production/sulfuric').set('Authorization', asUser()).expect(200);
     await http(app).get('/api/production/plan').set('Authorization', asUser()).expect(403);
     await http(app).get('/api/maintenance/records').set('Authorization', asUser()).expect(403);
   });

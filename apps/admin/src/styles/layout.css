@@ -517,55 +517,144 @@
   font-size: var(--ui-font-size-sm);
 }
 
-/* ---------- 登录页：左品牌右表单（design/07） ---------- */
+/* ---------- 登录页：《以硫为源》全屏影片与透明表单 ---------- */
 
 .hgxt-login {
-  display: grid;
-  grid-template-columns: minmax(0, 50.45fr) minmax(0, 49.55fr);
+  position: relative;
   min-height: 100vh;
-  background-color: var(--bg);
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--hg-login-paper);
+  color: var(--hg-login-ink);
 }
 
 .hgxt-login-hero {
-  position: relative;
-  min-width: 0;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
-  background-color: var(--login-film-bg);
+  background: var(--hg-login-paper);
+  pointer-events: none;
+}
+
+.hgxt-login-hero iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 .hgxt-login-panel {
+  position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
-  padding: 48px;
+  box-sizing: border-box;
+  width: min(44%, 600px);
+  min-width: 430px;
+  min-height: 100vh;
+  min-height: 100svh;
+  margin-left: auto;
+  padding: 48px 32px;
 }
 
 .hgxt-login-form {
-  width: 360px;
-  max-width: 100%;
-  animation: hgxt-enter 0.5s var(--ease) 0.05s both;
+  box-sizing: border-box;
+  width: min(460px, 100%);
+  padding: 40px;
+  border-radius: var(--hg-radius-container);
+  background: var(--hg-login-card-idle);
+  backdrop-filter: blur(4px);
+  transition: background-color 0.24s var(--hg-ease), backdrop-filter 0.24s var(--hg-ease), box-shadow 0.24s var(--hg-ease);
+  animation: hgxt-enter 0.5s var(--hg-ease) 0.05s both;
+}
+
+.hgxt-login-form:hover,
+.hgxt-login-form:focus-within {
+  background: var(--hg-login-card-active);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 60px var(--hg-login-card-shadow);
 }
 
 .hgxt-login-title {
   margin: 0;
-  font-family: var(--font-serif);
-  font-size: var(--ui-font-size-title);
+  color: var(--hg-login-ink);
+  font-family: var(--hg-font-serif);
+  font-size: var(--hg-font-size-title);
   font-weight: 500;
   line-height: 1.25;
+  letter-spacing: 0.12em;
 }
 
 .hgxt-login-desc {
-  margin: 6px 0 32px;
-  color: var(--ink2);
+  margin: 8px 0 32px;
+  color: var(--hg-login-muted);
+  font-size: var(--hg-font-size-sm);
+  letter-spacing: 0.08em;
 }
 
-.hgxt-login-submit {
-  margin-top: 12px;
+.hgxt-login-form .ant-form-item {
+  margin-bottom: 24px;
+}
+
+.hgxt-login-form .ant-form-item-label > label {
+  color: var(--hg-login-muted);
+  font-size: var(--hg-font-size-sm);
+}
+
+.hgxt-login-form .ant-form-item-control-input {
+  min-height: 44px;
+  border-bottom: 1px solid var(--hg-login-line);
+  transition: border-color 0.2s var(--hg-ease);
+}
+
+.hgxt-login-form .ant-form-item-control-input:focus-within {
+  border-color: var(--hg-login-blue);
+}
+
+.hgxt-login-form .ant-input,
+.hgxt-login-form .ant-input-affix-wrapper {
+  padding-inline: 0;
+  background: transparent;
+  color: var(--hg-login-ink);
+}
+
+.hgxt-login-form .ant-input:focus,
+.hgxt-login-form .ant-input:focus-visible,
+.hgxt-login-form .ant-input-affix-wrapper:focus-within {
+  outline: none;
+  box-shadow: none;
+}
+
+.hgxt-login-form .ant-input-affix-wrapper .ant-input {
+  background: transparent;
+}
+
+.hgxt-login-form .ant-input:-webkit-autofill {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: var(--hg-login-ink);
+  caret-color: var(--hg-login-ink);
+}
+
+.hgxt-login-submit.ant-btn-primary {
+  height: 48px;
+  margin-top: 8px;
+  border: 0;
+  background: linear-gradient(105deg, var(--hg-login-teal), var(--hg-login-blue));
+  color: var(--hg-login-white);
+  letter-spacing: 0.2em;
+  box-shadow: 0 12px 24px var(--hg-login-focus);
+}
+
+.hgxt-login-submit.ant-btn-primary:hover,
+.hgxt-login-submit.ant-btn-primary:focus-visible {
+  background: linear-gradient(105deg, var(--hg-login-teal), var(--hg-login-blue));
+  color: var(--hg-login-white);
+  box-shadow: 0 14px 28px var(--hg-login-focus);
 }
 
 .hgxt-login-note {
   margin-top: 20px;
-  color: var(--ink3);
-  font-size: var(--ui-font-size-sm);
+  color: var(--hg-login-muted);
+  font-size: var(--hg-font-size-sm);
   text-align: center;
 }
 
@@ -575,11 +664,24 @@
   }
 
   .hgxt-login {
-    grid-template-columns: minmax(0, 1fr);
+    display: grid;
   }
 
-  .hgxt-login-hero {
-    display: none;
+  .hgxt-login-panel {
+    width: 100%;
+    min-width: 0;
+    padding: 36px 24px;
+  }
+
+  .hgxt-login-form {
+    padding: 28px 24px;
+  }
+}
+
+@media (hover: none) {
+  .hgxt-login-form {
+    background: var(--hg-login-card-active);
+    backdrop-filter: blur(12px);
   }
 }
 

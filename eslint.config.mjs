@@ -14,6 +14,7 @@ export default tseslint.config(
       'design/**', // 设计稿原件（含第三方交互运行时 dc-runtime.js），不是项目源码
       'apps/api/src/generated/**', // Prisma 生成的客户端
       'apps/admin/.vite/**',
+      'apps/admin/public/login-sulfur/**', // 提供的影片源码由多个经典脚本共享全局变量，原样作为静态素材加载
       '**/*.d.ts',
     ],
   },
