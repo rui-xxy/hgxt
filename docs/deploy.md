@@ -94,10 +94,11 @@ sudo chown -R hgxt:hgxt /opt/hgxt
 # registry 指向 npmmirror（给 hgxt 账号配置一次即可）
 sudo -u hgxt pnpm config set registry https://registry.npmmirror.com
 
-# 安装 + 构建（PRISMA_ENGINES_MIRROR 走国内镜像下载 Prisma 引擎）
+# 安装 + 构建
+# 注意：Prisma 引擎二进制从官方 binaries.prisma.sh 下载，阿里云实测直连正常（约 1 秒）。
+# 不要设置 PRISMA_ENGINES_MIRROR——npmmirror 的 prisma-engines 镜像缺本版本引擎文件，会 404 构建失败。
 cd /opt/hgxt
-sudo -u hgxt env PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma-engines \
-  pnpm install --frozen-lockfile
+sudo -u hgxt pnpm install --frozen-lockfile
 sudo -u hgxt pnpm build
 ```
 
