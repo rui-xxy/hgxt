@@ -1,6 +1,10 @@
 import 'reflect-metadata';
+import { existsSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import type { Request, Response } from 'express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
@@ -27,12 +31,27 @@ async function bootstrap(): Promise<void> {
   const isProduction = process.env.NODE_ENV === 'production';
   validateJwtSecret(isProduction);
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // B6：基础 HTTP 安全头。CSP 会拦 Swagger UI 的内联脚本，开发环境关闭、生产保留
+  // 可选：部署在 nginx 等反向代理之后时设 TRUST_PROXY=1，采信 X-Forwarded-For（信任一跳），
+  // 否则限流会把全部用户当成反代 IP 共用一个桶；API 直接对外时保持关闭（防伪造头绕过限流）
+  if (process.env.TRUST_PROXY === '1') {
+    app.set('trust proxy', 1);
+  }
+
+  // B6：基础 HTTP 安全头。CSP 会拦 Swagger UI 的内联脚本，开发环境关闭、生产保留。
+  // 生产模式下 API 同时托管前端静态产物（见下方 useStaticAssets）：
+  // AntD 会注入内联 <style>，默认 CSP 不含 'unsafe-inline' 会把整站样式拦掉，故显式放开 style-src
   app.use(
     helmet({
-      contentSecurityPolicy: isProduction ? undefined : false,
+      contentSecurityPolicy: isProduction
+        ? {
+            directives: {
+              styleSrc: ["'self'", "'unsafe-inline'"],
+              imgSrc: ["'self'", 'data:', 'blob:'],
+            },
+          }
+        : false,
     }),
   );
 
@@ -40,9 +59,24 @@ async function bootstrap(): Promise<void> {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // 剥掉 DTO 里没声明的字段
-      transform: true, // query 参数按 @Type 转数字等
+      transform: true, // query 参数按 @Type() 转数字等
     }),
   );
+
+  // 单进程部署：API 直接托管 apps/admin 的构建产物，前端不需要额外的静态服务器/nginx。
+  // 目录存在才启用——开发模式前端走 vite:5173，互不影响
+  const adminDist = resolve(__dirname, '../../admin/dist');
+  const serveStatic = existsSync(adminDist);
+  if (serveStatic) {
+    app.useStaticAssets(adminDist);
+    // SPA 路由回退：/api 之外的未命中路径统一回 index.html，支持 /production/plan 等深链刷新
+    app
+      .getHttpAdapter()
+      .getInstance()
+      .get(/^\/(?!api(?:\/|$)).*/, (_req: Request, res: Response) => {
+        res.sendFile(join(adminDist, 'index.html'));
+      });
+  }
 
   // B4：Swagger 仅开发默认开启；生产需要显式 ENABLE_SWAGGER=true
   if (!isProduction || process.env.ENABLE_SWAGGER === 'true') {
@@ -60,7 +94,10 @@ async function bootstrap(): Promise<void> {
   const port = Number(process.env.PORT ?? 3001);
   const host = process.env.HOST ?? '127.0.0.1';
   await app.listen(port, host);
-  new Logger('Bootstrap').log(`API 已启动: http://${host}:${port}（环境: ${isProduction ? 'production' : 'development'}）`);
+  new Logger('Bootstrap').log(
+    `API 已启动: http://${host}:${port}（环境: ${isProduction ? 'production' : 'development'}）` +
+      (serveStatic ? `，前端页面: http://${host}:${port}/` : ''),
+  );
 }
 
 void bootstrap();

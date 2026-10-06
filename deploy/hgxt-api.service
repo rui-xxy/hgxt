@@ -1,0 +1,30 @@
+# HGXT API systemd 服务单元
+# 安装（详见 docs/deploy.md）：
+#   sudo cp /opt/hgxt/deploy/hgxt-api.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now hgxt-api
+
+[Unit]
+Description=HGXT API (NestJS)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+# 专用运行账号（部署手册创建），不要用 root 跑业务进程
+User=hgxt
+Group=hgxt
+WorkingDirectory=/opt/hgxt/apps/api
+# NODE_ENV 固定为生产；其余变量（HOST / PORT / DATABASE_URL / JWT_ACCESS_SECRET 等）
+# 写在 apps/api/.env 里由应用自行加载，改完 restart 生效
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/env node dist/main.js
+Restart=on-failure
+RestartSec=3
+
+# 日志进 journald，查看：journalctl -u hgxt-api -f
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
