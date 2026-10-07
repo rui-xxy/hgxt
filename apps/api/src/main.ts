@@ -58,8 +58,10 @@ async function bootstrap(): Promise<void> {
       : false,
   });
   const looseHelmet = helmet({ contentSecurityPolicy: false });
+  // 登录页两段影片素材目录（含内联启动脚本，会被 script-src 'self' 拦掉）豁免 CSP
+  const cspExempt = ['/login-sulfur/', '/login-showreel/'];
   app.use((req: Request, res: Response, next: NextFunction) => {
-    if (req.path.startsWith('/login-sulfur/')) {
+    if (cspExempt.some((prefix) => req.path.startsWith(prefix))) {
       looseHelmet(req, res, next);
       return;
     }

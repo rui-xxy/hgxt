@@ -15,6 +15,7 @@ export default tseslint.config(
       'apps/api/src/generated/**', // Prisma 生成的客户端
       'apps/admin/.vite/**',
       'apps/admin/public/login-sulfur/**', // 提供的影片源码由多个经典脚本共享全局变量，原样作为静态素材加载
+      'apps/admin/public/login-showreel/**', // 提供的品牌短片源码原样作为静态素材加载
       '**/*.d.ts',
     ],
   },

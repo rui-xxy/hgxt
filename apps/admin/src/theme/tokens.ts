@@ -82,6 +82,7 @@ export const controlChartPalette = {
 /** 登录页与《以硫为源》影片共用的浅蓝纸面配色。 */
 export const loginPalette = {
   paper: '#F5F8FC',
+  showreelBg: '#030915',
   ink: '#0A1D3D',
   muted: '#47597A',
   line: '#B8CBE4',

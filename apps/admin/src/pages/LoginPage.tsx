@@ -1,5 +1,5 @@
 import { App, Button, Form, Input } from 'antd';
-import type { CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { loginApi } from '../api/auth';
@@ -14,6 +14,7 @@ interface LoginFormValues {
 
 const loginColors = {
   '--hg-login-paper': loginPalette.paper,
+  '--hg-login-showreel-bg': loginPalette.showreelBg,
   '--hg-login-ink': loginPalette.ink,
   '--hg-login-muted': loginPalette.muted,
   '--hg-login-line': loginPalette.line,
@@ -26,7 +27,37 @@ const loginColors = {
   '--hg-login-focus': loginPalette.focus,
 } as CSSProperties;
 
-/** 登录表单悬浮在《以硫为源》影片上方。 */
+const loginFilms = [
+  { id: 'showreel', src: '/login-showreel/film.html', title: '恒光化工品牌短片', duration: 16_000 },
+  { id: 'sulfur', src: '/login-sulfur/film.html', title: '以硫为源宣传动画', duration: 64_000 },
+] as const;
+
+function LoginHero() {
+  const [filmIndex, setFilmIndex] = useState(0);
+  const [loadedFilm, setLoadedFilm] = useState<string | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const film = loginFilms[filmIndex];
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReducedMotion(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
+    if (reducedMotion || loadedFilm !== film.id) return;
+    const timer = window.setTimeout(() => setFilmIndex((index) => (index + 1) % loginFilms.length), film.duration);
+    return () => window.clearTimeout(timer);
+  }, [film, loadedFilm, reducedMotion]);
+
+  return <div className={`hgxt-login-hero${film.id === 'showreel' ? ' hgxt-login-hero-showreel' : ''}`} aria-hidden="true">
+    <iframe key={film.id} src={film.src} title={film.title} tabIndex={-1} onLoad={() => setLoadedFilm(film.id)} />
+  </div>;
+}
+
+/** 两段宣传动画依次播放，登录表单悬浮在影片上方。 */
 export function LoginPage() {
   const [form] = Form.useForm<LoginFormValues>();
   const { message } = App.useApp();
@@ -52,9 +83,7 @@ export function LoginPage() {
   // RequireAuth 的 /me 结果决定，避免网络错误时的登录页↔后台循环跳转
   return (
     <div className="hgxt-login" style={loginColors}>
-      <div className="hgxt-login-hero" aria-hidden="true">
-        <iframe src="/login-sulfur/film.html" title="以硫为源宣传动画" tabIndex={-1} />
-      </div>
+      <LoginHero />
       <section className="hgxt-login-panel">
         <div className="hgxt-login-form">
           <h1 className="hgxt-login-title">欢迎登录</h1>
