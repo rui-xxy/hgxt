@@ -20,9 +20,10 @@ const actionWidth = 64;
 const dateWidth = 128;
 const remainingWidth = 116;
 const rowHeight = 44;
-const sectionedHeaderHeight = 68;
+const tableHeaderHeight = 68;
 const virtualOverscan = 4;
 const virtualStep = 4;
+let temporaryRowId = 0;
 
 function currentRemaining(value: FormData[string] | undefined): string {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '—';
@@ -40,7 +41,7 @@ function primaryDateField(schema: FormField[]): FormField | undefined {
 }
 
 /** 现有数据里主日期的最大值 + 1 天（日报场景逐日递增；无数据/无日期字段则为今天） */
-function nextDate(schema: FormField[], submissions: FormSubmissionDTO[]): string {
+function nextDate(schema: FormField[], rows: SheetRow[]): string {
   const primary = primaryDateField(schema);
   const today = () => {
     const now = new Date();
@@ -48,8 +49,8 @@ function nextDate(schema: FormField[], submissions: FormSubmissionDTO[]): string
   };
   if (!primary) return today();
   let max = '';
-  for (const item of submissions) {
-    const value = item.data[primary.id];
+  for (const row of rows) {
+    const value = row.data[primary.id];
     if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && value > max) max = value;
   }
   if (!max) return today();
@@ -73,7 +74,10 @@ function groupBySubgroup(fields: FormField[]): FormField[] {
 export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissions, total, page = 1, pageSize = 1000, disableAdd = false, showLiveRemaining = false, sectioned = false, onPageChange, onDirtyChange, scrollPositionRef }: Props) {
   const { message } = App.useApp();
   const queryClient = useQueryClient();
-  const initial = useMemo(() => submissions.map((item): SheetRow => ({ key: item.id, id: item.id, data: { ...item.data }, original: { ...item.data } })), [submissions]);
+  const initial = useMemo(() => submissions.map((item): SheetRow => {
+    const data = { ...item.data };
+    return { key: item.id, id: item.id, data, original: data };
+  }), [submissions]);
   const [rows, setRows] = useState<SheetRow[]>(initial);
   const [deleted, setDeleted] = useState<string[]>([]);
   const [editing, setEditing] = useState<Cell | null>(null);
@@ -125,13 +129,13 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
   const parkingRow = rows.find((row) => row.key === parkingKey);
   const stats = useMemo(() => ({
     created: rows.filter((row) => !row.id).length,
-    updated: rows.filter((row) => row.id && !sheetDataEqual(schema, row.data, row.original)).length,
+    updated: rows.filter((row) => row.id && row.data !== row.original && !sheetDataEqual(schema, row.data, row.original)).length,
     deleted: deleted.length,
   }), [rows, schema, deleted]);
   const virtualCount = Math.ceil(virtualViewportHeight / rowHeight) + virtualOverscan * 2 + virtualStep;
-  const renderStart = sectioned ? Math.min(virtualStart, Math.max(0, rows.length - virtualCount)) : 0;
-  const renderEnd = sectioned ? Math.min(rows.length, renderStart + virtualCount) : rows.length;
-  const renderedRows = sectioned ? rows.slice(renderStart, renderEnd) : rows;
+  const renderStart = Math.min(virtualStart, Math.max(0, rows.length - virtualCount));
+  const renderEnd = Math.min(rows.length, renderStart + virtualCount);
+  const renderedRows = rows.slice(renderStart, renderEnd);
   const tableColSpan = visibleSchema.length + (includeParking ? 3 : 2) + (showLiveRemaining ? 1 : 0);
   const editRow = editing && rows.find((row) => row.key === editing.key);
   const pendingField = editing && visibleSchema[editing.col];
@@ -172,7 +176,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
     const index = rowsRef.current.findIndex((item) => item.key === key);
     const row = rowsRef.current[index];
     if (!row) return;
-    if (sectioned && (index < renderStart || index >= renderEnd)) setVirtualStart(Math.max(0, index - virtualOverscan));
+    if (index < renderStart || index >= renderEnd) setVirtualStart(Math.max(0, index - virtualOverscan));
     setDraft(row.data[visibleSchema[col].id] == null ? '' : String(row.data[visibleSchema[col].id]));
     setEditing({ key, col });
   };
@@ -214,14 +218,12 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
     }
   };
   useLayoutEffect(() => {
-    if (sectioned) {
-      const firstVisible = Math.max(0, Math.floor((scrollPositionRef.current.top - sectionedHeaderHeight) / rowHeight));
-      setVirtualStart(Math.max(0, Math.floor((firstVisible - virtualOverscan) / virtualStep) * virtualStep));
-    }
+    const firstVisible = Math.max(0, Math.floor((scrollPositionRef.current.top - tableHeaderHeight) / rowHeight));
+    setVirtualStart(Math.max(0, Math.floor((firstVisible - virtualOverscan) / virtualStep) * virtualStep));
     scrollRef.current?.scrollTo(scrollPositionRef.current);
-  }, [scrollPositionRef, sectioned]);
+  }, [scrollPositionRef]);
   useLayoutEffect(() => {
-    if (!sectioned || !scrollRef.current) return;
+    if (!scrollRef.current) return;
     const scroll = scrollRef.current;
     const measure = () => setVirtualViewportHeight((height) => scroll.clientHeight > 0 ? scroll.clientHeight : height);
     measure();
@@ -229,7 +231,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
     const observer = new ResizeObserver(measure);
     observer.observe(scroll);
     return () => observer.disconnect();
-  }, [sectioned]);
+  }, []);
   useLayoutEffect(() => {
     if (!editing) return;
     const input = inputRef.current;
@@ -256,17 +258,15 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
   }, [editing, leadingWidth]);
   const addRow = () => {
     if (mutation.isPending) return;
-    const key = `new-${crypto.randomUUID()}`;
+    if (editing && !commit(editing, draft)) return;
+    const key = `new-${++temporaryRowId}`;
     // 主日期字段自动填「最大日期 + 1 天」，其余字段按类型置空；无日期字段则不填
-    const primary = primaryDateField(schema);
-    const dateValue = nextDate(schema, submissions);
+    const dateValue = nextDate(schema, rowsRef.current);
     const data = Object.fromEntries(schema.map((field) => [field.id, field.type === 'date' ? field.required ? dateValue : null : field.type === 'number' ? null : ''])) as FormData;
-    const firstEntry = visibleSchema.findIndex((field) => field.id !== primary?.id);
-    const col = firstEntry < 0 ? 0 : firstEntry;
-    replaceRows([{ key, data, original: { ...data } }, ...rowsRef.current]);
+    replaceRows([{ key, data, original: data }, ...rowsRef.current]);
     setVirtualStart(0);
-    setDraft(String(data[visibleSchema[col].id] ?? ''));
-    setEditing({ key, col });
+    setEditing(null);
+    scrollPositionRef.current = { ...scrollPositionRef.current, top: 0 };
     scrollRef.current?.scrollTo({ top: 0 });
     setSaved(false);
   };
@@ -290,7 +290,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
     }
     mutation.mutate({
       created: nextRows.filter((row) => !row.id).map((row) => row.data),
-      updated: nextRows.filter((row) => row.id && !sheetDataEqual(schema, row.data, row.original)).map((row) => ({ id: row.id!, data: row.data })),
+      updated: nextRows.filter((row) => row.id && row.data !== row.original && !sheetDataEqual(schema, row.data, row.original)).map((row) => ({ id: row.id!, data: row.data })),
       deleted,
     });
   };
@@ -324,15 +324,14 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
   };
   const handleScroll = (scroll: HTMLDivElement) => {
     scrollPositionRef.current = { left: scroll.scrollLeft, top: scroll.scrollTop };
-    if (!sectioned) return;
-    const firstVisible = Math.max(0, Math.floor((scroll.scrollTop - sectionedHeaderHeight) / rowHeight));
+    const firstVisible = Math.max(0, Math.floor((scroll.scrollTop - tableHeaderHeight) / rowHeight));
     const nextStart = Math.max(0, Math.floor((firstVisible - virtualOverscan) / virtualStep) * virtualStep);
     if (nextStart === virtualStart) return;
     if (editing) {
       const editIndex = rowsRef.current.findIndex((row) => row.key === editing.key);
       if (editIndex < nextStart || editIndex >= nextStart + virtualCount) {
         if (!commit(editing, draft)) {
-          scroll.scrollTop = Math.max(0, sectionedHeaderHeight + editIndex * rowHeight - rowHeight);
+          scroll.scrollTop = Math.max(0, tableHeaderHeight + editIndex * rowHeight - rowHeight);
           inputRef.current?.focus({ preventScroll: true });
           return;
         }
@@ -357,7 +356,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
       </Space>
     </div>
     {total > submissions.length && <div className="forms-sheet-notice">{onPageChange ? `当前显示第 ${(page - 1) * pageSize + 1}—${(page - 1) * pageSize + submissions.length} 条，共 ${total} 条记录。${dirty ? '请先保存或撤销本页修改，再翻页。' : ''}` : `当前显示最近 ${submissions.length} 条，共 ${total} 条记录。`}</div>}
-    <div className={`forms-sheet-scroll${onPageChange && total > pageSize ? ' hgxt-paged-viewport' : ''}`} style={onPageChange && total > pageSize ? pagedViewportStyle(pageSize, rowHeight, sectioned ? sectionedHeaderHeight : 68) : undefined} ref={scrollRef} aria-busy={mutation.isPending} onScroll={(event) => handleScroll(event.currentTarget)}>
+    <div className={`forms-sheet-scroll${onPageChange && total > pageSize ? ' hgxt-paged-viewport' : ''}`} style={onPageChange && total > pageSize ? pagedViewportStyle(pageSize, rowHeight, tableHeaderHeight) : undefined} ref={scrollRef} aria-busy={mutation.isPending} onScroll={(event) => handleScroll(event.currentTarget)}>
       <table className={`forms-sheet-table${sectioned ? ' forms-sheet-sectioned' : ''}`} style={{ minWidth: leadingWidth + fieldWidths.reduce((a, b) => a + b, 0) + (showLiveRemaining ? remainingWidth : 0) }}>
         <colgroup><col style={{ width: rowNoWidth }} />{includeParking && <col style={{ width: parkingWidth }} />}<col style={{ width: actionWidth }} />{fieldWidths.map((width, index) => <col key={visibleSchema[index].id} style={{ width }} />)}{showLiveRemaining && <col style={{ width: remainingWidth }} />}</colgroup>
         <thead>{sectioned ? <>
@@ -387,7 +386,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
         </tr></>}</thead>
         <tbody>
           {!rows.length && <tr><td className="forms-sheet-empty" colSpan={tableColSpan}><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无数据，点击「新增行」开始录入" /></td></tr>}
-          {sectioned && renderStart > 0 && <tr className="forms-sheet-spacer" style={{ height: renderStart * rowHeight }}><td colSpan={tableColSpan} style={{ height: renderStart * rowHeight }} /></tr>}
+          {renderStart > 0 && <tr className="forms-sheet-spacer" style={{ height: renderStart * rowHeight }}><td colSpan={tableColSpan} style={{ height: renderStart * rowHeight }} /></tr>}
           {renderedRows.map((row, renderedIndex) => {
             const index = renderStart + renderedIndex;
             return <tr key={row.key}>
@@ -409,7 +408,7 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
             {showLiveRemaining && <td className="forms-sheet-computed">{currentRemaining(row.data.dueDate)}</td>}
           </tr>;
           })}
-          {sectioned && renderEnd < rows.length && <tr className="forms-sheet-spacer" style={{ height: (rows.length - renderEnd) * rowHeight }}><td colSpan={tableColSpan} style={{ height: (rows.length - renderEnd) * rowHeight }} /></tr>}
+          {renderEnd < rows.length && <tr className="forms-sheet-spacer" style={{ height: (rows.length - renderEnd) * rowHeight }}><td colSpan={tableColSpan} style={{ height: (rows.length - renderEnd) * rowHeight }} /></tr>}
         </tbody>
       </table>
     </div>

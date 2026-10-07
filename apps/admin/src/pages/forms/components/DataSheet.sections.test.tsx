@@ -127,3 +127,45 @@ describe('丰联表单分表编辑', () => {
     expect(container.querySelectorAll('tbody tr.forms-sheet-spacer')).toHaveLength(2);
   });
 });
+
+describe('普通日报表新增行', () => {
+  const dailySchema: FormField[] = [
+    { id: 'date', title: '日期', type: 'date', required: true },
+    { id: 'output', title: '产量', type: 'number' },
+  ];
+
+  it('连续新增未保存行时日期逐日递增', () => {
+    Element.prototype.scrollTo = vi.fn();
+    const client = new QueryClient();
+    const { container } = render(<QueryClientProvider client={client}><App>
+      <DataSheet formId="daily-1" formTitle="硫酸车间报表" parkingEnabled={false} schema={dailySchema}
+        submissions={[{ ...submission, data: { date: '2026-09-30', output: 1 } }]}
+        total={1} scrollPositionRef={{ current: { left: 0, top: 0 } }} />
+    </App></QueryClientProvider>);
+    const add = screen.getByRole('button', { name: '新增行' });
+    fireEvent.click(add);
+    fireEvent.click(add);
+    fireEvent.click(add);
+    expect([...container.querySelectorAll('tbody td[title^="2026-"]')].map((cell) => cell.getAttribute('title')))
+      .toEqual(['2026-10-03', '2026-10-02', '2026-10-01', '2026-09-30']);
+  });
+
+  it('普通日报表记录较多时只渲染滚动区域内的行', () => {
+    Element.prototype.scrollTo = vi.fn();
+    const client = new QueryClient();
+    const submissions = Array.from({ length: 120 }, (_, index): FormSubmissionDTO => ({
+      ...submission,
+      id: `daily-${index}`,
+      data: { date: '2026-09-30', output: index + 1 },
+    }));
+    const { container } = render(<QueryClientProvider client={client}><App>
+      <DataSheet formId="daily-1" formTitle="硫酸车间报表" parkingEnabled={false} schema={dailySchema}
+        submissions={submissions} total={120} scrollPositionRef={{ current: { left: 0, top: 0 } }} />
+    </App></QueryClientProvider>);
+    expect(container.querySelectorAll('tbody tr:not(.forms-sheet-spacer)').length).toBeLessThan(120);
+    const scroll = container.querySelector('.forms-sheet-scroll') as HTMLDivElement;
+    scroll.scrollTop = 68 + 90 * 44;
+    fireEvent.scroll(scroll);
+    expect(container.querySelector('tbody td[title="91"]')).not.toBeNull();
+  });
+});
