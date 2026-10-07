@@ -315,6 +315,8 @@ export interface WorkshopOverviewResult {
 export interface AminoDaySummary {
   date: string;
   production: number | null;
+  /** 氨基磺酸日报的副产品稀酸产生量，单位 m³。 */
+  diluteAcid: number | null;
   electricity: number | null;
   steam: number | null;
   water: number | null;

@@ -356,6 +356,7 @@ export class OverviewService {
         return {
           date,
           production: read(finished.get(date), 'field_001') ?? read(amino.get(date), 'field_production'),
+          diluteAcid: read(amino.get(date), 'field_waste_acid'),
           electricity: phase1[i] === null && phase2[i] === null ? null : OverviewService.sumOrNull(phase1[i], phase2[i]),
           steam: steam[i],
           water: water[i],

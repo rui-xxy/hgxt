@@ -299,7 +299,7 @@ export function WorkshopBoardPage() {
     setDetailPage(0);
   };
 
-  const kpiCount = isFenglian ? 5 : isSulfuric || isAmino || isOther || isThermal ? 6 : 4;
+  const kpiCount = isAmino ? 7 : isFenglian ? 5 : isSulfuric || isOther || isThermal ? 6 : 4;
   const aPanelDays = panelMode === 'day' ? [aDay] : aDays;
   const fPanelDays = panelMode === 'day' ? [fDay] : fDays;
   const detailDates = allDates.filter((d) => d.startsWith(monthKey));
@@ -409,6 +409,10 @@ export function WorkshopBoardPage() {
             <Kpi label="天然气耗用" value={fmtRecorded(fValue(fDay, 'field_gas_consumption'))} unit="m³" spark={fDays.map((day) => fValue(day, 'field_gas_consumption'))} />
             <Kpi label="电表累计读数" value={fmtRecorded(fValue(fDay, 'field_electricity_cumulative'))} spark={fDays.map((day) => fValue(day, 'field_electricity_cumulative'))} />
           </> : isAmino ? <>
+            <Kpi label="稀酸产生量" value={fmtRecorded(aDay?.diluteAcid)} unit="m³"
+              delta={pctChange(aDay?.diluteAcid, aPrevDay?.diluteAcid)}
+              sub={`月累计 ${fmtRecorded(sumOrNull(aDays.map((day) => day?.diluteAcid)))} m³`}
+              spark={aDays.map((day) => day?.diluteAcid ?? null)} />
             {AMINO_METRICS.map((metric) => {
               const value = aDay?.[metric.key] ?? null;
               const rate = aminoRate(value, aDay?.production);
@@ -498,6 +502,13 @@ export function WorkshopBoardPage() {
                 <FenglianPanel days={fPanelDays} />
               ) : isAmino ? (
                 <div className="amino-panel">
+                  <div className="amino-panel-group">
+                    <div className="amino-panel-heading">副产品<span>{panelMode === 'day' ? '当日' : '本期'}</span></div>
+                    <div className="amino-panel-row" style={groupStyle(PALETTE.brand)}>
+                      <span className="amino-panel-name"><i style={{ background: PALETTE.brand }} />稀酸</span>
+                      <strong>{fmtRecorded(sumOrNull(aPanelDays.map((day) => day?.diluteAcid)))} <small>m³</small></strong>
+                    </div>
+                  </div>
                   {(['能源', '原辅料'] as const).map((category) => <div key={category} className="amino-panel-group">
                     <div className="amino-panel-heading">{category}<span>消耗</span></div>
                     {AMINO_METRICS.filter((metric) => metric.category === category).map((metric) => {
@@ -643,10 +654,12 @@ export function WorkshopBoardPage() {
                 <tr className="grp detail-group-head">
                   <th rowSpan={2} className="detail-date-head">日期</th>
                   <th rowSpan={2}>产量 t</th>
+                  <th colSpan={1} className="colored-group-head" style={groupStyle(PALETTE.brand)}>副产品</th>
                   <th colSpan={6} className="colored-group-head" style={groupStyle(PALETTE.brand)}>能源消耗</th>
                   <th colSpan={4} className="colored-group-head" style={groupStyle(AMINO_COLORS.urea)}>原辅料消耗</th>
                 </tr>
                 <tr className="detail-subhead">
+                  <th className="band-cell" style={groupStyle(PALETTE.brand)}>稀酸产生量 m³</th>
                   {AMINO_METRICS.flatMap((metric) => [
                     <th key={`${metric.key}-used`} className="band-cell" style={groupStyle(metric.color)}>{metric.name} {metric.unit}</th>,
                     <th key={`${metric.key}-rate`} className="band-cell" style={groupStyle(metric.color)}>单耗 {metric.unit}/t</th>,
@@ -655,7 +668,7 @@ export function WorkshopBoardPage() {
               </> : <tr><th>生产日期</th><th>日产量 t</th><th>较月均</th></tr>}
             </thead>
             <tbody>
-              {!pageEntries.length && <tr><td colSpan={isAmino ? 12 : !isSulfuric ? 3 : tab === 'prod' ? 15 : tab === 'levels' ? levelColumns.length + 1 : meterColumns.length + 4} className="muted">所选日期内暂无数据</td></tr>}
+              {!pageEntries.length && <tr><td colSpan={isAmino ? 13 : !isSulfuric ? 3 : tab === 'prod' ? 15 : tab === 'levels' ? levelColumns.length + 1 : meterColumns.length + 4} className="muted">所选日期内暂无数据</td></tr>}
               {pageEntries.map((entry) => {
                 if (entry.kind === 'summary') {
                   const dates = monthDays(entry.month);
@@ -672,6 +685,7 @@ export function WorkshopBoardPage() {
                       {!isSulfuric && !isAmino && <><td>{fmtRecorded(sumOrNull(values))}</td><td>—</td></>}
                       {isAmino && <>
                         <td>{fmtRecorded(aminoProduction)}</td>
+                        <td className="band-cell" style={groupStyle(PALETTE.brand)}>{fmtRecorded(sumOrNull(aminoDays.map((day) => day?.diluteAcid)))}</td>
                         {AMINO_METRICS.flatMap((metric) => {
                           const used = sumOrNull(aminoDays.map((day) => day?.[metric.key]));
                           return [
@@ -719,6 +733,7 @@ export function WorkshopBoardPage() {
                     {!isSulfuric && !isAmino && <td className="muted">{s.value !== null && avg ? `${pctChange(s.value, avg)}%` : '—'}</td>}
                     {isAmino && <>
                       <td>{fmtRecorded(a?.production)}</td>
+                      <td className="band-cell" style={groupStyle(PALETTE.brand)}>{fmtRecorded(a?.diluteAcid)}</td>
                       {AMINO_METRICS.flatMap((metric) => [
                         <td key={`${metric.key}-used`} className="band-cell" style={groupStyle(metric.color)}>{fmtRecorded(a?.[metric.key])}</td>,
                         <td key={`${metric.key}-rate`} className="band-cell" style={groupStyle(metric.color)}>{fmt(aminoRate(a?.[metric.key], a?.production), metric.key === 'electricity' ? 1 : 2)}</td>,
