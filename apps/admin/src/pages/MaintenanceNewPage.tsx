@@ -118,10 +118,11 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
   const { message } = AntApp.useApp();
   const me = useMe(!!editId); // 仅编辑模式需要登录态；匿名登记不查 /me（避免 401 触发跳登录）
   const queryClient = useQueryClient();
+  const signedIn = !!tokenStore.getAccessToken();
   // 已登录拉全量记录（含「常一起」共事推荐）；匿名拉公开选项行（仅人员/部门/区域等分类字段）
   const query = useQuery({
-    queryKey: ['maintenance', 'records'],
-    queryFn: () => (tokenStore.getAccessToken() ? maintenanceApi.list() : maintenanceApi.options()),
+    queryKey: ['maintenance', signedIn ? 'records' : 'options'],
+    queryFn: () => (signedIn ? maintenanceApi.list() : maintenanceApi.options()),
   });
   const records = useMemo(() => (query.data ?? []) as MaintenanceRecord[], [query.data]);
   const existing = editRecord ?? (editId ? records.find((record) => record.id === editId) ?? null : null);
@@ -195,6 +196,7 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
       if (!editId) localStorage.removeItem(DRAFT_KEY);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['maintenance', 'records'] }),
+        queryClient.invalidateQueries({ queryKey: ['maintenance', 'options'] }),
         queryClient.invalidateQueries({ queryKey: ['forms', 'list'] }),
       ]);
       message.success(editId ? '维修记录已更新' : '维修登记已提交');

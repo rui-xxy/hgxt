@@ -31,12 +31,12 @@ export type MaintenanceOptionsRow = Pick<
 >;
 
 export const maintenanceApi = {
-  // auth:false：登记页对匿名开放，401 时不触发全局登出跳登录，只当无历史数据（联想选项为空）
+  // 维修记录受登录与页面权限保护；匿名登记只读取下方的公开联想选项。
   list(): Promise<MaintenanceRecord[]> {
-    return request('/maintenance/records', { auth: false });
+    return request('/maintenance/records');
   },
   listYear(year: number): Promise<MaintenanceRecord[]> {
-    return request(`/maintenance/records?year=${year}`, { auth: false });
+    return request(`/maintenance/records?year=${year}`);
   },
   // 匿名可读的选项数据（不含工作内容等明细）
   options(): Promise<MaintenanceOptionsRow[]> {
