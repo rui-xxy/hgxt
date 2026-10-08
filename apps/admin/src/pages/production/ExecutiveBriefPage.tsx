@@ -3,14 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import type { MaterialsResult, PlanProductSalesRow } from '@hgxt/shared';
 import { briefBoard, materialsSummary, sulfuricSummary, workshopOverview } from '../../api/production';
 import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon } from '../../components/icons';
-import { briefProductionRows, briefWeeklyRows, latestProductionDate, monthDays, monthProductionAsOf, reportWeek, shiftDay, shiftMonth, weekProductionAsOf, weekStart, type BriefProductionRow } from './executiveBriefData';
+import { briefProductionRows, briefWeeklyRows, calendarProgress, chinaToday, latestProductionDate, monthDays, monthProductionAsOf, reportWeek, shiftDay, shiftMonth, weekProductionAsOf, weekStart, type BriefProductionRow } from './executiveBriefData';
 import './executiveBrief.css';
 
 const fmt = (n: number | null | undefined, digits = 3) => n === null || n === undefined || !Number.isFinite(n) ? '—' : n.toLocaleString('zh-CN', { maximumFractionDigits: digits });
 const pct = (n: number | null | undefined) => n === null || n === undefined ? '—' : `${fmt(n, 1)}%`;
 const signed = (n: number | null, suffix = '') => n === null ? '—' : `${n > 0 ? '+' : ''}${fmt(n, 1)}${suffix}`;
 const stockDate = (data: MaterialsResult | undefined) => [...(data?.rawMaterials ?? []), ...(data?.finishedProducts ?? [])].map((row) => row.stockDate).sort().at(-1) ?? null;
-type Tone = 'brand' | 'ok' | 'amber' | 'danger';
+type Tone = 'brand' | 'neutral' | 'ok' | 'amber' | 'danger';
 const toneFor = (rate: number | null, progress: number | null): Tone => rate === null || progress === null ? 'brand' : rate >= progress ? 'ok' : rate >= progress - 15 ? 'amber' : 'danger';
 const departmentOf = (name: string) => ({ 硫酸: '硫酸装置', 氨基磺酸: '氨基磺酸装置', 硫酸镁: '氨基磺酸装置', 水滑石: '新材料装置', 二乙基蒽醌: '蒽醌装置', 丰联: '丰联装置' })[name as '硫酸'] ?? name;
 
@@ -27,11 +27,12 @@ function Sparkline({ values }: { values: Array<number | null> }) {
 
 function ProductionSection({ rows, progress, period, month, asOf, incidents }: { rows: BriefProductionRow[]; progress: number | null; period: 'month' | 'week'; month: string | null; asOf: string | null; incidents: Array<{ start: string; end: string; reason: string | null }> }) {
   const periodLabel = period === 'week' ? '本周' : `${month ? Number(month.slice(5)) : '本'} 月`;
+  const progressLabel = period === 'week' ? '本周进度' : '时间进度';
   const departments = [...new Set(rows.map((row) => departmentOf(row.workshop)))];
   const trendEnd = weekStart(asOf ?? (month ? `${month}-01` : '2026-01-01'));
   const weekLabels = Array.from({ length: 4 }, (_, index) => `${reportWeek(shiftDay(trendEnd, (index - 3) * 7)).week}周`);
   return <section className="brief-section brief-production" aria-labelledby="brief-production-title">
-    <div className="brief-section-head"><div><h2 id="brief-production-title">生产</h2><span>各部门 {periodLabel} 归属生产数据 · t</span></div><div className="brief-legend"><span><i className="brief-key brief-key-ok" /> ≥ 时间进度</span><span><i className="brief-key brief-key-amber" /> 落后 15 pt 内</span><span><i className="brief-key brief-key-danger" /> 落后 15 pt 以上</span><span>时间进度 {pct(progress)}</span></div></div>
+    <div className="brief-section-head"><div><h2 id="brief-production-title">生产</h2><span>各部门 {periodLabel} 归属生产数据 · t</span></div><div className="brief-legend"><span><i className="brief-key brief-key-ok" /> ≥ {progressLabel}</span><span><i className="brief-key brief-key-amber" /> 落后 15 pt 内</span><span><i className="brief-key brief-key-danger" /> 落后 15 pt 以上</span><span>{progressLabel} {pct(progress)}</span></div></div>
     <div className="brief-production-table-wrap"><table className="brief-table brief-production-table"><colgroup>{[98, 100, 74, 56, 56, 56, 56, 66, 78, 78, 94, 128, 76, 76].map((width, index) => <col key={index} style={{ width }} />)}</colgroup><thead>
       <tr className="brief-group-row"><th colSpan={3} /><th colSpan={5}>近四周日均产量</th><th colSpan={6} /></tr>
       <tr><th>部门</th><th>产品</th><th>上月日均</th>{weekLabels.map((label) => <th key={label}>{label}</th>)}<th>周趋势</th><th>{periodLabel}日均</th><th>{period === 'week' ? '周折算预算' : '月预算'}</th><th>实际<br />截至 {asOf?.slice(5) ?? '—'}</th><th>预算达成率</th><th>差异 t</th><th>差异 %</th></tr>
@@ -96,8 +97,9 @@ export function ExecutiveBriefPage() {
   const plan = useQuery({ queryKey: ['production', 'brief', year], queryFn: () => briefBoard(year), enabled: !!month });
   const firstMonth = overview.data?.dates[0]?.slice(0, 7) ?? null, firstWeek = overview.data?.dates[0] ? weekStart(overview.data.dates[0]) : null;
   const asOf = overview.data && month ? period === 'week' && week ? weekProductionAsOf(overview.data, week) : monthProductionAsOf(overview.data, month) : null;
-  const elapsed = asOf && month ? period === 'week' && week ? (Math.round((Date.parse(`${asOf}T00:00:00Z`) - Date.parse(`${week}T00:00:00Z`)) / 86400000) + 1) / 7 * 100 : Number(asOf.slice(-2)) / monthDays(month) * 100 : null;
-  const rows = useMemo(() => overview.data && plan.data && month ? period === 'week' && week ? briefWeeklyRows(overview.data, plan.data.completion, week, asOf, year) : briefProductionRows(overview.data, plan.data.completion, month, asOf) : [], [overview.data, plan.data, month, week, period, asOf, year]);
+  const today = chinaToday();
+  const elapsed = calendarProgress(period, month, week, today);
+  const rows = useMemo(() => overview.data && plan.data && month ? period === 'week' && week ? briefWeeklyRows(overview.data, plan.data.completion, week, asOf, year, today) : briefProductionRows(overview.data, plan.data.completion, month, asOf, today) : [], [overview.data, plan.data, month, week, period, asOf, year, today]);
   const planned = rows.filter((row) => row.plan !== null && row.plan > 0 && row.actual !== null);
   const met = elapsed === null ? [] : planned.filter((row) => row.rate !== null && row.rate >= elapsed);
   const sulfuric = rows.find((row) => row.workshop === '硫酸');
@@ -105,11 +107,7 @@ export function ExecutiveBriefPage() {
   const salesPeriod = period === 'month' ? plan.data?.productSalesHistory?.months.find((row) => row.key === month) : plan.data?.productSalesHistory?.weeks.find((row) => row.key === week);
   const sales = salesPeriod?.rows ?? null;
   const salesAsOf = salesPeriod?.asOf ?? null;
-  const salesProgress = salesAsOf && month
-    ? period === 'week' && week
-      ? (Math.round((Date.parse(`${salesAsOf}T00:00:00Z`) - Date.parse(`${week}T00:00:00Z`)) / 86400000) + 1) / 7 * 100
-      : Number(salesAsOf.slice(-2)) / monthDays(month) * 100
-    : null;
+  const salesProgress = elapsed;
   const salesPlanned = (sales ?? []).filter((row) => row.budget !== null && row.budget > 0 && row.sales !== null);
   const salesMet = salesProgress === null ? [] : salesPlanned.filter((row) => row.sales! / row.budget! * 100 >= salesProgress);
   const salesGap = salesProgress === null ? null : salesPlanned.length ? Math.max(0, ...salesPlanned.map((row) => row.budget! * salesProgress / 100 - row.sales!)) : null;
@@ -123,14 +121,15 @@ export function ExecutiveBriefPage() {
     : month ? `${Number(month.slice(0, 4))} 年 ${Number(month.slice(5))} 月${weekInfo ? ` · 第 ${weekInfo.week} 周` : ''}` : '暂无期间';
   const stepperLabel = period === 'week' && weekInfo ? `第 ${weekInfo.week} 周` : month ? `${month.slice(0, 4)} 年 ${Number(month.slice(5))} 月` : '—';
   const heading = period === 'week' && weekInfo ? `第 ${weekInfo.week} 周生产经营简报` : month ? `${Number(month.slice(5))} 月生产经营简报` : '生产经营简报';
+  const progressLabel = period === 'week' ? '本周进度' : '时间进度';
 
   return <main className="brief-page" data-mobile-tab={mobileTab}><header className="brief-toolbar"><span className="brief-toolbar-mark">化</span><strong>生产经营简报</strong><span className="brief-toolbar-sep">/</span><span className="brief-toolbar-period">{displayPeriod}</span><div className="brief-toolbar-actions"><div className="brief-period-switch" role="group" aria-label="统计周期"><button type="button" aria-pressed={period === 'month'} onClick={() => { if (period === 'week' && week) setRequestedMonth(shiftDay(week, 6).slice(0, 7)); setPeriod('month'); }}>月度</button><button type="button" aria-pressed={period === 'week'} onClick={() => { if (period === 'month' && month) setRequestedWeek(weekStart(asOf ?? `${month}-${String(monthDays(month)).padStart(2, '0')}`)); setPeriod('week'); }}>周度</button></div><div className="brief-stepper"><button type="button" aria-label={period === 'week' ? '上一周' : '上一月'} disabled={period === 'week' ? !week || !firstWeek || week <= firstWeek : !month || !firstMonth || month <= firstMonth} onClick={() => { if (period === 'week' && week) setRequestedWeek(shiftDay(week, -7)); if (period === 'month' && month) setRequestedMonth(shiftMonth(month, -1)); }}><ChevronLeftIcon width={16} height={16} /></button><span>{stepperLabel}</span><button type="button" aria-label={period === 'week' ? '下一周' : '下一月'} disabled={period === 'week' ? !week || !latestWeek || week >= latestWeek : !month || !latestMonth || month >= latestMonth} onClick={() => { if (period === 'week' && week) setRequestedWeek(shiftDay(week, 7)); if (period === 'month' && month) setRequestedMonth(shiftMonth(month, 1)); }}><ChevronRightIcon width={16} height={16} /></button></div><button type="button" className="brief-print" onClick={() => window.print()}><DownloadIcon width={15} height={15} />导出 PDF</button></div></header>
-    <div className="brief-body"><div className="brief-intro"><span className="brief-mobile-period">{displayPeriod}</span><h1>{heading}</h1><span>生产截至 {asOf ?? '暂无记录'} · 销售截至 {salesAsOf ?? '暂无记录'} · 库存截至 {stockDate(materials.data) ?? '暂无记录'}</span></div>
+    <div className="brief-body"><div className="brief-intro"><span className="brief-mobile-period">{displayPeriod}</span><h1>{heading}</h1></div>
       {error ? <div className="brief-error" role="alert">经营数据加载失败：{error.message}</div> : null}
       {overview.isLoading || plan.isLoading || materials.isLoading ? <div className="brief-loading" role="status">正在加载经营数据…</div> : null}
-      <div className="brief-mobile-progress"><span>时间进度</span><Meter value={elapsed} /><strong>{pct(elapsed)}</strong></div>
+      <div className="brief-mobile-progress"><span>{progressLabel}</span><Meter value={elapsed} tone="neutral" /><strong>{pct(elapsed)}</strong></div>
       <div className="brief-mobile-tabs" role="tablist" aria-label="简报内容">{([['production', '生产'], ['sales', '销售'], ['inventory', '库存']] as const).map(([key, label]) => <button key={key} type="button" role="tab" aria-selected={mobileTab === key} onClick={() => setMobileTab(key)}>{label}</button>)}</div>
-      <div className="brief-kpis"><div className="brief-kpi"><span>时间进度</span><strong>{pct(elapsed)}</strong><Meter value={elapsed} /><small>按最近归属日进度</small></div><div className="brief-kpi"><span>硫酸产量</span><strong>{fmt(sulfuric?.actual)}<small>t</small></strong><Meter value={sulfuric?.rate ?? null} tone={toneFor(sulfuric?.rate ?? null, elapsed)} /><small>预算 {fmt(sulfuric?.plan)} · 达成 {pct(sulfuric?.rate)}</small></div><div className="brief-kpi"><span>生产达成 ≥ 时间进度</span><strong>{planned.length ? met.length : '—'}<small> / {planned.length || '—'} 项</small></strong><div className="brief-status-dots">{rows.map((row) => <i key={row.workshop} className={`brief-dot-${toneFor(row.rate, elapsed)}`} />)}</div><small>基于已设月计划的车间</small></div><div className="brief-kpi"><span>销售达成 ≥ 时间进度</span><strong>{salesPlanned.length ? salesMet.length : '—'}<small> / {salesPlanned.length || '—'} 项</small></strong><div className="brief-status-dots">{salesPlanned.map((row) => <i key={row.product} className={`brief-dot-${toneFor(row.sales! / row.budget! * 100, salesProgress)}`} />)}</div><small>按销售截至日比较</small></div><div className="brief-kpi"><span>销售最大缺口</span><strong>{fmt(salesGap)}<small>t</small></strong><Meter value={salesGap === null ? null : Math.min(100, salesGap)} tone="amber" /><small>相对销售数据截至日进度</small></div><div className="brief-kpi"><span>原辅料 &lt; 10 天</span><strong>{materials.data ? low.length : '—'}<small>项</small></strong><div className="brief-status-dots">{low.slice(0, 6).map((row) => <i key={`${row.workshop}-${row.name}`} className={row.daysOfUse !== null && row.daysOfUse < 5 ? 'brief-dot-danger' : 'brief-dot-amber'} />)}</div><small>最近库存 {stockDate(materials.data) ?? '暂无记录'}</small></div></div>
+      <div className="brief-kpis"><div className="brief-kpi"><span>{period === 'week' ? '本周进度' : '时间进度'}</span><strong>{pct(elapsed)}</strong><Meter value={elapsed} tone="neutral" /><small>{period === 'week' ? '本周已过天数 ÷ 7' : '当月已过天数 ÷ 当月天数'}</small></div><div className="brief-kpi"><span>硫酸产量</span><strong>{fmt(sulfuric?.actual)}<small>t</small></strong><Meter value={sulfuric?.rate ?? null} tone={toneFor(sulfuric?.rate ?? null, elapsed)} /><small>预算 {fmt(sulfuric?.plan)} · 达成 {pct(sulfuric?.rate)}</small></div><div className="brief-kpi"><span>生产达成 ≥ 时间进度</span><strong>{planned.length ? met.length : '—'}<small> / {planned.length || '—'} 项</small></strong><div className="brief-status-dots">{rows.map((row) => <i key={row.workshop} className={`brief-dot-${toneFor(row.rate, elapsed)}`} />)}</div><small>基于已设月计划的车间</small></div><div className="brief-kpi"><span>销售达成 ≥ 时间进度</span><strong>{salesPlanned.length ? salesMet.length : '—'}<small> / {salesPlanned.length || '—'} 项</small></strong><div className="brief-status-dots">{salesPlanned.map((row) => <i key={row.product} className={`brief-dot-${toneFor(row.sales! / row.budget! * 100, salesProgress)}`} />)}</div><small>按日历进度比较</small></div><div className="brief-kpi"><span>销售最大缺口</span><strong>{fmt(salesGap)}<small>t</small></strong><Meter value={salesGap === null ? null : Math.min(100, salesGap)} tone="amber" /><small>相对日历进度</small></div><div className="brief-kpi"><span>原辅料 &lt; 10 天</span><strong>{materials.data ? low.length : '—'}<small>项</small></strong><div className="brief-status-dots">{low.slice(0, 6).map((row) => <i key={`${row.workshop}-${row.name}`} className={row.daysOfUse !== null && row.daysOfUse < 5 ? 'brief-dot-danger' : 'brief-dot-amber'} />)}</div><small>最近库存 {stockDate(materials.data) ?? '暂无记录'}</small></div></div>
       <div className={`brief-tab-pane${mobileTab === 'production' ? ' brief-tab-active' : ''}`}><ProductionSection rows={rows} progress={elapsed} period={period} month={month} asOf={asOf} incidents={incidents} /></div>
       <div className={`brief-tab-pane${mobileTab === 'sales' ? ' brief-tab-active' : ''}`}><SalesSection sales={sales} materials={materials.data} asOf={salesAsOf} period={period} progress={salesProgress} showLatestStock={period === 'month' ? month === latestMonth : week === latestWeek} /></div>
       <div className={`brief-tab-pane${mobileTab === 'inventory' ? ' brief-tab-active' : ''}`}><InventorySection data={materials.data} /></div>

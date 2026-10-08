@@ -32,6 +32,27 @@ export const monthDays = (month: string): number => {
   return new Date(Date.UTC(year, value, 0)).getUTCDate();
 };
 
+export const chinaToday = (): string => {
+  const parts = new Intl.DateTimeFormat('en', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+  const value = (type: string) => parts.find((part) => part.type === type)?.value ?? '';
+  return `${value('year')}-${value('month')}-${value('day')}`;
+};
+
+/** 时间进度按日历计算，与生产、销售记录的更新日期无关。 */
+export const calendarProgress = (period: 'month' | 'week', month: string | null, week: string | null, today: string): number | null => {
+  if (period === 'month') {
+    if (!month) return null;
+    const currentMonth = today.slice(0, 7);
+    if (month < currentMonth) return 100;
+    if (month > currentMonth) return 0;
+    return Number(today.slice(-2)) / monthDays(month) * 100;
+  }
+  if (!week) return null;
+  if (today < week) return 0;
+  if (today > shiftDay(week, 6)) return 100;
+  return (Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${week}T00:00:00Z`)) / 86400000) + 1) / 7 * 100;
+};
+
 export const shiftDay = (day: string, count: number): string => {
   const date = new Date(`${day}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + count);
@@ -83,6 +104,7 @@ export function briefProductionRows(
   completion: PlanCompletionRow[],
   month: string,
   asOf: string | null,
+  calendarDate: string,
 ): BriefProductionRow[] {
   const lastDay = asOf?.startsWith(month) ? Number(asOf.slice(-2)) : monthDays(month);
   const previous = shiftMonth(month, -1);
@@ -108,7 +130,9 @@ export function briefProductionRows(
         return asOf && date > asOf ? null : dated.get(date) ?? null;
       }));
     });
-    const expected = monthPlan !== null ? monthPlan * lastDay / monthDays(month) : null;
+    const comparisonMonth = calendarDate.slice(0, 7);
+    const comparisonDays = comparisonMonth < month ? 0 : comparisonMonth > month ? monthDays(month) : Number(calendarDate.slice(-2));
+    const expected = monthPlan !== null ? monthPlan * comparisonDays / monthDays(month) : null;
     return {
       workshop: planned.workshop,
       basis: planned.basis,
@@ -147,6 +171,7 @@ export function briefWeeklyRows(
   start: string,
   asOf: string | null,
   year: number,
+  calendarDate: string,
 ): BriefProductionRow[] {
   return completion.map((planned) => {
     const series = overview.workshops.find((item) => item.code === WORKSHOP_CODES[planned.workshop]);
@@ -164,8 +189,8 @@ export function briefWeeklyRows(
     const plan = dailyPlans.every((value) => value !== null)
       ? dailyPlans.reduce<number>((sum, value) => sum + (value ?? 0), 0) : null;
     const actual = total(current);
-    const expected = asOf && plan !== null
-      ? dailyPlans.slice(0, Math.min(7, weekDays.filter((day) => day <= asOf).length))
+    const expected = plan !== null
+      ? dailyPlans.slice(0, weekDays.filter((day) => day <= calendarDate).length)
         .reduce<number>((sum, value) => sum + (value ?? 0), 0) : null;
     const previous = Array.from({ length: 7 }, (_, offset) => dated.get(shiftDay(start, offset - 7)) ?? null);
     const weeklyDaily = Array.from({ length: 4 }, (_, index) => {

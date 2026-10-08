@@ -83,6 +83,10 @@
   --hg-font-size-lg: var(--ui-font-size-lg);
   --hg-font-size-sm: var(--ui-font-size-sm);
   --hg-font-size-xs: var(--ui-font-size-xs);
+  /* 经营简报使用设计稿的独立排版层级。 */
+  --hg-brief-section-size: 22px;
+  --hg-brief-kpi-size: 24px;
+  --hg-brief-table-size: 13px;
   --hg-ease: var(--ease);
   /* 中控设计稿的局部字号等级，供同一视图的卡片和图表复用。 */
   --hg-control-title-size: 24px;
