@@ -28,12 +28,13 @@
 .brief-kpi strong { font-size: var(--hg-brief-kpi-size); letter-spacing: -.01em; line-height: 1.3; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .brief-kpi strong small { color: var(--hg-ink3); font-size: var(--hg-font-size-xs); font-weight: 400; margin-left: 3px; }
 .brief-kpi > small { color: var(--hg-ink3); font-size: var(--hg-font-size-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brief-kpi:nth-child(5) > strong, .brief-kpi:nth-child(6) > strong { color: var(--hg-brief-danger-text); }
 .brief-meter { display: block; position: relative; width: 100%; height: 7px; border-radius: var(--hg-radius-tag); background: var(--hg-active); overflow: hidden; }
 .brief-meter s { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(135deg, var(--hg-line2) 0 2px, transparent 2px 5px); }
 .brief-meter i { display: block; position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--hg-brand); }
-.brief-meter .brief-meter-ok, .brief-dot-ok, .brief-key-ok { background: var(--hg-ok); }
-.brief-meter .brief-meter-amber, .brief-dot-amber, .brief-key-amber { background: var(--hg-amber); }
-.brief-meter .brief-meter-danger, .brief-dot-danger, .brief-key-danger { background: var(--hg-danger); }
+.brief-meter .brief-meter-ok, .brief-dot-ok, .brief-key-ok { background: var(--hg-brief-ok-fill); }
+.brief-meter .brief-meter-amber, .brief-dot-amber, .brief-key-amber { background: var(--hg-brief-amber-fill); }
+.brief-meter .brief-meter-danger, .brief-dot-danger, .brief-key-danger { background: var(--hg-brief-danger-fill); }
 .brief-meter .brief-meter-neutral { background: var(--hg-ink2); }
 .brief-dot-brand { background: var(--hg-line2); }
 .brief-status-dots { display: flex; gap: 3px; height: 7px; margin-top: 2px; }
@@ -61,14 +62,15 @@
 .brief-department { border-right: 1px solid var(--hg-line); font-weight: 600; }
 .brief-product strong, .brief-strong { font-weight: 600; }
 .brief-week-value { color: var(--hg-ink2); }
+.brief-week-low { color: var(--hg-brief-danger-text); }
 .brief-sparkline polyline { fill: none; stroke: var(--hg-brand); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .brief-na { color: var(--hg-ink3); }
 .brief-rate { display: grid; grid-template-columns: 42px minmax(0, 1fr); align-items: center; gap: 7px; }
 .brief-rate b { text-align: right; }
 .brief-rate .brief-meter { height: 6px; }
-.brief-ok { color: var(--hg-ok); }
-.brief-amber { color: var(--hg-amber); }
-.brief-danger { color: var(--hg-danger); }
+.brief-ok { color: var(--hg-brief-ok-text); }
+.brief-amber { color: var(--hg-brief-amber-text); }
+.brief-danger { color: var(--hg-brief-danger-text); }
 .brief-brand { color: var(--hg-ink3); }
 .brief-empty { font-size: var(--hg-font-size-xs); color: var(--hg-ink3); margin: 14px 0; }
 .brief-production-notes { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
@@ -76,7 +78,7 @@
 .brief-production-notes > div > div { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
 .brief-production-notes b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .brief-production-notes p { color: var(--hg-ink2); line-height: 1.4; margin: 5px 0 0; overflow-wrap: anywhere; }
-.brief-stop { color: var(--hg-danger); background: var(--hg-danger-soft); border-radius: var(--hg-radius-tag); padding: 1px 5px; white-space: nowrap; }
+.brief-stop { color: var(--hg-brief-danger-text); background: var(--hg-brief-danger-soft); border-radius: var(--hg-radius-tag); padding: 1px 5px; white-space: nowrap; }
 .brief-sales-layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(230px, 1fr); gap: 14px; }
 .brief-sales-table { min-width: 680px; }
 .brief-sales-table th:first-child { width: 26%; }

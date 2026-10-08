@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { MaterialsResult, PlanProductSalesRow } from '@hgxt/shared';
 import { briefBoard, materialsSummary, sulfuricSummary, workshopOverview } from '../../api/production';
 import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon } from '../../components/icons';
+import { useThemeMode } from '../../theme/ThemeProvider';
+import { briefPalette } from '../../theme/tokens';
 import { briefProductionRows, briefWeeklyRows, calendarProgress, chinaToday, latestProductionDate, monthDays, monthProductionAsOf, reportWeek, shiftDay, shiftMonth, weekProductionAsOf, weekStart, type BriefProductionRow } from './executiveBriefData';
 import './executiveBrief.css';
 
@@ -39,7 +41,7 @@ function ProductionSection({ rows, progress, period, month, asOf, incidents }: {
     </thead><tbody>{rows.map((row, index) => {
       const weeks = row.weeklyDaily.slice(-4), tone = toneFor(row.rate, progress);
       const difference = row.rate === null || progress === null ? null : row.rate - progress;
-      return <tr key={row.workshop}><td className="brief-department">{index === 0 || departmentOf(rows[index - 1].workshop) !== departmentOf(row.workshop) ? departmentOf(row.workshop) : ''}</td><td className="brief-product"><strong>{row.workshop}</strong></td><td>{fmt(row.previousDaily, 1)}</td>{weeks.map((value, i) => <td key={i} className="brief-week-value">{fmt(value, 1)}</td>)}<td><Sparkline values={weeks} /></td><td className="brief-strong">{fmt(row.daily, 1)}</td><td>{fmt(row.plan)}</td><td className="brief-strong">{fmt(row.actual)}</td><td><div className="brief-rate"><b className={`brief-${tone}`}>{pct(row.rate)}</b><Meter value={row.rate} tone={tone} progress={progress} /></div></td><td className={row.gap === null ? '' : row.gap >= 0 ? 'brief-ok' : 'brief-danger'}>{signed(row.gap)}</td><td className={difference === null ? '' : difference >= 0 ? 'brief-ok' : 'brief-danger'}>{signed(difference, '%')}</td></tr>;
+      return <tr key={row.workshop}><td className="brief-department">{index === 0 || departmentOf(rows[index - 1].workshop) !== departmentOf(row.workshop) ? departmentOf(row.workshop) : ''}</td><td className="brief-product"><strong>{row.workshop}</strong></td><td>{fmt(row.previousDaily, 1)}</td>{weeks.map((value, i) => <td key={i} className={value !== null && row.previousDaily !== null && value < row.previousDaily ? 'brief-week-value brief-week-low' : 'brief-week-value'}>{fmt(value, 1)}</td>)}<td><Sparkline values={weeks} /></td><td className="brief-strong">{fmt(row.daily, 1)}</td><td>{fmt(row.plan)}</td><td className="brief-strong">{fmt(row.actual)}</td><td><div className="brief-rate"><b className={`brief-${tone}`}>{pct(row.rate)}</b><Meter value={row.rate} tone={tone} progress={progress} /></div></td><td className={row.gap === null ? '' : row.gap >= 0 ? 'brief-ok' : 'brief-danger'}>{signed(row.gap)}</td><td className={difference === null ? '' : difference >= 0 ? 'brief-ok' : 'brief-danger'}>{signed(difference, '%')}</td></tr>;
     })}</tbody></table></div>
     {!rows.length ? <p className="brief-empty">该期暂无生产记录</p> : null}
     <div className="brief-mobile-production"><div className="brief-mobile-section-title"><b>{periodLabel}生产</b><span>近四周日均 · t</span></div>{rows.map((row) => {
@@ -84,6 +86,17 @@ function InventorySection({ data }: { data: MaterialsResult | undefined }) {
 }
 
 export function ExecutiveBriefPage() {
+  const { mode } = useThemeMode();
+  const colors = briefPalette[mode];
+  const briefColors = {
+    '--hg-brief-ok-fill': colors.okFill,
+    '--hg-brief-amber-fill': colors.amberFill,
+    '--hg-brief-danger-fill': colors.dangerFill,
+    '--hg-brief-ok-text': colors.okText,
+    '--hg-brief-amber-text': colors.amberText,
+    '--hg-brief-danger-text': colors.dangerText,
+    '--hg-brief-danger-soft': colors.dangerSoft,
+  } as CSSProperties;
   const overview = useQuery({ queryKey: ['production', 'workshops', 0], queryFn: () => workshopOverview(0) });
   const materials = useQuery({ queryKey: ['production', 'materials'], queryFn: materialsSummary });
   const parking = useQuery({ queryKey: ['production', 'sulfuric', 0], queryFn: () => sulfuricSummary(0) });
@@ -123,7 +136,7 @@ export function ExecutiveBriefPage() {
   const heading = period === 'week' && weekInfo ? `第 ${weekInfo.week} 周生产经营简报` : month ? `${Number(month.slice(5))} 月生产经营简报` : '生产经营简报';
   const progressLabel = period === 'week' ? '本周进度' : '时间进度';
 
-  return <main className="brief-page" data-mobile-tab={mobileTab}><header className="brief-toolbar"><span className="brief-toolbar-mark">化</span><strong>生产经营简报</strong><span className="brief-toolbar-sep">/</span><span className="brief-toolbar-period">{displayPeriod}</span><div className="brief-toolbar-actions"><div className="brief-period-switch" role="group" aria-label="统计周期"><button type="button" aria-pressed={period === 'month'} onClick={() => { if (period === 'week' && week) setRequestedMonth(shiftDay(week, 6).slice(0, 7)); setPeriod('month'); }}>月度</button><button type="button" aria-pressed={period === 'week'} onClick={() => { if (period === 'month' && month) setRequestedWeek(weekStart(asOf ?? `${month}-${String(monthDays(month)).padStart(2, '0')}`)); setPeriod('week'); }}>周度</button></div><div className="brief-stepper"><button type="button" aria-label={period === 'week' ? '上一周' : '上一月'} disabled={period === 'week' ? !week || !firstWeek || week <= firstWeek : !month || !firstMonth || month <= firstMonth} onClick={() => { if (period === 'week' && week) setRequestedWeek(shiftDay(week, -7)); if (period === 'month' && month) setRequestedMonth(shiftMonth(month, -1)); }}><ChevronLeftIcon width={16} height={16} /></button><span>{stepperLabel}</span><button type="button" aria-label={period === 'week' ? '下一周' : '下一月'} disabled={period === 'week' ? !week || !latestWeek || week >= latestWeek : !month || !latestMonth || month >= latestMonth} onClick={() => { if (period === 'week' && week) setRequestedWeek(shiftDay(week, 7)); if (period === 'month' && month) setRequestedMonth(shiftMonth(month, 1)); }}><ChevronRightIcon width={16} height={16} /></button></div><button type="button" className="brief-print" onClick={() => window.print()}><DownloadIcon width={15} height={15} />导出 PDF</button></div></header>
+  return <main className="brief-page" style={briefColors} data-mobile-tab={mobileTab}><header className="brief-toolbar"><span className="brief-toolbar-mark">化</span><strong>生产经营简报</strong><span className="brief-toolbar-sep">/</span><span className="brief-toolbar-period">{displayPeriod}</span><div className="brief-toolbar-actions"><div className="brief-period-switch" role="group" aria-label="统计周期"><button type="button" aria-pressed={period === 'month'} onClick={() => { if (period === 'week' && week) setRequestedMonth(shiftDay(week, 6).slice(0, 7)); setPeriod('month'); }}>月度</button><button type="button" aria-pressed={period === 'week'} onClick={() => { if (period === 'month' && month) setRequestedWeek(weekStart(asOf ?? `${month}-${String(monthDays(month)).padStart(2, '0')}`)); setPeriod('week'); }}>周度</button></div><div className="brief-stepper"><button type="button" aria-label={period === 'week' ? '上一周' : '上一月'} disabled={period === 'week' ? !week || !firstWeek || week <= firstWeek : !month || !firstMonth || month <= firstMonth} onClick={() => { if (period === 'week' && week) setRequestedWeek(shiftDay(week, -7)); if (period === 'month' && month) setRequestedMonth(shiftMonth(month, -1)); }}><ChevronLeftIcon width={16} height={16} /></button><span>{stepperLabel}</span><button type="button" aria-label={period === 'week' ? '下一周' : '下一月'} disabled={period === 'week' ? !week || !latestWeek || week >= latestWeek : !month || !latestMonth || month >= latestMonth} onClick={() => { if (period === 'week' && week) setRequestedWeek(shiftDay(week, 7)); if (period === 'month' && month) setRequestedMonth(shiftMonth(month, 1)); }}><ChevronRightIcon width={16} height={16} /></button></div><button type="button" className="brief-print" onClick={() => window.print()}><DownloadIcon width={15} height={15} />导出 PDF</button></div></header>
     <div className="brief-body"><div className="brief-intro"><span className="brief-mobile-period">{displayPeriod}</span><h1>{heading}</h1></div>
       {error ? <div className="brief-error" role="alert">经营数据加载失败：{error.message}</div> : null}
       {overview.isLoading || plan.isLoading || materials.isLoading ? <div className="brief-loading" role="status">正在加载经营数据…</div> : null}

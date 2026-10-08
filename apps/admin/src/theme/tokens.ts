@@ -79,6 +79,28 @@ export const controlChartPalette = {
   dark: { blue: dark.brand, paleBlue: '#7186B4', amber: dark.amber, orange: dark.danger, green: dark.ok },
 } as const;
 
+/** 经营简报设计稿的状态色：明亮色用于条、点，深色用于小字。 */
+export const briefPalette = {
+  light: {
+    okFill: controlChartPalette.light.green,
+    amberFill: controlChartPalette.light.amber,
+    dangerFill: controlChartPalette.light.orange,
+    okText: '#16754F',
+    amberText: '#8A5A12',
+    dangerText: '#B4532A',
+    dangerSoft: '#FDEBE2',
+  },
+  dark: {
+    okFill: '#31C48D',
+    amberFill: '#E9AD2D',
+    dangerFill: '#EC7651',
+    okText: '#8FC6A0',
+    amberText: '#E3B873',
+    dangerText: '#F4A284',
+    dangerSoft: 'rgba(236, 118, 81, 0.16)',
+  },
+} as const;
+
 /** 登录页与《以硫为源》影片共用的浅蓝纸面配色。 */
 export const loginPalette = {
   paper: '#F5F8FC',
