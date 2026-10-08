@@ -97,16 +97,17 @@
 .brief-watch b, .brief-watch span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .brief-watch b { font-size: var(--hg-font-size-xs); }
 .brief-watch span { color: var(--hg-ink3); font-size: var(--hg-font-size-xs); }
-.brief-inventory-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
-.brief-inventory-group { min-width: 0; }
+.brief-inventory-grid { column-count: 2; column-gap: 24px; }
+.brief-inventory-group { min-width: 0; margin-bottom: 16px; break-inside: avoid; }
 .brief-inventory-group h3 { font-size: var(--hg-font-size-sm); margin: 0 0 6px; }
 .brief-inventory-row { display: grid; grid-template-columns: minmax(0, 1fr) 88px 76px 56px 56px; align-items: center; gap: 6px; min-height: 29px; border-bottom: 1px solid var(--hg-line); font-size: var(--hg-font-size-xs); font-variant-numeric: tabular-nums; }
 .brief-inventory-row > * { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
 .brief-inventory-row > :first-child { text-align: left; }
 .brief-inventory-row strong { font-weight: 500; }
 .brief-inventory-head { color: var(--hg-ink3); }
-.brief-stock-value { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
-.brief-stock-value .brief-meter { width: 27px; flex: 0 0 27px; height: 5px; }
+.brief-inventory-material { display: grid; grid-template-columns: minmax(0, 1fr) 104px; align-items: center; gap: 10px; }
+.brief-inventory-material strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.brief-inventory-material .brief-meter { height: 6px; }
 .brief-mobile-tabs, .brief-mobile-progress, .brief-mobile-production, .brief-mobile-sales { display: none; }
 
 @media (max-width: 1320px) {
@@ -164,7 +165,9 @@
   .brief-week-bars small { font-size: var(--hg-font-size-xs); }
   .brief-production-notes { display: block; margin: 0; }
   .brief-production-notes > div { min-height: 0; padding: 10px 14px; border-radius: 0; border-bottom: 1px solid var(--hg-line); }
-  .brief-sales-layout, .brief-inventory-grid { grid-template-columns: 1fr; gap: 10px; }
+  .brief-sales-layout { grid-template-columns: 1fr; gap: 10px; }
+  .brief-inventory-grid { column-count: 1; }
+  .brief-inventory-material { grid-template-columns: minmax(0, 1fr) 84px; }
   .brief-sales-table-wrap { display: none; }
   .brief-mobile-sales { display: block; }
   .brief-mobile-sale { padding: 10px 14px; border-top: 1px solid var(--hg-line); }
@@ -176,6 +179,9 @@
   .brief-inventory-grid { padding: 0 12px 12px; }
   .brief-inventory-row { grid-template-columns: minmax(0, 1fr) 72px 70px; }
   .brief-inventory-row > :nth-child(n+4) { display: none; }
+}
+@media (max-width: 480px) {
+  .brief-inventory-material { grid-template-columns: minmax(0, 1fr) 64px; }
 }
 @media print {
   @page { size: A3 landscape; margin: 12mm; }
