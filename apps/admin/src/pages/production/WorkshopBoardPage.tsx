@@ -10,6 +10,7 @@ import { DetailedWorkshopPanel, DetailedWorkshopTable, detailMetricColor } from 
 import { FenglianPanel, FenglianTable, type FenglianSelection } from './FenglianWorkshopView';
 import { SulfuricCalculationModal } from './SulfuricCalculationModal';
 import { SulfuricControlPanel, SulfuricControlPeek } from './SulfuricControlPanel';
+import { SulfuricParkingTable } from './SulfuricParkingTable';
 import { ThermalPanel, ThermalTable } from './ThermalWorkshopView';
 import { workshopMonthlySeries } from './workshopMonthly';
 
@@ -53,7 +54,7 @@ const sumOrNull = (values: Array<number | null | undefined>): number | null => {
 type DetailEntry = { kind: 'day'; date: string; index: number } | { kind: 'summary'; month: string };
 const DETAIL_PAGE_SIZE = 35;
 
-type DetailTab = 'prod' | 'levels' | 'consumption';
+type DetailTab = 'prod' | 'levels' | 'consumption' | 'parking';
 type AminoMetricKey = 'electricity' | 'steam' | 'water' | 'urea' | 'fuming';
 const AMINO_COLORS = {
   electricity: PALETTE.brand,
@@ -303,19 +304,13 @@ export function WorkshopBoardPage() {
   const aPanelDays = panelMode === 'day' ? [aDay] : aDays;
   const fPanelDays = panelMode === 'day' ? [fDay] : fDays;
   const detailDates = allDates.filter((d) => d.startsWith(monthKey));
-  const summaryDate = (key: string) => dayjs(`${key}-01`).endOf('month').format('YYYY-MM-DD');
   const detailEntries: DetailEntry[] = [
-    ...detailDates.map((date): DetailEntry => ({ kind: 'day', date, index: allDates.indexOf(date) })),
-    ...availableMonths
-      .filter((key) => summaryDate(key) <= dayjs().format('YYYY-MM-DD') && summaryDate(key) >= periodStart && summaryDate(key) <= periodEnd)
-      .map((key): DetailEntry => ({ kind: 'summary', month: key })),
-  ].sort((a, b) => {
-    const dateOf = (entry: DetailEntry) => entry.kind === 'day' ? entry.date : summaryDate(entry.month);
-    return dateOf(b).localeCompare(dateOf(a)) || (a.kind === 'summary' ? -1 : 1);
-  });
-  const detailPageCount = Math.max(1, Math.ceil(detailEntries.length / DETAIL_PAGE_SIZE));
+    { kind: 'summary', month: monthKey },
+    ...[...detailDates].reverse().map((date): DetailEntry => ({ kind: 'day', date, index: allDates.indexOf(date) })),
+  ];
+  const detailPageCount = isSulfuric && tab === 'parking' ? 1 : Math.max(1, Math.ceil(detailDates.length / DETAIL_PAGE_SIZE));
   const currentDetailPage = Math.min(detailPage, detailPageCount - 1);
-  const pageEntries = detailEntries.slice(currentDetailPage * DETAIL_PAGE_SIZE, (currentDetailPage + 1) * DETAIL_PAGE_SIZE);
+  const pageEntries = [detailEntries[0], ...detailEntries.slice(1 + currentDetailPage * DETAIL_PAGE_SIZE, 1 + (currentDetailPage + 1) * DETAIL_PAGE_SIZE)];
   const olderMonth = [...availableMonths].reverse().find((item) => item < monthKey);
   const newerMonth = availableMonths.find((item) => item > monthKey);
   const canPageNewer = currentDetailPage > 0 || Boolean(newerMonth);
@@ -583,7 +578,7 @@ export function WorkshopBoardPage() {
           {isSulfuric ? (
             <Seg
               className="tbtabs"
-              options={[{ label: '产量', value: 'prod' }, { label: '液位', value: 'levels' }, { label: '消耗数据', value: 'consumption' }]}
+              options={[{ label: '产量', value: 'prod' }, { label: '液位', value: 'levels' }, { label: '消耗数据', value: 'consumption' }, { label: '停车记录', value: 'parking' }]}
               value={tab}
               onChange={(v) => setTab(v as DetailTab)}
             />
@@ -597,7 +592,9 @@ export function WorkshopBoardPage() {
             <button type="button" className="iconbtn" aria-label="翻到更新的明细" disabled={!canPageNewer} onClick={() => turnDetailPage('newer')}><ChevronRightIcon width={16} height={16} /></button>
           </div>
         </div>
-        {isFenglian ? (
+        {isSulfuric && tab === 'parking' ? (
+          <SulfuricParkingTable days={sulfuric.data?.days ?? []} month={monthKey} />
+        ) : isFenglian ? (
           fenglian.data
             ? <FenglianTable data={fenglian.data} entries={pageEntries} activeDate={activeDate} onSelect={onSelectDetailDate} selection={fenglianSelection} onSelectionChange={setFenglianSelection} />
             : <div className="scrolltbl"><div className="empty">加载中…</div></div>

@@ -5,7 +5,7 @@ import { isDeepStrictEqual } from 'node:util';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Prisma, PrismaClient } from '../../src/generated/prisma/client';
 import schema from '../form-schemas/anthraquinone.json';
-import source from '../data/anthraquinone-2025-12-31_2026-09-30.json';
+import source from '../data/anthraquinone-2025-12-31_2026-10-07.json';
 import { buildAnthraquinoneRows } from '../import-anthraquinone';
 
 const connectionString = process.env.DATABASE_URL;
@@ -32,16 +32,17 @@ async function main(): Promise<void> {
   if ([...byDate.values()].some((items) => items.length > 1)) {
     throw new Error('开发库存在同日期的多条蒽醌记录，未执行导入');
   }
+  const matches = (data: Record<string, unknown>, previous: Record<string, unknown> | undefined) =>
+    previous && Object.keys(previous).length === Object.keys(data).length
+      && Object.entries(data).every(([key, value]) => previous[key] === value);
   const schemaIsCurrent = isDeepStrictEqual(form.schema, schema);
   const sameData = affected.length === rows.length && rows.every((data) => {
     const previous = byDate.get(data.field_date as string)?.[0]?.data as Record<string, unknown> | undefined;
-    return previous && Object.keys(previous).length === Object.keys(data).length
-      && Object.entries(data).every(([key, value]) => previous[key] === value);
+    return matches(data, previous);
   });
   const hasConflictingData = rows.some((data) => {
     const previous = byDate.get(data.field_date as string)?.[0]?.data as Record<string, unknown> | undefined;
-    return previous && (Object.keys(previous).length !== Object.keys(data).length
-      || Object.entries(data).some(([key, value]) => previous[key] !== value));
+    return previous && !matches(data, previous);
   });
   if (schemaIsCurrent && sameData) {
     console.log('蒽醌表单和报表数据已是当前版本，无需重复导入');
@@ -65,6 +66,7 @@ async function main(): Promise<void> {
       const date = data.field_date as string;
       const previous = byDate.get(date)?.[0];
       if (previous) {
+        if (matches(data, previous.data as Record<string, unknown>)) continue;
         await tx.formSubmission.update({
           where: { id: previous.id },
           data: { data: data as Prisma.InputJsonValue },

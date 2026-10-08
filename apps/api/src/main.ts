@@ -42,8 +42,8 @@ async function bootstrap(): Promise<void> {
   // B6：基础 HTTP 安全头。CSP 会拦 Swagger UI 的内联脚本，开发环境关闭、生产保留。
   // 生产模式下 API 同时托管前端静态产物（见下方 useStaticAssets）：
   // AntD 会注入内联 <style>，默认 CSP 不含 'unsafe-inline' 会把整站样式拦掉，故显式放开 style-src。
-  // 例外：登录页动画 /login-sulfur/（自带静态素材，内含内联启动脚本）会被 script-src 'self' 拦掉，
-  // 该路径单独豁免 CSP（helmet 其余安全头照常），全站其他路径仍保持严格策略
+  // 例外：登录页两段动画 /login-sulfur/ 与 /login-showreel/ 内含内联启动脚本，
+  // 这两个素材路径豁免 CSP（helmet 其余安全头照常），全站其他路径仍保持严格策略
   const strictHelmet = helmet({
     contentSecurityPolicy: isProduction
       ? {

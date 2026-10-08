@@ -252,6 +252,12 @@ export interface SulfuricTankLevel {
   levelPercent: number | null;
 }
 
+export interface SulfuricParkingRecord {
+  start: string;
+  end: string;
+  reason: string;
+}
+
 export interface SulfuricDaySummary {
   /** 填报日（主日期字段值）；库存快照截至该日填报时 */
   date: string;
@@ -261,6 +267,8 @@ export interface SulfuricDaySummary {
   inventory: SulfuricInventory | null;
   /** 同一填报日的每个罐期末液位（%），缺测保留 null */
   levels: SulfuricTankLevel[];
+  /** 硫酸日报填写的停车记录；以记录中的开始日期归属统计月份 */
+  parkingRecords: SulfuricParkingRecord[];
   /** 对应 productionDate 的差值产量；两次液位数据不完整为 null */
   production: SulfuricProduction | null;
   /** 对应 productionDate 的分表电耗 + 合计 */

@@ -192,7 +192,19 @@ export class ProductionService {
       const water = isConsecutive && currentWater !== null && previousWater !== null
         ? +Math.max(0, currentWater - previousWater).toFixed(2) : null;
 
-      return { date, productionDate: dayBefore(date), inventory, levels, production, electricity, peroxide, water };
+      let parkingRecords: SulfuricDaySummary['parkingRecords'] = [];
+      try {
+        const raw = current.parkingRecords;
+        const parsed: unknown = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (Array.isArray(parsed)) {
+          parkingRecords = parsed.filter((record): record is { start: string; end: string; reason?: string } =>
+            record !== null && typeof record === 'object'
+            && typeof record.start === 'string' && typeof record.end === 'string',
+          ).map((record) => ({ start: record.start, end: record.end, reason: typeof record.reason === 'string' ? record.reason : '' }));
+        }
+      } catch { /* 旧报表存在自由文本时，不影响车间数据加载 */ }
+
+      return { date, productionDate: dayBefore(date), inventory, levels, parkingRecords, production, electricity, peroxide, water };
     });
 
     return { days: result };
