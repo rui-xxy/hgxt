@@ -59,7 +59,7 @@ function SalesSection({ sales, materials, asOf, period, progress, showLatestStoc
   const leaders = [...(sales ?? [])].filter((row) => row.sales !== null).sort((a, b) => (b.sales ?? 0) - (a.sales ?? 0)).slice(0, 3);
   const stock = [...(materials?.finishedProducts ?? [])].filter((row) => row.stock !== null).sort((a, b) => (b.stock ?? 0) - (a.stock ?? 0)).slice(0, 5);
   const inventoryFor = (row: PlanProductSalesRow) => showLatestStock
-    ? materials?.finishedProducts.find((item) => item.name === (row.product === '烟酸' ? '发烟硫酸' : row.product))?.stock ?? null
+    ? materials?.finishedProducts.find((item) => item.name === row.product)?.stock ?? null
     : null;
   const rateFor = (row: PlanProductSalesRow) => row.budget && row.sales !== null ? row.sales / row.budget * 100 : null;
   const differenceFor = (row: PlanProductSalesRow) => row.budget !== null && row.sales !== null && progress !== null

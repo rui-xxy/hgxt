@@ -38,6 +38,11 @@ const PLAN_WORKSHOPS: Array<{ workshop: string; basis: string; code: string }> =
 const CODE_MATTERS = 'matters_2026';
 const CODE_SALES = 'sales_daily';
 const CODE_FINISHED = 'finished_products_daily';
+const LEGACY_SALES_BUDGET_NAMES: Record<string, string> = {
+  发烟硫酸: '烟酸',
+  试剂酸: '优质酸',
+  外供蒸汽: '蒸汽',
+};
 
 const monthKey = (date: string): string => date.slice(0, 7);
 const dayBefore = (date: string): string => {
@@ -95,7 +100,8 @@ export class PlanService {
       };
     });
     const salesBudgets = SALES_BUDGET_PRODUCTS.map((product) => {
-      const saved = savedSalesBudgets.find((row) => row.product === product);
+      const saved = savedSalesBudgets.find((row) => row.product === product)
+        ?? savedSalesBudgets.find((row) => row.product === LEGACY_SALES_BUDGET_NAMES[product]);
       const raw = (saved?.months as Record<string, number | null> | null) ?? {};
       return { product, months: Array.from({ length: 12 }, (_, index) => PlanService.toNum(raw[String(index + 1)])) };
     });
@@ -172,6 +178,8 @@ export class PlanService {
           create: { year: body.year, product: row.product, months },
           update: { months },
         });
+        const legacyName = LEGACY_SALES_BUDGET_NAMES[row.product];
+        if (legacyName) await tx.salesBudget.deleteMany({ where: { year: body.year, product: legacyName } });
       }
     });
     return this.getSettings(body.year);
@@ -191,10 +199,11 @@ export class PlanService {
   }
 
   async board(year: number): Promise<ProductionPlanBoardResult> {
-    const [overview, energy, settings, salesForm, finishedForm, aminoForm, magnesiumForm, hydrotalciteForm, anthraquinoneForm, fenglianForm] =
+    const [overview, energy, thermal, settings, salesForm, finishedForm, aminoForm, magnesiumForm, hydrotalciteForm, anthraquinoneForm, fenglianForm] =
       await Promise.all([
         this.overview.workshopOverview(0),
         this.overview.energy(0),
+        this.overview.thermalSummary(0),
         this.getSettings(year),
         this.overview.byDate(CODE_SALES),
         this.overview.byDate(CODE_FINISHED),
@@ -289,7 +298,10 @@ export class PlanService {
       productSalesOfDay.set(product, daily);
     };
     addProductSales('98%硫酸', salesForm, ['field_acid98_sales']);
-    addProductSales('烟酸', salesForm, ['field_fuming_acid_sales']);
+    addProductSales('发烟硫酸', salesForm, ['field_fuming_acid_sales']);
+    addProductSales('试剂酸', salesForm, ['field_reagent_acid_sales']);
+    productSalesOfDay.set('外供蒸汽', new Map(thermal.days.flatMap((day) =>
+      day.externalTotal === null ? [] : [[day.date, day.externalTotal] as const])));
     addProductSales('氨基磺酸', finishedForm, [fieldByTitle('氨基磺酸销量')].filter((field): field is string => !!field));
     addProductSales('硫酸镁', finishedForm, [fieldByTitle('硫酸镁销量')].filter((field): field is string => !!field));
     addProductSales('水滑石', finishedForm, ['HG-200销量', 'HG-200A销量', 'HG-201销量', 'HG-300销量', 'HG-205销量']

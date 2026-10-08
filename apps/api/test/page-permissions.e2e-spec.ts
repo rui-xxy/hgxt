@@ -14,7 +14,15 @@ describe('普通用户页面权限', () => {
 
   beforeAll(async () => {
     app = await createTestApp();
-    await resetDbWithAdmin(app.get(PrismaService));
+    const prisma = app.get(PrismaService);
+    await resetDbWithAdmin(prisma);
+    await prisma.form.upsert({
+      where: { code: 'sulfuric_daily' },
+      update: {},
+      create: { title: '硫酸车间报表', code: 'sulfuric_daily', schema: [
+        { id: 'field_date', title: '日期', type: 'date', required: true },
+      ] as never },
+    });
     adminToken = (await loginOk(http(app))).accessToken;
     const created = await http(app).post('/api/users').set('Authorization', asAdmin())
       .send({ username: 'viewer', name: '查看员', password: 'Pass@12345', role: 'USER' }).expect(201);

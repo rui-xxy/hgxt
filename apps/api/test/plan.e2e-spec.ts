@@ -29,6 +29,7 @@ describe('production 计划与完成', () => {
     await prisma.form.deleteMany();
     await prisma.productionPlan.deleteMany();
     await prisma.consumptionTarget.deleteMany();
+    await prisma.salesBudget.deleteMany();
     await resetDbWithAdmin(prisma);
     token = (await loginOk(http(app))).accessToken;
 
@@ -42,6 +43,13 @@ describe('production 计划与完成', () => {
       data: { title: '销售表', code: 'sales_daily', schema: [
         { id: 'field_date', title: '日期', type: 'date', hidden: true, required: true },
         { id: 'field_acid98_sales', title: '98酸销量', type: 'number', group: '销售' },
+        { id: 'field_fuming_acid_sales', title: '发烟硫酸销量', type: 'number', group: '销售' },
+        { id: 'field_reagent_acid_sales', title: '试剂酸销量', type: 'number', group: '销售' },
+      ] as never },
+    });
+    const thermal = await prisma.form.create({
+      data: { title: '热电车间报表', code: 'thermal_daily', schema: [
+        { id: 'field_date', title: '日期', type: 'date', hidden: true, required: true },
       ] as never },
     });
     const finished = await prisma.form.create({
@@ -73,10 +81,19 @@ describe('production 计划与完成', () => {
         .expect(201);
     };
     // 销量/产成品同样是填报日 D 归属 D-1；历史年度必须取 2025 的值，不得串 2026 最新库存。
-    await submitForm(sales.id, { field_date: '2025-12-29', field_acid98_sales: 5 });
+    await submitForm(sales.id, { field_date: '2025-12-29', field_acid98_sales: 5,
+      field_fuming_acid_sales: 7, field_reagent_acid_sales: 3 });
     await submitForm(sales.id, { field_date: '2026-01-02', field_acid98_sales: 500 });
     await submitForm(finished.id, { field_date: '2025-12-29', field_amino_sales: 4, field_amino_stock: 50 });
     await submitForm(finished.id, { field_date: '2026-01-02', field_amino_sales: 400, field_amino_stock: 999 });
+    await prisma.formSubmission.createMany({ data: [
+      { formId: thermal.id, data: { field_date: '2025-12-28', field_jianheng_steam: 100,
+        field_xuguang_steam: 100, field_xinkesi_steam: 100, field_lihong_steam: 100,
+        field_xiangshuo_steam: 100, field_fenglian_steam: 100, field_amino_steam: 100 } },
+      { formId: thermal.id, data: { field_date: '2025-12-29', field_jianheng_steam: 101,
+        field_xuguang_steam: 102, field_xinkesi_steam: 103, field_lihong_steam: 104,
+        field_xiangshuo_steam: 105, field_fenglian_steam: 106, field_amino_steam: 200 } },
+    ] });
   });
   afterAll(async () => { await app.close(); });
 
@@ -200,6 +217,43 @@ describe('production 计划与完成', () => {
       .send({ year: 2025, rows: [{ workshop: '氨基磺酸', annual: 0, months: Array.from({ length: 12 }, () => null) }], targets: [], salesBudgets: [{ product: '未知产品', months }] })
       .expect(400);
     expect((await prisma.salesBudget.findUnique({ where: { year_product: { year: 2025, product: '氨基磺酸' } } }))?.months).toEqual({ '1': null, '2': null, '3': null, '4': null, '5': null, '6': null, '7': null, '8': null, '9': null, '10': null, '11': null, '12': 40 });
+  });
+
+  it('旧预算名称保留金额，发烟硫酸、试剂酸和外供蒸汽销量按统一口径统计', async () => {
+    for (const [product, budget] of [['烟酸', 70], ['优质酸', 30], ['蒸汽', 210]] as const) {
+      await prisma.salesBudget.create({ data: { year: 2025, product, months: { '12': budget } } });
+    }
+
+    const settings = await http(app).get('/api/production/plan/settings?year=2025')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    const budgets = new Map(settings.body.salesBudgets.map((row: { product: string; months: Array<number | null> }) => [row.product, row.months[11]]));
+    expect(budgets.get('发烟硫酸')).toBe(70);
+    expect(budgets.get('试剂酸')).toBe(30);
+    expect(budgets.get('外供蒸汽')).toBe(210);
+    expect(budgets.has('烟酸')).toBe(false);
+    expect(budgets.has('优质酸')).toBe(false);
+    expect(budgets.has('蒸汽')).toBe(false);
+
+    const brief = await http(app).get('/api/production/brief?year=2025')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    const december = brief.body.productSalesHistory.months.find((period: { key: string }) => period.key === '2025-12');
+    const rowOf = (product: string) => december.rows.find((row: { product: string }) => row.product === product);
+    expect(rowOf('发烟硫酸')).toMatchObject({ budget: 70, sales: 7 });
+    expect(rowOf('试剂酸')).toMatchObject({ budget: 30, sales: 3 });
+    expect(rowOf('外供蒸汽')).toMatchObject({ budget: 210, sales: 21 });
+
+    const months = Array.from({ length: 12 }, () => null) as Array<number | null>;
+    months[11] = 71;
+    await http(app).post('/api/production/plan/settings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ year: 2025, rows: [{ workshop: '氨基磺酸', annual: 0,
+        months: Array.from({ length: 12 }, () => null) }], salesBudgets: [{ product: '发烟硫酸', months }] })
+      .expect(201);
+    expect(await prisma.salesBudget.findUnique({ where: { year_product: { year: 2025, product: '烟酸' } } })).toBeNull();
+    expect((await prisma.salesBudget.findUnique({ where: { year_product: { year: 2025, product: '发烟硫酸' } } }))?.months)
+      .toMatchObject({ '12': 71 });
   });
 
   it('保存校验：非法车间 / months 长度错 → 400，且库里不留半截', async () => {

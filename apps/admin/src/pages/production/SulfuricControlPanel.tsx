@@ -15,7 +15,7 @@ const METRICS: Metric[] = [
   { key: 'dry', name: '干燥塔', short: '干燥', digits: 2, spec: [93, 98] },
   { key: 'a1', name: '一吸塔', short: '一吸', digits: 2, spec: [98, 98.5] },
   { key: 'a2', name: '二吸塔', short: '二吸', digits: 2, spec: [97.8, 98.5] },
-  { key: 'fum', name: '烟酸', short: '烟酸', digits: 2, spec: [104.5, 105.5] },
+  { key: 'fum', name: '发烟硫酸', short: '发烟硫酸', digits: 2, spec: [104.5, 105.5] },
   { key: 's_raw', name: '原料有效硫', short: '原料有效硫', digits: 2 },
   { key: 's_feed', name: '入炉矿有效硫', short: '入炉矿有效硫', digits: 2 },
   { key: 'h2o', name: '入炉矿水分', short: '入炉矿水分', digits: 2 },
@@ -45,7 +45,7 @@ const GROUPS: Array<{ title: string; keys: SulfuricControlMetricKey[] }> = [
 const CATEGORIES: Array<{ key: string; title: string; keys: SulfuricControlMetricKey[]; charts: Array<{ title: string; keys: SulfuricControlMetricKey[] }> }> = [
   { key: 'dry', title: '干吸酸浓', keys: ['dry', 'a1', 'a2', 'fum'], charts: [
     { title: '干燥塔', keys: ['dry'] }, { title: '一吸塔', keys: ['a1'] },
-    { title: '二吸塔', keys: ['a2'] }, { title: '烟酸', keys: ['fum'] },
+    { title: '二吸塔', keys: ['a2'] }, { title: '发烟硫酸', keys: ['fum'] },
   ] },
   { key: 'roast', title: '焙烧', keys: ['s_raw', 's_feed', 'h2o', 's_cyc', 's_belt', 's_slag'], charts: [
     { title: '有效硫', keys: ['s_feed', 's_raw'] }, { title: '入炉矿水分', keys: ['h2o'] },
