@@ -135,6 +135,18 @@ model ProductionPlan {
   @@unique([year, workshop])
 }
 
+// 产品销售预算：与生产计划分别保存，按产品和年度录入 12 个月预算（吨）。
+model SalesBudget {
+  id        String   @id @default(uuid())
+  year      Int
+  product   String
+  months    Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([year, product])
+}
+
 // 单耗上限（对标与预警）：旧区间目标仅使用上限值
 
 model ConsumptionTarget {

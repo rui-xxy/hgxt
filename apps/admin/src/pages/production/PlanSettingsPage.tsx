@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { App as AntApp } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PLAN_TARGET_CATALOG } from '@hgxt/shared';
-import type { PlanTargetRow } from '@hgxt/shared';
+import type { PlanTargetRow, SalesBudgetRow } from '@hgxt/shared';
 import { planSettings, savePlanSettings } from '../../api/production';
 import { Dash, Stepper, fmt } from './dash-ui';
 import './dash.css';
@@ -18,6 +18,7 @@ interface EditableRow {
 const TARGET_WORKSHOPS = [...new Set(PLAN_TARGET_CATALOG.map((metric) => metric.workshop))];
 const MAX_TARGET_ROWS = Math.max(...PLAN_TARGET_CATALOG.map((metric) =>
   PLAN_TARGET_CATALOG.filter((entry) => entry.workshop === metric.workshop && entry.category === metric.category).length));
+const formatBudget = (value: number | null): string => value === null ? '—' : value.toLocaleString('zh-CN', { maximumFractionDigits: 3 });
 
 export function PlanSettingsPage() {
   const { message } = AntApp.useApp();
@@ -31,6 +32,7 @@ export function PlanSettingsPage() {
   // 本地草稿：dirty 期间服务器数据不覆盖（后台 refetch/窗口聚焦不会再吃掉未保存的编辑）
   const [rows, setRows] = useState<EditableRow[]>([]);
   const [targets, setTargets] = useState<PlanTargetRow[]>([]);
+  const [salesBudgets, setSalesBudgets] = useState<SalesBudgetRow[]>([]);
   const [targetWorkshop, setTargetWorkshop] = useState('硫酸');
   const [syncedAt, setSyncedAt] = useState(0);
   const [dirty, setDirty] = useState(false);
@@ -44,6 +46,7 @@ export function PlanSettingsPage() {
       months: [...r.months],
     })));
     setTargets(query.data.targets.map((t) => ({ ...t })));
+    setSalesBudgets(query.data.salesBudgets.map((row) => ({ product: row.product, months: [...row.months] })));
   }
 
   const markDirty = (): void => {
@@ -55,6 +58,7 @@ export function PlanSettingsPage() {
       setYear(next);
       setRows([]);
       setTargets([]);
+      setSalesBudgets([]);
       setDirty(false);
       setSavedOnce(false);
     };
@@ -72,7 +76,7 @@ export function PlanSettingsPage() {
     doSwitch();
   };
 
-  const monthTotal = (r: EditableRow): number | null =>
+  const monthTotal = (r: { months: Array<number | null> }): number | null =>
     r.months.some((month) => month !== null)
       ? r.months.reduce<number>((sum, month) => sum + (month ?? 0), 0)
       : null;
@@ -89,6 +93,7 @@ export function PlanSettingsPage() {
         year,
         rows: rows.map((r) => ({ workshop: r.workshop, annual: r.annual, months: r.months })),
         targets,
+        salesBudgets,
       });
     },
     onSuccess: async () => {
@@ -97,13 +102,15 @@ export function PlanSettingsPage() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['production', 'plan', year], exact: true }),
         queryClient.invalidateQueries({ queryKey: ['production', 'plan-settings', year], exact: true }),
+        queryClient.invalidateQueries({ queryKey: ['production', 'brief', year], exact: true }),
       ]);
-      message.success('计划已保存，并已同步到“计划与完成”');
+      message.success('计划已保存，并已同步到看板');
     },
     onError: (error: Error) => message.error(error.message),
   });
 
   const GRID = 'minmax(0,1.2fr) 104px repeat(12, minmax(0,1fr)) 92px';
+  const SALES_GRID = 'minmax(0,1.4fr) repeat(12, minmax(0,1fr)) 92px';
   const TARGET_GRID = 'minmax(0,1.5fr) minmax(0,.8fr) minmax(0,1fr)';
   const workshops = TARGET_WORKSHOPS;
 
@@ -177,6 +184,48 @@ export function PlanSettingsPage() {
                 <span className="num r muted">{fmt(monthTotal(r), 2)}</span>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="card enter d2" style={{ marginTop: 16, padding: '18px 20px 8px', overflowX: 'auto' }}>
+        <div className="ct"><b>销售预算</b><span>单位 t</span></div>
+        <div style={{ minWidth: 1240, minHeight: 30 + 12 * 54 }}>
+          <div className="prow phead" style={{ gridTemplateColumns: SALES_GRID }}>
+            <span>产品类型</span>
+            {Array.from({ length: 12 }, (_, index) => <span key={index} className="r">{index + 1} 月</span>)}
+            <span className="r">年合计</span>
+          </div>
+          {salesBudgets.map((row) => (
+            <div className="prow" key={row.product} style={{ gridTemplateColumns: SALES_GRID }}>
+              <strong>{row.product}</strong>
+              {row.months.map((value, index) => (
+                <input
+                  key={index}
+                  className="pin monthly"
+                  aria-label={`${row.product} ${index + 1} 月销售预算（吨）`}
+                  inputMode="decimal"
+                  value={value === null ? '' : String(value)}
+                  onChange={(event) => {
+                    const raw = event.target.value.trim();
+                    if (raw !== '' && (!/^\d*\.?\d*$/.test(raw) || !Number.isFinite(Number(raw)))) return;
+                    setSalesBudgets((current) => current.map((item) => item.product === row.product
+                      ? { ...item, months: item.months.map((month, monthIndex) => monthIndex === index ? raw === '' ? null : Number(raw) : month) }
+                      : item));
+                    markDirty();
+                  }}
+                />
+              ))}
+              <span className="num r muted">{formatBudget(monthTotal(row))}</span>
+            </div>
+          ))}
+          <div className="prow phead" style={{ gridTemplateColumns: SALES_GRID }}>
+            <strong>合计</strong>
+            {Array.from({ length: 12 }, (_, index) => {
+              const values = salesBudgets.map((row) => row.months[index]).filter((value): value is number => value !== null);
+              return <strong key={index} className="num r">{values.length ? formatBudget(values.reduce((sum, value) => sum + value, 0)) : '—'}</strong>;
+            })}
+            <strong className="num r">{salesBudgets.some((row) => row.months.some((month) => month !== null)) ? formatBudget(salesBudgets.reduce((sum, row) => sum + (monthTotal(row) ?? 0), 0)) : '—'}</strong>
+          </div>
         </div>
       </div>
 

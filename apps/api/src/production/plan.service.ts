@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { daysInYear, parsePlanUpperLimit, PLAN_TARGET_CATALOG } from '@hgxt/shared';
+import { daysInYear, parsePlanUpperLimit, PLAN_TARGET_CATALOG, SALES_BUDGET_PRODUCTS } from '@hgxt/shared';
 import type {
   FormData,
   FormField,
   PlanCompletionRow,
   PlanConsumptionRow,
   PlanSalesRow,
+  PlanProductSalesHistoryPeriod,
   PlanSettingsResult,
   PlanSettingsSaveBody,
   PlanTargetRow,
@@ -73,9 +74,10 @@ export class PlanService {
   }
 
   async getSettings(year: number): Promise<PlanSettingsResult> {
-    const [plans, targets] = await Promise.all([
+    const [plans, targets, savedSalesBudgets] = await Promise.all([
       this.prisma.productionPlan.findMany({ where: { year } }),
       this.prisma.consumptionTarget.findMany(),
+      this.prisma.salesBudget.findMany({ where: { year } }),
     ]);
     const rows = PLAN_WORKSHOPS.map((w) => {
       const plan = plans.find((p) => p.workshop === w.workshop);
@@ -92,7 +94,12 @@ export class PlanService {
         target: upper !== null && upper > 0 ? String(upper) : '',
       };
     });
-    return { year, rows, targets: targetRows };
+    const salesBudgets = SALES_BUDGET_PRODUCTS.map((product) => {
+      const saved = savedSalesBudgets.find((row) => row.product === product);
+      const raw = (saved?.months as Record<string, number | null> | null) ?? {};
+      return { product, months: Array.from({ length: 12 }, (_, index) => PlanService.toNum(raw[String(index + 1)])) };
+    });
+    return { year, rows, targets: targetRows, salesBudgets };
   }
 
   /** 运行时校验：workshop 白名单、annual 非负、months 恰好 12 项且为 null 或非负数 */
@@ -125,6 +132,15 @@ export class PlanService {
       }
       targetKeys.add(key);
     }
+    const saleKeys = new Set<string>();
+    for (const row of body.salesBudgets ?? []) {
+      if (!SALES_BUDGET_PRODUCTS.some((product) => product === row.product) || saleKeys.has(row.product) ||
+        !Array.isArray(row.months) || row.months.length !== 12 ||
+        row.months.some((month) => month !== null && (typeof month !== 'number' || !Number.isFinite(month) || month < 0))) {
+        throw new BadRequestException('销售预算产品或月度数值无效');
+      }
+      saleKeys.add(row.product);
+    }
   }
 
   /** 保存：计划与单耗目标在同一个事务里落库，任何一行失败整体回滚 */
@@ -147,6 +163,14 @@ export class PlanService {
           where: { workshop_material: { workshop: t.workshop, material: t.material } },
           create: { workshop: t.workshop, material: t.material, unit: t.unit, target: t.target.trim() === '' ? '' : String(Number(t.target)) },
           update: { unit: t.unit, target: t.target.trim() === '' ? '' : String(Number(t.target)) },
+        });
+      }
+      for (const row of body.salesBudgets ?? []) {
+        const months = Object.fromEntries(row.months.map((value, index) => [String(index + 1), value]));
+        await tx.salesBudget.upsert({
+          where: { year_product: { year: body.year, product: row.product } },
+          create: { year: body.year, product: row.product, months },
+          update: { months },
         });
       }
     });
@@ -253,6 +277,34 @@ export class PlanService {
         if (value !== null) pushSales('anthraquinone', date, value);
       }
     }
+
+    // 产品预算与销量采用同一产品口径；缺少可靠对应字段的产品保留销量空值。
+    const productSalesOfDay = new Map<string, Map<string, number>>();
+    const addProductSales = (product: string, source: Map<string, FormData>, fields: string[]) => {
+      const daily = new Map<string, number>();
+      for (const [date, data] of source) {
+        const values = fields.map((field) => PlanService.toNum(data[field])).filter((value): value is number => value !== null);
+        if (values.length) daily.set(date, +values.reduce((sum, value) => sum + value, 0).toFixed(3));
+      }
+      productSalesOfDay.set(product, daily);
+    };
+    addProductSales('98%硫酸', salesForm, ['field_acid98_sales']);
+    addProductSales('烟酸', salesForm, ['field_fuming_acid_sales']);
+    addProductSales('氨基磺酸', finishedForm, [fieldByTitle('氨基磺酸销量')].filter((field): field is string => !!field));
+    addProductSales('硫酸镁', finishedForm, [fieldByTitle('硫酸镁销量')].filter((field): field is string => !!field));
+    addProductSales('水滑石', finishedForm, ['HG-200销量', 'HG-200A销量', 'HG-201销量', 'HG-300销量', 'HG-205销量']
+      .map(fieldByTitle).filter((field): field is string => !!field));
+    addProductSales('蒽醌精品', anthraquinoneForm, ['field_fine_sales']);
+    addProductSales('焦磷酸哌嗪', fenglianForm, ['field_205']);
+    addProductSales('无卤阻燃剂', fenglianForm, [
+      'field_3000_halogen_free_sales', 'field_4000_halogen_free_sales',
+      'field_3500_halogen_free_1_sales', 'field_3500_halogen_free_2_sales',
+    ]);
+    addProductSales('阻燃母粒', fenglianForm, [
+      'field_3500_high_sales', 'field_3500_standard_sales', 'field_3500_new_sales',
+      'field_3500_rework_sales', 'field_4000_masterbatch_sales', 'field_4500_high_sales',
+      'field_4500_standard_sales', 'field_mb5000_sales',
+    ]);
 
     // ── 计划完成 + 月度趋势 ──
     const planByWorkshop = new Map(settings.rows.map((r) => [r.workshop, r]));
@@ -471,6 +523,36 @@ export class PlanService {
     const currentWeek = asOf ? weekStartOf(asOf) : '';
     const salesWeeks = starts.map((start) => periodSales(start, start, shiftDate(start, 6), start === currentWeek));
     const salesHistory = { months: salesMonths, weeks: salesWeeks };
+    const budgetOf = new Map(settings.salesBudgets.map((row) => [row.product, row.months]));
+    const productPeriod = (key: string, start: string, end: string): PlanProductSalesHistoryPeriod => {
+      const datesInPeriod = (date: string) => date >= start && date <= end && (!asOf || date <= asOf);
+      const recorded = [...productSalesOfDay.values()].flatMap((daily) => [...daily.keys()]).filter(datesInPeriod);
+      const rows = SALES_BUDGET_PRODUCTS.map((product) => {
+        const monthly = budgetOf.get(product);
+        const budget = key.length === 7
+          ? monthly?.[Number(start.slice(5, 7)) - 1] ?? null
+          : (() => {
+            let total = 0, hasBudget = false;
+            for (let date = start; date <= end; date = shiftDate(date, 1)) {
+              if (!date.startsWith(String(year))) continue;
+              const month = Number(date.slice(5, 7)) - 1;
+              const value = monthly?.[month];
+              if (value === null || value === undefined) continue;
+              const days = new Date(Date.UTC(Number(date.slice(0, 4)), month + 1, 0)).getUTCDate();
+              total += value / days;
+              hasBudget = true;
+            }
+            return hasBudget ? +total.toFixed(3) : null;
+          })();
+        const values = [...(productSalesOfDay.get(product) ?? [])].filter(([date]) => datesInPeriod(date)).map(([, value]) => value);
+        return { product, budget, sales: values.length ? +values.reduce((sum, value) => sum + value, 0).toFixed(3) : null, inventory: null };
+      });
+      return { key, asOf: recorded.sort().at(-1) ?? null, rows };
+    };
+    const productSalesHistory = {
+      months: salesMonths.map((period) => productPeriod(period.key, `${period.key}-01`, `${period.key}-31`)),
+      weeks: salesWeeks.map((period) => productPeriod(period.key, period.key, shiftDate(period.key, 6))),
+    };
 
     // ── 单耗（能源 / 原辅料）──
     const targetOf = new Map(settings.targets.map((t) => [`${t.workshop}|${t.material}`, t]));
@@ -591,13 +673,13 @@ export class PlanService {
     // ── 事项（matters-2026 表单提交推导，按看板年度过滤） ──
     const tasks = await this.loadTasks(asOf, year);
 
-    return { year, asOf, timeProgress, completion, week, sales, salesHistory, energyConsumption, materialConsumption, tasks };
+    return { year, asOf, timeProgress, completion, week, sales, salesHistory, productSalesHistory, energyConsumption, materialConsumption, tasks };
   }
 
   async brief(year: number) {
     const board = await this.board(year);
-    const { asOf, completion, week, sales, salesHistory } = board;
-    return { year, asOf, completion, week, sales, salesHistory };
+    const { asOf, completion, week, sales, salesHistory, productSalesHistory } = board;
+    return { year, asOf, completion, week, sales, salesHistory, productSalesHistory };
   }
 
   private async schemaOf(code: string): Promise<FormField[] | null> {

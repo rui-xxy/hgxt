@@ -551,6 +551,13 @@ export interface PlanSettingsResult {
   year: number;
   rows: PlanWorkshopRow[];
   targets: PlanTargetRow[];
+  salesBudgets: SalesBudgetRow[];
+}
+
+export interface SalesBudgetRow {
+  product: string;
+  /** 1—12 月预算，null 表示未填写。 */
+  months: Array<number | null>;
 }
 
 export interface PlanSettingsSaveBody {
@@ -559,6 +566,7 @@ export interface PlanSettingsSaveBody {
   rows: Array<{ workshop: string; annual: number; months: Array<number | null> }>;
   /** 单耗上限一并保存：与计划在同一个事务里落库 */
   targets: PlanTargetRow[];
+  salesBudgets?: SalesBudgetRow[];
 }
 
 /** 单个车间的计划 vs 实际 */
@@ -625,6 +633,19 @@ export interface PlanSalesHistoryPeriod {
   rows: PlanSalesRow[];
 }
 
+export interface PlanProductSalesRow {
+  product: string;
+  budget: number | null;
+  sales: number | null;
+  inventory: number | null;
+}
+
+export interface PlanProductSalesHistoryPeriod {
+  key: string;
+  asOf: string | null;
+  rows: PlanProductSalesRow[];
+}
+
 /** 单耗视图行（能源/原辅料共用） */
 export interface PlanConsumptionRow {
   workshop: string;
@@ -674,6 +695,7 @@ export interface ProductionPlanBoardResult {
   week: PlanWeekRow[];
   sales: PlanSalesRow[];
   salesHistory?: { months: PlanSalesHistoryPeriod[]; weeks: PlanSalesHistoryPeriod[] };
+  productSalesHistory?: { months: PlanProductSalesHistoryPeriod[]; weeks: PlanProductSalesHistoryPeriod[] };
   energyConsumption: PlanConsumptionRow[];
   materialConsumption: PlanConsumptionRow[];
   tasks: PlanTask[];
@@ -681,8 +703,9 @@ export interface ProductionPlanBoardResult {
 
 /** 经营简报仅返回其展示所需的计划、产销历史，避免单独授权时暴露计划页事项和单耗。 */
 export type ProductionBriefResult = Pick<ProductionPlanBoardResult,
-  'year' | 'asOf' | 'completion' | 'week' | 'sales' | 'salesHistory'>;
+  'year' | 'asOf' | 'completion' | 'week' | 'sales' | 'salesHistory' | 'productSalesHistory'>;
 
 export { daysInYear, parsePlanUpperLimit } from './planning.js';
 export { PLAN_TARGET_CATALOG } from './plan-targets.js';
+export { SALES_BUDGET_PRODUCTS } from './sales-budgets.js';
 export type { PlanTargetCategory, PlanTargetMetric } from './plan-targets.js';

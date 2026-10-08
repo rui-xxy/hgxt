@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PlanCompletionRow, WorkshopOverviewResult } from '@hgxt/shared';
-import { briefProductionRows, briefWeeklyRows, latestProductionDate, monthProductionAsOf, shiftMonth, weekStart } from './executiveBriefData';
+import { briefProductionRows, briefWeeklyRows, latestProductionDate, monthProductionAsOf, reportWeek, shiftMonth, weekStart } from './executiveBriefData';
 
 const overview: WorkshopOverviewResult = {
   dates: ['2026-09-30', '2026-10-01', '2026-10-02', '2026-10-03', '2026-10-04'],
@@ -17,6 +17,12 @@ const plan = (october: number | null): PlanCompletionRow => ({
 });
 
 describe('经营简报期间口径', () => {
+  it('周次按全年第一个完整周起算，跨年不会重号', () => {
+    expect(reportWeek('2026-09-26')).toEqual({ year: 2026, week: 38 });
+    expect(reportWeek('2026-10-08')).toEqual({ year: 2026, week: 40 });
+    expect(reportWeek('2026-01-01')).toEqual({ year: 2025, week: 52 });
+    expect(reportWeek('2026-01-05')).toEqual({ year: 2026, week: 1 });
+  });
   it('月度以有产量的归属日截止，空日不稀释日均，计划差额按日折算', () => {
     const asOf = monthProductionAsOf(overview, '2026-10');
     expect(asOf).toBe('2026-10-03');

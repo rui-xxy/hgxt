@@ -84,6 +84,17 @@ class PlanTargetDto {
   target!: string;
 }
 
+class SalesBudgetDto {
+  @IsString()
+  @Length(1, 30)
+  product!: string;
+
+  @IsArray()
+  @ArrayMinSize(12)
+  @ArrayMaxSize(12)
+  months!: Array<unknown>;
+}
+
 class PlanSettingsSaveDto {
   @IsInt()
   @Min(2020)
@@ -103,6 +114,13 @@ class PlanSettingsSaveDto {
   @ValidateNested({ each: true })
   @Type(() => PlanTargetDto)
   targets?: PlanTargetDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @ValidateNested({ each: true })
+  @Type(() => SalesBudgetDto)
+  salesBudgets?: SalesBudgetDto[];
 }
 
 /** 生产指标（读取时现算，不改写表单数据） */
@@ -192,14 +210,14 @@ export class ProductionController {
 
   @Get('plan/settings')
   @Roles(Role.SUPER_ADMIN)
-  @ApiOperation({ summary: '生产计划设置：分别录入年度/月度计划与各车间单耗上限' })
+  @ApiOperation({ summary: '生产计划设置：录入年度/月度产量计划、产品销售预算与单耗上限' })
   planSettings(@Query() query: PlanYearQuery) {
     return this.plan.getSettings(query.year ?? new Date().getFullYear());
   }
 
   @Post('plan/settings')
   @Roles(Role.SUPER_ADMIN)
-  @ApiOperation({ summary: '保存年度计划、月度计划与单耗上限（单一事务，任一失败整体回滚）' })
+  @ApiOperation({ summary: '保存产量计划、销售预算与单耗上限（单一事务，任一失败整体回滚）' })
   savePlanSettings(@Body() body: PlanSettingsSaveDto) {
     return this.plan.saveSettings(body as never);
   }

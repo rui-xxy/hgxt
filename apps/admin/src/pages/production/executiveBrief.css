@@ -16,6 +16,7 @@
 .brief-print { border-radius: var(--hg-radius-control); white-space: nowrap; }
 .brief-body { padding: 20px 28px 32px; }
 .brief-intro { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.brief-mobile-period { display: none; }
 .brief-intro h1 { font-family: var(--hg-font-serif); font-size: var(--hg-font-size-title); font-weight: 500; line-height: 1.25; margin: 0; white-space: nowrap; }
 .brief-intro > span { color: var(--hg-ink3); font-size: var(--hg-font-size-xs); }
 .brief-error { color: var(--hg-danger); background: var(--hg-danger-soft); padding: 12px; border-radius: var(--hg-radius-control); margin-bottom: 12px; }
@@ -78,6 +79,8 @@
 .brief-sales-layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(230px, 1fr); gap: 14px; }
 .brief-sales-table { min-width: 680px; }
 .brief-sales-table th:first-child { width: 26%; }
+.brief-sales-table th:nth-child(2), .brief-sales-table td:nth-child(2) { text-align: right; }
+.brief-sales-table tfoot th { color: var(--hg-ink); font-weight: 600; border-top: 1px solid var(--hg-line); }
 .brief-sales-side h3 { font-family: var(--hg-font-serif); font-size: var(--hg-font-size-lg); font-weight: 500; margin: 0 0 9px; }
 .brief-sales-side h3:not(:first-child) { margin-top: 17px; }
 .brief-sales-leaders { margin: 0; padding: 0; list-style: none; }
@@ -118,6 +121,7 @@
   .brief-toolbar-actions { width: 100%; justify-content: space-between; gap: 5px; }
   .brief-body { padding: 12px; }
   .brief-intro { display: block; margin-bottom: 9px; }
+  .brief-intro > .brief-mobile-period { display: block; margin-bottom: 4px; color: var(--hg-ink3); font-size: var(--hg-font-size-xs); }
   .brief-intro h1 { font-size: var(--hg-font-size-xl); }
   .brief-intro > span { display: none; }
   .brief-mobile-progress { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; font-size: var(--hg-font-size-xs); }

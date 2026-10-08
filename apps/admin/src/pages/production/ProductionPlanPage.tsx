@@ -32,6 +32,7 @@ const completionRateText = (actual: number | null, plan: number | null): string 
   return `${shown.toFixed(1)}%`;
 };
 const fmtAmount = (value: number | null | undefined): string => fmt(value, 2);
+const formatSalesAmount = (value: number | null | undefined): string => value === null || value === undefined ? '—' : value.toLocaleString('zh-CN', { maximumFractionDigits: 3 });
 const COMPLETION_GRID = '128px 10ch 10ch minmax(0,1fr) 4px 12ch 12ch minmax(0,1.2fr) 16ch';
 const CONSUMPTION_GRID = '120px minmax(0,1.2fr) minmax(0,1fr) 84px 64px 96px 84px 84px 84px minmax(110px,1fr)';
 
@@ -228,6 +229,10 @@ export function ProductionPlanPage() {
 
   const monthLabel = data?.asOf ? `${Number(data.asOf.slice(5, 7))} 月` : '';
   const completionMonth = selectedCompletionMonth ?? (data?.asOf ? Number(data.asOf.slice(5, 7)) : displayYear === new Date().getFullYear() ? new Date().getMonth() + 1 : 1);
+  const salesBudgetPeriod = data?.productSalesHistory?.months.find((period) => period.key === `${displayYear}-${String(completionMonth).padStart(2, '0')}`);
+  const salesBudgetRows = salesBudgetPeriod?.rows ?? [];
+  const salesBudgetTotal = salesBudgetRows.some((row) => row.budget !== null)
+    ? salesBudgetRows.reduce((sum, row) => sum + (row.budget ?? 0), 0) : null;
   // 周对比的“同期”窗口：以 asOf 所在周的周一为界（与后端口径一致），明确标出日期区间
   const asOf = data?.asOf ?? null;
   const weekRange = useMemo(() => {
@@ -424,6 +429,27 @@ export function ProductionPlanPage() {
         })}
         </div>
         </div>
+      </div>
+
+      <div className="card enter d2" style={{ marginTop: 16, padding: '18px 20px 8px' }}>
+        <div className="ct plan-section-head"><b>销售预算</b><span>{displayYear} 年 {completionMonth} 月 · 单位 t</span></div>
+        <div style={{ overflowX: 'auto' }}><div style={{ minWidth: 780, minHeight: 30 + 12 * 44 }}>
+          <div className="prow phead" style={{ gridTemplateColumns: 'minmax(0,1.4fr) repeat(4,minmax(0,1fr))' }}>
+            <span>产品类型</span><span className="r">预算</span><span className="r">已录入销量</span><span className="r">预算达成率</span><span className="r">距预算</span>
+          </div>
+          {salesBudgetRows.map((row) => (
+            <div className="prow" key={row.product} style={{ gridTemplateColumns: 'minmax(0,1.4fr) repeat(4,minmax(0,1fr))' }}>
+              <strong>{row.product}</strong>
+              <span className="num r">{formatSalesAmount(row.budget)}</span>
+              <span className="num r">{formatSalesAmount(row.sales)}</span>
+              <span className="num r">{completionRateText(row.sales, row.budget)}</span>
+              <span className="num r">{row.budget !== null && row.sales !== null ? formatSalesAmount(row.budget - row.sales) : '—'}</span>
+            </div>
+          ))}
+          <div className="prow phead" style={{ gridTemplateColumns: 'minmax(0,1.4fr) repeat(4,minmax(0,1fr))' }}>
+            <strong>预算合计</strong><strong className="num r">{formatSalesAmount(salesBudgetTotal)}</strong><span /><span /><span />
+          </div>
+        </div></div>
       </div>
 
       {/* 本周 vs 上周：新版 6 车间卡片 */}

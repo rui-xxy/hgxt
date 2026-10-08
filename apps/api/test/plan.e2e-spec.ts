@@ -169,6 +169,39 @@ describe('production 计划与完成', () => {
     expect(amino.months[11].plan).toBe(30);
   });
 
+  it('销售预算按产品和月份保存，并与同一归属期的销量对应', async () => {
+    const months = Array.from({ length: 12 }, () => null) as Array<number | null>;
+    months[11] = 40;
+    await http(app).post('/api/production/plan/settings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        year: 2025,
+        rows: [{ workshop: '氨基磺酸', annual: 0, months: Array.from({ length: 12 }, () => null) }],
+        targets: [],
+        salesBudgets: [{ product: '氨基磺酸', months }],
+      })
+      .expect(201);
+
+    const settings = await http(app).get('/api/production/plan/settings?year=2025')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    expect(settings.body.salesBudgets.find((row: { product: string }) => row.product === '氨基磺酸').months).toEqual(months);
+
+    const brief = await http(app).get('/api/production/brief?year=2025')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    const december = brief.body.productSalesHistory.months.find((period: { key: string }) => period.key === '2025-12');
+    const amino = december.rows.find((row: { product: string }) => row.product === '氨基磺酸');
+    expect(amino).toMatchObject({ budget: 40, sales: 4 });
+    expect(brief.body.productSalesHistory.months[0].rows.find((row: { product: string }) => row.product === '氨基磺酸').budget).toBeNull();
+
+    await http(app).post('/api/production/plan/settings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ year: 2025, rows: [{ workshop: '氨基磺酸', annual: 0, months: Array.from({ length: 12 }, () => null) }], targets: [], salesBudgets: [{ product: '未知产品', months }] })
+      .expect(400);
+    expect((await prisma.salesBudget.findUnique({ where: { year_product: { year: 2025, product: '氨基磺酸' } } }))?.months).toEqual({ '1': null, '2': null, '3': null, '4': null, '5': null, '6': null, '7': null, '8': null, '9': null, '10': null, '11': null, '12': 40 });
+  });
+
   it('保存校验：非法车间 / months 长度错 → 400，且库里不留半截', async () => {
     const before = await prisma.productionPlan.count();
     await http(app).post('/api/production/plan/settings')

@@ -44,6 +44,20 @@ export const weekStart = (day: string): string => {
   return shiftDay(day, -back);
 };
 
+/** 经营简报周次：以当年首个完整周一至周日为第 1 周。 */
+export const reportWeek = (day: string): { year: number; week: number } => {
+  const monday = weekStart(day);
+  const firstMonday = (year: number): string => {
+    const januaryFirst = `${year}-01-01`;
+    const weekday = new Date(`${januaryFirst}T00:00:00Z`).getUTCDay();
+    return shiftDay(januaryFirst, (8 - weekday) % 7);
+  };
+  let year = Number(monday.slice(0, 4));
+  if (monday < firstMonday(year)) year -= 1;
+  const days = Math.round((Date.parse(`${monday}T00:00:00Z`) - Date.parse(`${firstMonday(year)}T00:00:00Z`)) / 86400000);
+  return { year, week: Math.floor(days / 7) + 1 };
+};
+
 export const latestProductionDate = (overview: WorkshopOverviewResult): string | null => {
   for (let i = overview.dates.length - 1; i >= 0; i -= 1) {
     if (overview.workshops.some((workshop) => workshop.code !== 'thermal' && workshop.values[i] !== null)) {
