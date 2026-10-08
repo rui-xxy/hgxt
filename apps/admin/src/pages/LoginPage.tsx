@@ -27,16 +27,18 @@ const loginColors = {
   '--hg-login-focus': loginPalette.focus,
 } as CSSProperties;
 
-const loginFilms = [
+const introFilms = [
   { id: 'showreel', src: '/login-showreel/film.html', title: '恒光化工品牌短片', duration: 16_000 },
-  { id: 'sulfur', src: '/login-sulfur/film.html', title: '以硫为源宣传动画', duration: 64_000 },
+  { id: 'motion', src: '/login-motion/film.html', title: '恒光化工品牌动态图形片', duration: 25_000 },
 ] as const;
+const sulfurFilm = { id: 'sulfur', src: '/login-sulfur/film.html', title: '以硫为源宣传动画', duration: 64_000 } as const;
+type LoginFilm = (typeof introFilms)[number] | typeof sulfurFilm;
+const chooseIntroFilm = (): LoginFilm => introFilms[Math.floor(Math.random() * introFilms.length)];
 
 function LoginHero() {
-  const [filmIndex, setFilmIndex] = useState(0);
+  const [film, setFilm] = useState<LoginFilm>(chooseIntroFilm);
   const [loadedFilm, setLoadedFilm] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const film = loginFilms[filmIndex];
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -48,16 +50,16 @@ function LoginHero() {
 
   useEffect(() => {
     if (reducedMotion || loadedFilm !== film.id) return;
-    const timer = window.setTimeout(() => setFilmIndex((index) => (index + 1) % loginFilms.length), film.duration);
+    const timer = window.setTimeout(() => setFilm((current) => current.id === 'sulfur' ? chooseIntroFilm() : sulfurFilm), film.duration);
     return () => window.clearTimeout(timer);
   }, [film, loadedFilm, reducedMotion]);
 
-  return <div className={`hgxt-login-hero${film.id === 'showreel' ? ' hgxt-login-hero-showreel' : ''}`} aria-hidden="true">
+  return <div className={`hgxt-login-hero${film.id === 'sulfur' ? '' : ' hgxt-login-hero-dark'}`} aria-hidden="true">
     <iframe key={film.id} src={film.src} title={film.title} tabIndex={-1} onLoad={() => setLoadedFilm(film.id)} />
   </div>;
 }
 
-/** 两段宣传动画依次播放，登录表单悬浮在影片上方。 */
+/** 开场随机播放一段品牌动画，再播放以硫为源；登录表单悬浮在影片上方。 */
 export function LoginPage() {
   const [form] = Form.useForm<LoginFormValues>();
   const { message } = App.useApp();

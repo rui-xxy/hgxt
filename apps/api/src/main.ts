@@ -42,8 +42,8 @@ async function bootstrap(): Promise<void> {
   // B6：基础 HTTP 安全头。CSP 会拦 Swagger UI 的内联脚本，开发环境关闭、生产保留。
   // 生产模式下 API 同时托管前端静态产物（见下方 useStaticAssets）：
   // AntD 会注入内联 <style>，默认 CSP 不含 'unsafe-inline' 会把整站样式拦掉，故显式放开 style-src。
-  // 例外：登录页两段动画 /login-sulfur/ 与 /login-showreel/ 内含内联启动脚本，
-  // 这两个素材路径豁免 CSP（helmet 其余安全头照常），全站其他路径仍保持严格策略
+  // 例外：登录页影片素材目录（/login-sulfur/、/login-showreel/、/login-motion/）内含内联启动脚本，
+  // 这些路径豁免 CSP（helmet 其余安全头照常），全站其他路径仍保持严格策略
   const strictHelmet = helmet({
     contentSecurityPolicy: isProduction
       ? {
@@ -58,8 +58,8 @@ async function bootstrap(): Promise<void> {
       : false,
   });
   const looseHelmet = helmet({ contentSecurityPolicy: false });
-  // 登录页两段影片素材目录（含内联启动脚本，会被 script-src 'self' 拦掉）豁免 CSP
-  const cspExempt = ['/login-sulfur/', '/login-showreel/'];
+  // 登录页影片素材目录（含内联启动脚本，会被 script-src 'self' 拦掉）豁免 CSP
+  const cspExempt = ['/login-sulfur/', '/login-showreel/', '/login-motion/'];
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (cspExempt.some((prefix) => req.path.startsWith(prefix))) {
       looseHelmet(req, res, next);
