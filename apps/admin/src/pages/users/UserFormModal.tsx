@@ -4,6 +4,7 @@ import { PagePermission, Role, type PagePermission as PagePermissionType, type U
 
 const PAGE_OPTIONS: { label: string; value: PagePermissionType }[] = [
   { label: '计划与完成', value: PagePermission.PLAN },
+  { label: '经营简报', value: PagePermission.BRIEF },
   { label: '设备与维修', value: PagePermission.MAINTENANCE },
 ];
 
@@ -117,7 +118,7 @@ export function UserFormModal({ open, initial, submitting, onCancel, onSubmit }:
         {role !== Role.SUPER_ADMIN && <Form.Item
           name="pagePermissions"
           label="可访问页面"
-          extra="车间版面、能源中心和物料与库存对所有登录用户开放；全部表单、生产计划设置和成员管理仅管理员可访问。"
+          extra="经营简报与计划与完成分别授权；车间版面、能源中心和物料与库存对所有登录用户开放。"
         >
           <Checkbox.Group>
             <Flex vertical gap="small">

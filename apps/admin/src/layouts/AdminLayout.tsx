@@ -9,6 +9,7 @@ import { useMe } from '../api/hooks';
 import { tokenStore } from '../api/client';
 import { queryClient } from '../api/queryClient';
 import {
+  BriefIcon,
   DashboardIcon,
   FactoryIcon,
   FormsNavIcon,
@@ -62,13 +63,14 @@ const MODULES: ModuleDef[] = [
     title: '首页',
     path: '/board',
     match: (p) =>
-      p === '/' || p === '/workspace' || p.startsWith('/board') || p.startsWith('/energy') || p.startsWith('/materials') || p.startsWith('/plan'),
+      p === '/' || p === '/workspace' || p.startsWith('/board') || p.startsWith('/brief') || p.startsWith('/energy') || p.startsWith('/materials') || p.startsWith('/plan'),
     sections: [
       { items: [{ label: '工作台', path: '/workspace', icon: DashboardIcon, adminOnly: true }] },
       {
         label: '生产看板',
         items: [
           { label: '车间版面', path: '/board', icon: FactoryIcon },
+          { label: '经营简报', path: '/brief', icon: BriefIcon, permission: PagePermission.BRIEF },
           { label: '计划与完成', path: '/plan', icon: TargetIcon, permission: PagePermission.PLAN },
         ],
       },
@@ -122,6 +124,7 @@ function pageName(pathname: string): string {
   if (pathname.startsWith('/maintenance/records')) return '维修记录';
   if (pathname.startsWith('/maintenance/new')) return '维修登记';
   if (pathname.startsWith('/board')) return '车间版面';
+  if (pathname.startsWith('/brief')) return '经营简报';
   if (pathname.startsWith('/energy')) return '能源中心';
   if (pathname.startsWith('/materials')) return '物料与库存';
   if (pathname === '/plan') return '计划与完成';

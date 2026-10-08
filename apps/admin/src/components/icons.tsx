@@ -178,6 +178,11 @@ export const ProductionChartIcon = createIcon(
   <><path d="M4 20V11M10 20V5M16 20v-8M22 20H2" /><path d="M5 8.5 10 4l6 5 4-3" /></>,
 );
 
+export const BriefIcon = createIcon(
+  'BriefIcon',
+  <><rect x="4" y="3.5" width="16" height="17" rx="2" /><path d="M8 8h8M8 12h8M8 16h5" /></>,
+);
+
 export const LogoutIcon = createIcon(
   'LogoutIcon',
   <>

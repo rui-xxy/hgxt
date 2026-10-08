@@ -8,6 +8,7 @@ import type {
   PlanSettingsResult,
   PlanSettingsSaveBody,
   ProductionPlanBoardResult,
+  ProductionBriefResult,
   SulfuricSummaryResult,
   SulfuricControlResult,
   ThermalSummaryResult,
@@ -48,6 +49,9 @@ export function tankLevels(date?: string): Promise<TankLevelsResult> {
 }
 export function planBoard(year = new Date().getFullYear()): Promise<ProductionPlanBoardResult> {
   return request(`/production/plan?year=${year}`);
+}
+export function briefBoard(year = new Date().getFullYear()): Promise<ProductionBriefResult> {
+  return request(`/production/brief?year=${year}`);
 }
 export function planSettings(year = new Date().getFullYear()): Promise<PlanSettingsResult> {
   return request(`/production/plan/settings?year=${year}`);

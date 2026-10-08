@@ -431,6 +431,47 @@ export class PlanService {
       };
     });
 
+    // 简报使用历史归属期的销量，而非把“最近月”销量重复展示在旧月份/旧周。
+    const periodSales = (key: string, start: string, end: string, showLatestInventory: boolean) => {
+      const dateInPeriod = (date: string) => date >= start && date <= end && (!asOf || date <= asOf);
+      const recordedSalesDates = [...salesOfDay.values()].flatMap((daily) => [...daily.keys()]).filter(dateInPeriod);
+      const salesAsOf = recordedSalesDates.sort().at(-1) ?? null;
+      const rows: PlanSalesRow[] = PLAN_WORKSHOPS.map((workshop) => {
+        const series = overview.workshops.find((item) => item.code === workshop.code);
+        const productionValues = allDates.flatMap((date, index) =>
+          dateInPeriod(date) && series?.values[index] !== null && series?.values[index] !== undefined
+            ? [series.values[index] as number] : []);
+        const soldValues = [...(salesOfDay.get(workshop.code) ?? [])]
+          .filter(([date]) => dateInPeriod(date)).map(([, value]) => value);
+        const production = productionValues.length ? +productionValues.reduce((sum, value) => sum + value, 0).toFixed(3) : null;
+        const sold = soldValues.length ? +soldValues.reduce((sum, value) => sum + value, 0).toFixed(3) : null;
+        const latest = showLatestInventory ? sales.find((item) => item.workshop === workshop.workshop) : null;
+        return {
+          workshop: workshop.workshop,
+          production,
+          sales: sold,
+          salesRatio: production && sold !== null ? +((sold / production) * 100).toFixed(1) : null,
+          inventory: latest?.inventory ?? null,
+          inventoryDays: latest?.inventoryDays ?? null,
+          lastMonthProduction: null,
+          productionDelta: null,
+        };
+      });
+      return { key, asOf: salesAsOf, rows };
+    };
+    const salesMonths = Array.from({ length: 12 }, (_, index) => {
+      const key = `${year}-${String(index + 1).padStart(2, '0')}`;
+      return periodSales(key, `${key}-01`, `${key}-31`, key === currentMonth);
+    });
+    const weekStartOf = (date: string) => {
+      const weekday = new Date(`${date}T00:00:00Z`).getUTCDay();
+      return shiftDate(date, weekday === 0 ? -6 : 1 - weekday);
+    };
+    const starts = [...new Set(allDates.filter((date) => date.startsWith(String(year)) && (!asOf || date <= asOf)).map(weekStartOf))].sort();
+    const currentWeek = asOf ? weekStartOf(asOf) : '';
+    const salesWeeks = starts.map((start) => periodSales(start, start, shiftDate(start, 6), start === currentWeek));
+    const salesHistory = { months: salesMonths, weeks: salesWeeks };
+
     // ── 单耗（能源 / 原辅料）──
     const targetOf = new Map(settings.targets.map((t) => [`${t.workshop}|${t.material}`, t]));
     const energyDates = energy.dates;
@@ -550,7 +591,13 @@ export class PlanService {
     // ── 事项（matters-2026 表单提交推导，按看板年度过滤） ──
     const tasks = await this.loadTasks(asOf, year);
 
-    return { year, asOf, timeProgress, completion, week, sales, energyConsumption, materialConsumption, tasks };
+    return { year, asOf, timeProgress, completion, week, sales, salesHistory, energyConsumption, materialConsumption, tasks };
+  }
+
+  async brief(year: number) {
+    const board = await this.board(year);
+    const { asOf, completion, week, sales, salesHistory } = board;
+    return { year, asOf, completion, week, sales, salesHistory };
   }
 
   private async schemaOf(code: string): Promise<FormField[] | null> {

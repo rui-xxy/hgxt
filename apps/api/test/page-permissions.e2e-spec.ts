@@ -31,7 +31,9 @@ describe('普通用户页面权限', () => {
     }
   });
 
-  it('计划与维修仍须授权，非法权限值不能保存', async () => {
+  it('经营简报、计划与维修分别授权，非法权限值不能保存', async () => {
+    await http(app).get('/api/production/brief').expect(401);
+    await http(app).get('/api/production/brief').set('Authorization', asUser()).expect(403);
     await http(app).get('/api/production/plan').set('Authorization', asUser()).expect(403);
     await http(app).get('/api/maintenance/records').set('Authorization', asUser()).expect(403);
     await http(app).get('/api/forms').set('Authorization', asUser()).expect(403);
@@ -41,6 +43,21 @@ describe('普通用户页面权限', () => {
       .send({ pagePermissions: ['board'] }).expect(400);
     await http(app).patch(`/api/users/${userId}`).set('Authorization', asAdmin())
       .send({ pagePermissions: null }).expect(400);
+  });
+
+  it('经营简报可单独授权，撤销后立即失效，且不返回计划页的事项和单耗', async () => {
+    await http(app).patch(`/api/users/${userId}`).set('Authorization', asAdmin())
+      .send({ pagePermissions: ['brief'] }).expect(200);
+    const me = await http(app).get('/api/auth/me').set('Authorization', asUser()).expect(200);
+    expect(me.body.pagePermissions).toEqual(['brief']);
+    const brief = await http(app).get('/api/production/brief').set('Authorization', asUser()).expect(200);
+    expect(brief.body).toHaveProperty('salesHistory');
+    expect(brief.body).not.toHaveProperty('tasks');
+    expect(brief.body).not.toHaveProperty('materialConsumption');
+    await http(app).get('/api/production/plan').set('Authorization', asUser()).expect(403);
+    await http(app).patch(`/api/users/${userId}`).set('Authorization', asAdmin())
+      .send({ pagePermissions: [] }).expect(200);
+    await http(app).get('/api/production/brief').set('Authorization', asUser()).expect(403);
   });
 
   it('管理员分配后，同一登录会话立即获得对应页面；撤销后立即失效', async () => {

@@ -183,6 +183,13 @@ export class ProductionController {
     return this.plan.board(query.year ?? new Date().getFullYear());
   }
 
+  @Get('brief')
+  @PageAccess(PagePermission.BRIEF)
+  @ApiOperation({ summary: '经营简报：车间计划与历史产销数据' })
+  brief(@Query() query: PlanYearQuery) {
+    return this.plan.brief(query.year ?? new Date().getFullYear());
+  }
+
   @Get('plan/settings')
   @Roles(Role.SUPER_ADMIN)
   @ApiOperation({ summary: '生产计划设置：分别录入年度/月度计划与各车间单耗上限' })

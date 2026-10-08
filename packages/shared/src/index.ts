@@ -27,6 +27,7 @@ export const USER_STATUS_VALUES = Object.values(UserStatus);
 /** 可由管理员分配给普通用户的页面；车间版面、能源中心和物料与库存对所有登录用户开放。 */
 export const PagePermission = {
   PLAN: 'plan',
+  BRIEF: 'brief',
   MAINTENANCE: 'maintenance',
 } as const;
 export type PagePermission = (typeof PagePermission)[keyof typeof PagePermission];
@@ -617,6 +618,13 @@ export interface PlanSalesRow {
   productionDelta: number | null;
 }
 
+/** 经营简报按历史月/周汇总的车间产销；库存仅在最近期间有对应快照。 */
+export interface PlanSalesHistoryPeriod {
+  key: string;
+  asOf: string | null;
+  rows: PlanSalesRow[];
+}
+
 /** 单耗视图行（能源/原辅料共用） */
 export interface PlanConsumptionRow {
   workshop: string;
@@ -665,10 +673,15 @@ export interface ProductionPlanBoardResult {
   completion: PlanCompletionRow[];
   week: PlanWeekRow[];
   sales: PlanSalesRow[];
+  salesHistory?: { months: PlanSalesHistoryPeriod[]; weeks: PlanSalesHistoryPeriod[] };
   energyConsumption: PlanConsumptionRow[];
   materialConsumption: PlanConsumptionRow[];
   tasks: PlanTask[];
 }
+
+/** 经营简报仅返回其展示所需的计划、产销历史，避免单独授权时暴露计划页事项和单耗。 */
+export type ProductionBriefResult = Pick<ProductionPlanBoardResult,
+  'year' | 'asOf' | 'completion' | 'week' | 'sales' | 'salesHistory'>;
 
 export { daysInYear, parsePlanUpperLimit } from './planning.js';
 export { PLAN_TARGET_CATALOG } from './plan-targets.js';

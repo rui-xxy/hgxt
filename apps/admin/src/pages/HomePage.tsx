@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import { PagePermission, Role, type PagePermission as PagePermissionType } from '@hgxt/shared';
 import { useMe } from '../api/hooks';
-import { FactoryIcon, FormsNavIcon, PackageIcon, SunIcon, SystemNavIcon, TargetIcon, WrenchIcon } from '../components/icons';
+import { BriefIcon, FactoryIcon, FormsNavIcon, PackageIcon, SunIcon, SystemNavIcon, TargetIcon, WrenchIcon } from '../components/icons';
 
 interface AppEntry {
   name: string;
@@ -15,6 +15,7 @@ interface AppEntry {
 const APPS: AppEntry[] = [
   { name: '全部表单', desc: '表单与报表数据', path: '/forms', icon: FormsNavIcon, adminOnly: true },
   { name: '车间版面', desc: '生产看板', path: '/board', icon: FactoryIcon },
+  { name: '经营简报', desc: '生产、销售与库存概览', path: '/brief', icon: BriefIcon, permission: PagePermission.BRIEF },
   { name: '能源中心', desc: '能源消耗', path: '/energy', icon: SunIcon },
   { name: '物料与库存', desc: '库存数据', path: '/materials', icon: PackageIcon },
   { name: '计划与完成', desc: '生产计划进度', path: '/plan', icon: TargetIcon, permission: PagePermission.PLAN },

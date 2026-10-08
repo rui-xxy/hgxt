@@ -62,6 +62,9 @@ const MaterialsPage = lazy(() =>
 const ProductionPlanPage = lazy(() =>
   import('./pages/production/ProductionPlanPage').then((m) => ({ default: m.ProductionPlanPage })),
 );
+const ExecutiveBriefPage = lazy(() =>
+  import('./pages/production/ExecutiveBriefPage').then((m) => ({ default: m.ExecutiveBriefPage })),
+);
 const PlanSettingsPage = lazy(() =>
   import('./pages/production/PlanSettingsPage').then((m) => ({ default: m.PlanSettingsPage })),
 );
@@ -113,6 +116,7 @@ export default function App() {
             <Route path="board" element={<WorkshopBoardPage />} />
             <Route path="energy" element={<EnergyCenterPage />} />
             <Route path="materials" element={<MaterialsPage />} />
+            <Route path="brief" element={<RequirePageAccess permission={PagePermission.BRIEF}><ExecutiveBriefPage /></RequirePageAccess>} />
             <Route
               path="plan"
               element={
