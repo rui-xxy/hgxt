@@ -34,7 +34,7 @@ export class MaintenanceService {
   }
 
   /**
-   * 匿名登记页的联想选项数据：仅含人员/部门/区域/型号/故障等分类字段，
+   * 匿名登记页的联想选项数据：仅含人员/部门/区域/设备/故障等分类字段，
    * 不含日期、工作内容、备注等明细——公开可读但 limiting 信息暴露面。
    */
   async optionRows() {
@@ -43,6 +43,8 @@ export class MaintenanceService {
         personnel: true,
         department: true,
         location: true,
+        workshop: true,
+        equipmentName: true,
         equipmentModel: true,
         faultType: true,
         faultCause: true,

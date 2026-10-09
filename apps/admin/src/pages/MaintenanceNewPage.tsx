@@ -12,6 +12,7 @@ import { useMe } from '../api/hooks';
 import { tokenStore } from '../api/client';
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, PlusIcon, SaveIcon } from '../components/icons';
 import { peopleOf, uniqueOptions } from './MaintenanceData';
+import { equipmentCatalog, equipmentWorkshops, findEquipment, type EquipmentItem } from './maintenanceEquipment';
 import './maintenance.css';
 
 type TimePreset = 'full' | 'morning' | 'afternoon' | 'custom';
@@ -23,6 +24,8 @@ interface FormValues {
   personnel: string[];
   department: string;
   location: string;
+  workshop: string;
+  equipmentName: string;
   equipmentModel: string;
   workTimeText: string;
   replacedParts: string;
@@ -53,6 +56,8 @@ const EMPTY_FORM: FormValues = {
   personnel: [],
   department: '',
   location: '',
+  workshop: '',
+  equipmentName: '',
   equipmentModel: '',
   workTimeText: '',
   replacedParts: '',
@@ -88,6 +93,8 @@ function valuesFromRecord(record: MaintenanceRecord): FormValues {
     personnel: peopleOf(record),
     department: record.department,
     location: record.location,
+    workshop: record.workshop,
+    equipmentName: record.equipmentName,
     equipmentModel: record.equipmentModel,
     workTimeText: record.workTimeText,
     replacedParts: record.replacedParts,
@@ -131,12 +138,16 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
   const [customTimeMode, setCustomTimeMode] = useState(false);
   const [timePickerOpen, setTimePickerOpen] = useState(false);
   const [partsOpen, setPartsOpen] = useState(false);
-  const [picker, setPicker] = useState<'personnel' | 'location' | null>(null);
+  const [picker, setPicker] = useState<'personnel' | 'department' | 'location' | 'workshop' | 'equipment' | null>(null);
   const [pickerSearch, setPickerSearch] = useState('');
+  const [equipmentSearch, setEquipmentSearch] = useState('');
   const [partsDraft, setPartsDraft] = useState<PartsDraft>({ name: '', quantity: 1, unit: '个' });
   const selectedDepartment = Form.useWatch('department', form);
+  const selectedWorkshop: string | undefined = Form.useWatch('workshop', form);
+  const selectedEquipmentName: string | undefined = Form.useWatch('equipmentName', form);
   const watchedPersonnel: string[] | undefined = Form.useWatch('personnel', form);
   const selectedPersonnel = useMemo(() => watchedPersonnel ?? [], [watchedPersonnel]);
+  const workContent: string = Form.useWatch('workContent', form) ?? '';
   const workTimeText: string = Form.useWatch('workTimeText', form) ?? '';
   const timeRange = parseWorkTime(workTimeText);
   const timePreset: TimePreset = customTimeMode ? 'custom' : presetFromTime(timeRange);
@@ -152,7 +163,18 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
   const peopleOptions = useMemo(() => uniqueOptions(records.flatMap(peopleOf)).map((value) => ({ value, label: value })), [records]);
   const departmentOptions = useMemo(() => uniqueOptions(records.map((record) => record.department)).map((value) => ({ value, label: value })), [records]);
   const locationOptions = useMemo(() => uniqueOptions(records.filter((record) => !selectedDepartment || record.department === selectedDepartment).map((record) => record.location)).filter((value) => value !== '/' && value !== '／').map((value) => ({ value, label: value })), [records, selectedDepartment]);
-  const modelOptions = useMemo(() => uniqueOptions(records.map((record) => record.equipmentModel)).filter((value) => value !== '/' && value !== '／').map((value) => ({ value, label: value })), [records]);
+  const modelOptions = useMemo(() => uniqueOptions([
+    ...records.filter((record) => record.workshop === selectedWorkshop && record.equipmentName === selectedEquipmentName).map((record) => record.equipmentModel),
+    ...equipmentCatalog.filter((item) => item.workshop === selectedWorkshop && item.name === selectedEquipmentName).map((item) => item.model),
+  ]).filter((value) => value !== '/' && value !== '／').map((value) => ({ value, label: value })), [records, selectedWorkshop, selectedEquipmentName]);
+  const workshopOptions = equipmentWorkshops.map((value) => ({ value, label: value }));
+  const equipmentMatches = useMemo(() => findEquipment(selectedWorkshop ?? '', equipmentSearch), [selectedWorkshop, equipmentSearch]);
+  const equipmentOptions = equipmentMatches.map((item, index) => ({
+    key: `${item.workshop}-${item.name}-${item.model}-${index}`,
+    value: item.name,
+    model: item.model,
+    label: <span className="maintenance-equipment-option"><span>{item.name}</span><small>{item.model || '无规格型号'}</small></span>,
+  }));
   const typeOptions = useMemo(() => uniqueOptions(records.map((record) => record.faultType)).map((value) => ({ value, label: value })), [records]);
   const causeOptions = useMemo(() => uniqueOptions(records.map((record) => record.faultCause)).map((value) => ({ value, label: value })), [records]);
   const coworkerOptions = useMemo(() => {
@@ -242,7 +264,11 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
     setPartsOpen(false);
   };
 
-  const openPicker = (kind: 'personnel' | 'location') => {
+  const openPicker = (kind: 'personnel' | 'department' | 'location' | 'workshop' | 'equipment') => {
+    if (kind === 'equipment' && !form.getFieldValue('workshop')) {
+      message.warning('请先选择车间');
+      return;
+    }
     setPickerSearch('');
     setPicker(kind);
   };
@@ -256,6 +282,28 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
     if (department) form.setFieldValue('department', department);
     setPicker(null);
   };
+  const chooseDepartment = (department: string) => {
+    if (selectedDepartment !== department) form.setFieldValue('location', '');
+    form.setFieldValue('department', department);
+    setPicker(null);
+  };
+  const chooseWorkshop = (workshop: string) => {
+    if (selectedWorkshop !== workshop) {
+      form.setFieldsValue({ workshop, equipmentName: '', equipmentModel: '' });
+      setEquipmentSearch('');
+    }
+    setPicker(null);
+  };
+  const chooseEquipment = (item: EquipmentItem) => {
+    form.setFieldsValue({ equipmentName: item.name, equipmentModel: item.model });
+    setEquipmentSearch(item.name);
+    setPicker(null);
+  };
+  const chooseCustomEquipment = (name: string) => {
+    form.setFieldsValue({ equipmentName: name.trim(), equipmentModel: '' });
+    setEquipmentSearch(name.trim());
+    setPicker(null);
+  };
   const searchedPeople = peopleOptions.map((option) => option.value)
     .filter((person) => person.includes(pickerSearch.trim()));
   const selectedPeople = selectedPersonnel.filter((person) => person.includes(pickerSearch.trim()));
@@ -265,6 +313,10 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
     .filter((location) => location.includes(pickerSearch.trim()));
   const recentMatches = recentLocations.filter((location) => searchedLocations.includes(location));
   const otherLocations = searchedLocations.filter((location) => !recentLocations.includes(location));
+  const searchedDepartments = departmentOptions.map((option) => option.value)
+    .filter((department) => department.toLocaleLowerCase().includes(pickerSearch.trim().toLocaleLowerCase()));
+  const searchedWorkshops = equipmentWorkshops.filter((workshop) => workshop.toLocaleLowerCase().includes(pickerSearch.trim().toLocaleLowerCase()));
+  const searchedEquipment = findEquipment(selectedWorkshop ?? '', pickerSearch);
   const personOption = (person: string) => <button key={person} type="button"
     className={selectedPersonnel.includes(person) ? 'is-selected' : ''} onClick={() => togglePerson(person)}>
     <span className="maintenance-picker-avatar">{person.slice(0, 1)}</span>
@@ -274,6 +326,11 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
   const locationOption = (location: string) => <button key={location} type="button" onClick={() => chooseLocation(location)}>
     <span className="maintenance-picker-avatar">{location.slice(0, 1)}</span>
     <span>{location}<small>{departmentOfLocation.get(location)}</small></span>
+  </button>;
+  const equipmentOption = (item: EquipmentItem, index: number) => <button key={`${item.name}-${item.model}-${index}`} type="button" onClick={() => chooseEquipment(item)}>
+    <span className="maintenance-picker-avatar">{item.name.slice(0, 1)}</span>
+    <span>{item.name}<small>{item.model || '无规格型号'}</small></span>
+    <ArrowRightIcon width={16} height={16} />
   </button>;
 
   const submit = (values: FormValues) => {
@@ -295,6 +352,8 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
       personnel: personnelUnchanged ? existing.personnel : enteredPeople.join('、'),
       department: textValue(values.department, existing?.department),
       location: textValue(values.location, existing?.location),
+      workshop: textValue(values.workshop, existing?.workshop),
+      equipmentName: textValue(values.equipmentName, existing?.equipmentName),
       equipmentModel: textValue(values.equipmentModel, existing?.equipmentModel),
       workContent: textValue(values.workContent, existing?.workContent),
       workTimeText: textValue(values.workTimeText, existing?.workTimeText),
@@ -327,7 +386,9 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
       </Form.Item>
       <Form.Item name="department" label="所属部门"><AutoComplete options={departmentOptions} placeholder="选择或输入部门" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
       <Form.Item name="location" label="区域 / 位置"><AutoComplete options={locationOptions} placeholder="选择或输入区域" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
-      <Form.Item name="equipmentModel" label="设备型号"><AutoComplete options={modelOptions} placeholder="选择或输入型号" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+      <Form.Item name="workshop" label="车间"><Select showSearch optionFilterProp="label" placeholder="选择设备所属车间" options={workshopOptions} onChange={chooseWorkshop} /></Form.Item>
+      <Form.Item name="equipmentName" label="设备名称"><AutoComplete options={equipmentOptions} disabled={!selectedWorkshop} placeholder={selectedWorkshop ? '输入部分名称或型号搜索' : '请先选择车间'} filterOption={false} onSearch={setEquipmentSearch} onChange={() => form.setFieldValue('equipmentModel', '')} onSelect={(_value, option) => form.setFieldValue('equipmentModel', String(option.model ?? ''))} /></Form.Item>
+      <Form.Item name="equipmentModel" label="规格型号"><AutoComplete options={modelOptions} placeholder="选设备后自动带入，也可手动输入" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
       <Form.Item name="workTimeText" hidden><Input /></Form.Item>
       <div className="maintenance-desktop-time"><label>工作时间</label><TimePicker.RangePicker aria-label="选择工作时间" className="maintenance-full-width" format="HH:mm" value={timeRange} open={timePickerOpen} onOpenChange={setTimePickerOpen} inputReadOnly onChange={(range) => {
         const next = range as [Dayjs, Dayjs] | null;
@@ -355,16 +416,22 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
       <Form<FormValues> form={form} layout="vertical" initialValues={EMPTY_FORM} onFinish={submit} className="maintenance-entry-form" requiredMark={false}>
         <section className="maintenance-entry-hero">
           <Form.Item name="workContent" label="做了什么" rules={[{ required: true, whitespace: true, message: '请填写工作内容' }]}>
-            <Input.TextArea variant="borderless" autoSize={{ minRows: 3, maxRows: 8 }} placeholder="描述维修、巡检或更换工作" maxLength={1000} />
+            <Input.TextArea variant="borderless" autoSize={{ minRows: 2, maxRows: 6 }} placeholder="描述维修、巡检或更换工作" maxLength={1000} />
           </Form.Item>
+          <div className="maintenance-entry-hero-foot">{workContent.length} 字</div>
         </section>
 
         <section className="maintenance-entry-group" aria-label="基础信息">
           <Form.Item name="date" label="日期" className="maintenance-entry-row" rules={[{ required: !editId, message: '请选择日期' }]}><DatePicker variant="borderless" className="maintenance-full-width" allowClear={!!editId} format="YYYY-MM-DD" onChange={(nextDate) => { if (!editId && nextDate) form.setFieldValue('reportPeriod', nextDate.startOf('month')); }} /></Form.Item>
           <Form.Item name="personnel" label="维修人员" className="maintenance-entry-row" rules={[{ required: true, type: 'array', min: 1, message: '请选择维修人员' }]}><Select variant="borderless" mode="multiple" placeholder="选择维修人员" options={peopleOptions} maxTagCount={2} open={false} onClick={() => openPicker('personnel')} /></Form.Item>
-          <Form.Item name="department" label="所属部门" className="maintenance-entry-row"><AutoComplete variant="borderless" options={departmentOptions} placeholder="选择或输入" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+          <Form.Item name="department" label="所属部门" className="maintenance-entry-row"><Input variant="borderless" readOnly placeholder="选择部门" suffix={<ArrowRightIcon width={16} height={16} />} onClick={() => openPicker('department')} /></Form.Item>
           <Form.Item name="location" label="区域 / 位置" className="maintenance-entry-row"><Input variant="borderless" readOnly placeholder="选择区域" suffix={<ArrowRightIcon width={16} height={16} />} onClick={() => openPicker('location')} /></Form.Item>
-          <Form.Item name="equipmentModel" label="设备型号" className="maintenance-entry-row"><AutoComplete variant="borderless" options={modelOptions} placeholder="选择或输入" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
+        </section>
+
+        <section className="maintenance-entry-group" aria-label="设备信息">
+          <Form.Item name="workshop" label="车间" className="maintenance-entry-row" rules={[{ required: !editId, message: '请选择车间' }]}><Input variant="borderless" readOnly placeholder="先选择车间" suffix={<ArrowRightIcon width={16} height={16} />} onClick={() => openPicker('workshop')} /></Form.Item>
+          <Form.Item name="equipmentName" label="设备名称" className="maintenance-entry-row" rules={[{ required: !editId, whitespace: true, message: '请选择或输入设备名称' }]}><Input variant="borderless" readOnly placeholder={selectedWorkshop ? '输入部分名称搜索' : '请先选择车间'} suffix={<ArrowRightIcon width={16} height={16} />} onClick={() => openPicker('equipment')} /></Form.Item>
+          <Form.Item name="equipmentModel" label="规格型号" className="maintenance-entry-row"><AutoComplete variant="borderless" options={modelOptions} placeholder="自动带入或手动输入" filterOption={(input, option) => String(option?.value ?? '').toLowerCase().includes(input.toLowerCase())} /></Form.Item>
         </section>
 
         <section className="maintenance-entry-group" aria-label="工作时间和配件">
@@ -392,7 +459,7 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
       </Form>
     </div>
 
-    <Drawer title="添加配件" placement="bottom" height="min(70vh, 28rem)" open={partsOpen} onClose={() => setPartsOpen(false)} className="maintenance-parts-drawer" extra={<Button type="primary" onClick={addPart}>加入</Button>}>
+    <Drawer title="添加配件" placement="bottom" size="min(70vh, 28rem)" open={partsOpen} onClose={() => setPartsOpen(false)} rootClassName="maintenance-phone-drawer-root" className="maintenance-parts-drawer" extra={<Button type="primary" onClick={addPart}>加入</Button>}>
       <div className="maintenance-parts-presets">
         <span>常用配件</span>
         <div>{COMMON_PARTS.map((part) => <button key={part.name} type="button"
@@ -406,12 +473,17 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
         <label>单位<Select value={partsDraft.unit} onChange={(unit) => setPartsDraft((draft) => ({ ...draft, unit }))} options={['个', '片', '套', '台', '根', '米', '件', '只'].map((unit) => ({ value: unit, label: unit }))} /></label>
       </div>
     </Drawer>
-    <Drawer placement="bottom" height="min(70vh, 34rem)" title={picker === 'personnel' ? '维修人员' : '区域 / 位置'} open={picker !== null} onClose={() => setPicker(null)} className="maintenance-picker-drawer" extra={picker === 'personnel' ? <Button type="link" onClick={() => setPicker(null)}>完成</Button> : null}>
-      <Input.Search allowClear aria-label={picker === 'personnel' ? '搜索维修人员' : '搜索区域'} placeholder={picker === 'personnel' ? '搜索或输入姓名' : '搜索或输入区域'} value={pickerSearch} onChange={(event) => setPickerSearch(event.target.value)} onPressEnter={() => {
+    <Drawer placement="bottom" size="min(75dvh, 38rem)" title={picker === 'personnel' ? '维修人员' : picker === 'department' ? '所属部门' : picker === 'location' ? '区域 / 位置' : picker === 'workshop' ? '选择车间' : picker === 'equipment' ? `设备名称 · ${selectedWorkshop ?? ''}` : ''} open={picker !== null} onClose={() => setPicker(null)} rootClassName="maintenance-phone-drawer-root" className="maintenance-picker-drawer" extra={picker === 'personnel' ? <Button type="link" onClick={() => setPicker(null)}>完成</Button> : null}>
+      <Input.Search allowClear aria-label={picker === 'personnel' ? '搜索维修人员' : picker === 'department' ? '搜索部门' : picker === 'location' ? '搜索区域' : picker === 'workshop' ? '搜索车间' : '搜索设备名称'} placeholder={picker === 'personnel' ? '搜索或输入姓名' : picker === 'department' ? '搜索或输入部门' : picker === 'location' ? '搜索或输入区域' : picker === 'workshop' ? '搜索车间' : '输入设备名称的一部分，也可搜型号'} value={pickerSearch} onChange={(event) => setPickerSearch(event.target.value)} onPressEnter={() => {
         const value = pickerSearch.trim();
         if (!value) return;
         if (picker === 'personnel') { if (!selectedPersonnel.includes(value)) togglePerson(value); setPickerSearch(''); }
-        else chooseLocation(value);
+        else if (picker === 'department') chooseDepartment(value);
+        else if (picker === 'location') chooseLocation(value);
+        else if (picker === 'equipment') {
+          if (searchedEquipment.length === 1) chooseEquipment(searchedEquipment[0]);
+          else if (searchedEquipment.length === 0) chooseCustomEquipment(value);
+        }
       }} />
       <div className="maintenance-picker-options">
         {picker === 'personnel' ? <>
@@ -421,12 +493,36 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
           {suggestedPeople.map(personOption)}
           {otherPeople.length > 0 && <div className="maintenance-picker-section">全部</div>}
           {otherPeople.map(personOption)}
-        </> : <>
+        </> : picker === 'department' ? <>
+          <div className="maintenance-picker-section">常用部门</div>
+          {searchedDepartments.map((department) => <button key={department} type="button" className={selectedDepartment === department ? 'is-selected' : ''} onClick={() => chooseDepartment(department)}>
+            <span className="maintenance-picker-avatar">{department.slice(0, 1)}</span>
+            <span>{department}</span>
+            {selectedDepartment === department ? <CheckIcon width={18} height={18} /> : null}
+          </button>)}
+          {pickerSearch.trim() && !searchedDepartments.includes(pickerSearch.trim()) ? <button type="button" onClick={() => chooseDepartment(pickerSearch.trim())}>使用“{pickerSearch.trim()}”</button> : null}
+        </> : picker === 'location' ? <>
           {recentMatches.length > 0 && <div className="maintenance-picker-section">最近区域</div>}
           {recentMatches.map(locationOption)}
           {otherLocations.length > 0 && <div className="maintenance-picker-section">全部区域</div>}
           {otherLocations.map(locationOption)}
-        </>}
+        </> : picker === 'workshop' ? <>
+          <div className="maintenance-picker-section">按设备台账选择</div>
+          {searchedWorkshops.map((workshop) => <button key={workshop} type="button" className={selectedWorkshop === workshop ? 'is-selected' : ''} onClick={() => chooseWorkshop(workshop)}>
+            <span className="maintenance-picker-avatar">{workshop.slice(0, 1)}</span>
+            <span>{workshop}<small>{equipmentCatalog.filter((item) => item.workshop === workshop).length} 项设备</small></span>
+            {selectedWorkshop === workshop ? <CheckIcon width={18} height={18} /> : null}
+          </button>)}
+        </> : picker === 'equipment' ? <>
+          {pickerSearch.trim() ? <>
+            <div className="maintenance-picker-section">匹配设备 · {searchedEquipment.length} 项</div>
+            {searchedEquipment.map(equipmentOption)}
+            {!searchedEquipment.some((item) => item.name === pickerSearch.trim()) ? <button type="button" onClick={() => chooseCustomEquipment(pickerSearch)}>
+              <span className="maintenance-picker-avatar"><PlusIcon width={16} height={16} /></span>
+              <span>台账没有？使用“{pickerSearch.trim()}”<small>请先输入完整设备名称，规格型号可随后补填</small></span>
+            </button> : null}
+          </> : <div className="maintenance-picker-empty">输入部分设备名称，可按型号辅助搜索</div>}
+        </> : null}
       </div>
     </Drawer>
   </div>;

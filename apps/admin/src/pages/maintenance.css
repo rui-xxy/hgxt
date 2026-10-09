@@ -273,22 +273,25 @@
 .maintenance-entry-hero .ant-form-item-label { padding: 0; }
 .maintenance-entry-hero .ant-form-item-label label { color: var(--hg-ink3); font-size: var(--hg-font-size-sm); }
 .maintenance-entry-hero textarea { padding-inline: 0 !important; font-size: var(--hg-font-size-lg); line-height: 1.5; resize: vertical; }
+.maintenance-entry-hero-foot { min-height: 1.25rem; padding-block-start: 0.2rem; color: var(--hg-ink3); text-align: end; font-size: var(--hg-font-size-xs); font-variant-numeric: tabular-nums; }
 .maintenance-entry-row.ant-form-item { margin: 0; padding: 0.25rem 0.75rem 0.25rem 1rem; border-block-end: 1px solid var(--hg-line); }
 .maintenance-entry-row:last-child { border-block-end: 0; }
-.maintenance-entry-row .ant-form-item-row { display: flex; flex-direction: row; align-items: center; min-height: 2.75rem; }
-.maintenance-entry-row .ant-form-item-label { flex: 0 0 6rem; padding: 0; text-align: start; }
-.maintenance-entry-row .ant-form-item-label > label { height: auto; color: var(--hg-ink2); font-size: var(--hg-font-size-sm); }
+.maintenance-entry-row .ant-form-item-row { display: flex; flex-direction: row; align-items: center; min-height: 3rem; }
+.maintenance-entry-row .ant-form-item-label { flex: 0 0 6.25rem; padding: 0; text-align: start; }
+.maintenance-entry-row .ant-form-item-label > label { height: auto; color: var(--hg-ink2); font-size: inherit; white-space: nowrap; }
 .maintenance-entry-row .ant-form-item-control { min-width: 0; flex: 1; }
-.maintenance-entry-row .ant-form-item-control-input { min-height: 2.75rem; }
+.maintenance-entry-row .ant-form-item-control-input { min-height: 3rem; }
 .maintenance-entry-row .ant-input,
 .maintenance-entry-row .ant-input-number-input,
 .maintenance-entry-row .ant-select-selection-item,
-.maintenance-entry-row .ant-picker-input > input { text-align: end; font-size: var(--hg-font-size-sm); }
+.maintenance-entry-row .ant-picker-input > input { text-align: end; font-size: inherit; }
+.maintenance-entry-row .ant-input-affix-wrapper { width: 100%; }
+.maintenance-entry-row input[readonly] { cursor: pointer; }
 .maintenance-entry-row .ant-input-number { width: 100%; }
 .maintenance-entry-row .ant-select-selector { justify-content: end; }
 .maintenance-entry-row .ant-form-item-explain-error { text-align: end; font-size: var(--hg-font-size-xs); }
 .maintenance-entry-time-row { display: flex; align-items: center; min-height: 3.25rem; padding: 0.25rem 0.75rem 0.25rem 1rem; border-block-end: 1px solid var(--hg-line); }
-.maintenance-entry-time-row > span { flex: 0 0 6rem; color: var(--hg-ink2); font-size: var(--hg-font-size-sm); }
+.maintenance-entry-time-row > span { flex: 0 0 6.25rem; color: var(--hg-ink2); font-size: inherit; }
 .maintenance-entry-time-row .ant-picker { min-width: 0; flex: 1; }
 .maintenance-entry-time-row .ant-picker-input > input { font-size: var(--hg-font-size-sm); text-align: center; }
 .maintenance-entry-preset { padding: 0.35rem 0.75rem 0.75rem 1rem; border-block-end: 1px solid var(--hg-line); }
@@ -304,12 +307,15 @@
 .maintenance-entry-notes.ant-form-item { margin: 0; padding: 0.5rem 1rem; }
 .maintenance-entry-notes .ant-form-item-label { padding: 0; }
 .maintenance-entry-notes .ant-form-item-label > label { color: var(--hg-ink2); font-size: var(--hg-font-size-sm); }
-.maintenance-phone-footer { position: sticky; bottom: 0; z-index: 2; padding: 0.75rem 0 1rem; background: var(--hg-side); }
-.maintenance-phone-footer .ant-btn { min-height: 3rem; }
+.maintenance-phone-footer { position: sticky; bottom: 0; z-index: 2; padding: 0.75rem 0 calc(1rem + env(safe-area-inset-bottom)); background: var(--hg-side); }
+.maintenance-phone-footer .ant-btn { min-height: 3.25rem; }
 .maintenance-phone-footer .ant-btn-primary:not(:disabled) { border-color: var(--hg-brand); background: var(--hg-brand); color: var(--hg-surface); }
 .maintenance-phone-footer .ant-btn-primary:not(:disabled):hover { border-color: var(--hg-brand); background: var(--hg-brand); filter: brightness(.94); }
 .maintenance-picker-drawer .ant-drawer-content { border-radius: var(--hg-radius-container) var(--hg-radius-container) 0 0; }
 .maintenance-parts-drawer .ant-drawer-content { border-radius: var(--hg-radius-container) var(--hg-radius-container) 0 0; }
+@media (min-width: 40rem) {
+  .maintenance-phone-drawer-root .ant-drawer-content-wrapper { width: min(100%, 25rem); margin-inline: auto; }
+}
 .maintenance-picker-drawer .ant-drawer-body { scrollbar-width: none; }
 .maintenance-picker-drawer .ant-drawer-body::-webkit-scrollbar { display: none; }
 .maintenance-picker-options { margin-block-start: 0.75rem; }
@@ -321,7 +327,11 @@
 .maintenance-picker-options button > svg { color: var(--hg-brand); }
 .maintenance-picker-avatar { display: grid; place-items: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--hg-active); color: var(--hg-ink2); font-size: var(--hg-font-size-sm); }
 .maintenance-picker-options button.is-selected .maintenance-picker-avatar { background: var(--hg-brand); color: var(--hg-surface); }
+.maintenance-picker-empty { padding: 2rem 0; color: var(--hg-ink3); text-align: center; font-size: var(--hg-font-size-sm); }
 .maintenance-full-width { width: 100%; }
+.maintenance-equipment-option { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; min-width: 0; }
+.maintenance-equipment-option > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.maintenance-equipment-option small { flex: none; color: var(--hg-ink3); font-size: var(--hg-font-size-xs); }
 .maintenance-switch-item .ant-form-item-control-input { min-height: 2rem; }
 .maintenance-parts-presets { margin-block-end: 1.25rem; }
 .maintenance-parts-presets > span { display: block; margin-block-end: 0.5rem; color: var(--hg-ink2); font-size: var(--hg-font-size-sm); }
@@ -346,6 +356,8 @@
 }
 
 @media (max-width: 40rem) {
+  .maintenance-form-page { max-width: none; padding-block-end: 0; }
+  .maintenance-phone-form { border: 0; border-radius: 0; }
   .maintenance-desktop-header { padding-inline: 1rem; }
   .maintenance-desktop-form { grid-template-columns: minmax(0, 1fr); padding-inline: 1rem; }
   .maintenance-desktop-actions { margin-inline: -1rem; padding-inline: 1rem; }

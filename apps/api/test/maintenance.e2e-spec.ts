@@ -25,7 +25,9 @@ describe('设备维修原始记录', () => {
     personnel: '甲、乙',
     department: '硫酸生产部',
     location: '一楼',
-    equipmentModel: '/',
+    workshop: '硫酸车间',
+    equipmentName: '循环泵',
+    equipmentModel: 'IH80-65-160',
     workContent: '维修循环泵',
     workTimeText: '08:00-17:00',
     replacedParts: '/',
@@ -45,6 +47,10 @@ describe('设备维修原始记录', () => {
       .set('Authorization', auth()).expect(200);
     expect(listed.body).toHaveLength(1);
     expect(listed.body[0].date).toBe('2025-12-29');
+    expect(listed.body[0]).toMatchObject({ workshop: '硫酸车间', equipmentName: '循环泵', equipmentModel: 'IH80-65-160' });
+    const options = await http(app).get('/api/maintenance/options').expect(200);
+    expect(options.body[0]).toMatchObject({ workshop: '硫酸车间', equipmentName: '循环泵', equipmentModel: 'IH80-65-160' });
+    expect(options.body[0]).not.toHaveProperty('workContent');
     const changed = await http(app).patch(`/api/maintenance/records/${created.body.id}`)
       .set('Authorization', auth()).send({ ...row, workTimeText: '08:00-16:30', repairHours: 77.5 }).expect(200);
     expect(changed.body.repairHours).toBe(7.5);

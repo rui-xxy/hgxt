@@ -45,7 +45,7 @@ export function MaintenanceRecordsPage() {
     const start = dateRange?.[0].format('YYYY-MM-DD');
     const end = dateRange?.[1].format('YYYY-MM-DD');
     return records.filter((record) => {
-      if (search && ![record.workContent, record.equipmentModel, record.replacedParts].some((value) => value.toLocaleLowerCase().includes(search))) return false;
+      if (search && ![record.workContent, record.workshop, record.equipmentName, record.equipmentModel, record.replacedParts].some((value) => value.toLocaleLowerCase().includes(search))) return false;
       if (start && end && (record.date === null || record.date < start || record.date > end)) return false;
       if (department && record.department !== department) return false;
       if (cause && record.faultCause !== cause) return false;
@@ -67,7 +67,9 @@ export function MaintenanceRecordsPage() {
     { title: '维修人员', dataIndex: 'personnel', key: 'personnel', width: 150, align: 'center', ellipsis: true, render: (_value, record) => peopleOf(record).join('、') || '—' },
     { title: '所属部门', dataIndex: 'department', key: 'department', width: 170, align: 'center', ellipsis: true, render: (value: string) => value || '—' },
     { title: '区域 / 位置', dataIndex: 'location', key: 'location', width: 160, align: 'center', ellipsis: true, render: (value: string) => value || '—' },
-    { title: '设备型号', dataIndex: 'equipmentModel', key: 'equipmentModel', width: 150, align: 'center', ellipsis: true, render: (value: string) => value || '—' },
+    { title: '车间', dataIndex: 'workshop', key: 'workshop', width: 180, align: 'center', ellipsis: true, render: (value: string) => value || '—' },
+    { title: '设备名称', dataIndex: 'equipmentName', key: 'equipmentName', width: 190, align: 'center', ellipsis: true, render: (value: string) => value || '—' },
+    { title: '规格型号', dataIndex: 'equipmentModel', key: 'equipmentModel', width: 150, align: 'center', ellipsis: true, render: (value: string) => value || '—' },
     { title: '工作时间', dataIndex: 'workTimeText', key: 'workTimeText', width: 150, align: 'center', ellipsis: true, render: (value: string) => <span className="mono">{value || '—'}</span> },
     { title: '维修工时 h', dataIndex: 'repairHours', key: 'repairHours', width: 115, align: 'center', render: (value: number | null) => <span className="mono">{value === null ? '—' : numberText(value, 2)}</span> },
     { title: '故障原因', dataIndex: 'faultCause', key: 'faultCause', width: 170, align: 'center', ellipsis: true, render: (value: string) => value || '未填写' },
@@ -91,7 +93,7 @@ export function MaintenanceRecordsPage() {
     </div>} />
     <section ref={tableShellRef} className="maintenance-records-card" aria-label="维修记录列表">
       <div className="maintenance-filters">
-        <Input aria-label="搜索维修记录" placeholder="搜索工作内容、型号、配件" prefix={<SearchIcon width={16} height={16} />} value={keyword} onChange={(event) => setKeyword(event.target.value)} allowClear className="maintenance-search" />
+        <Input aria-label="搜索维修记录" placeholder="搜索内容、设备、型号" prefix={<SearchIcon width={16} height={16} />} value={keyword} onChange={(event) => setKeyword(event.target.value)} allowClear className="maintenance-search" />
         <DatePicker.RangePicker aria-label="日期范围" value={dateRange} onChange={(value) => setDateRange(value as [Dayjs, Dayjs] | null)} />
         <Select aria-label="筛选部门" placeholder="部门：全部" allowClear showSearch optionFilterProp="label" value={department} options={departmentOptions.map((value) => ({ value, label: value }))} onChange={setDepartment} className="maintenance-filter-select" />
         <Select aria-label="筛选故障原因" placeholder="原因：全部" allowClear showSearch optionFilterProp="label" value={cause} options={causeOptions.map((value) => ({ value, label: value }))} onChange={setCause} className="maintenance-filter-select" />
@@ -108,7 +110,7 @@ export function MaintenanceRecordsPage() {
         columns={columns}
         dataSource={filtered}
         pagination={false}
-        scroll={{ x: 1900, y: 580, scrollToFirstRowOnChange: true }}
+        scroll={{ x: 2300, y: 580, scrollToFirstRowOnChange: true }}
         tableLayout="fixed"
         rowClassName={(record) => record.id === selectedId ? 'maintenance-record-selected' : ''}
         onRow={(record) => ({ onClick: () => setSelectedId(record.id), tabIndex: 0, role: 'button', 'aria-label': `${me.data?.role === Role.SUPER_ADMIN ? '编辑' : '查看'} ${displayDate(record)} 维修记录`, onKeyDown: (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelectedId(record.id); } } })}
@@ -125,7 +127,9 @@ export function MaintenanceRecordsPage() {
         <DetailItem label="维修工时" value={selected.repairHours === null ? '未填写' : `${numberText(selected.repairHours, 2)} h`} mono />
         <DetailItem label="部门" value={selected.department} />
         <DetailItem label="区域 / 位置" value={selected.location} />
-        <DetailItem label="设备型号" value={selected.equipmentModel} mono />
+        <DetailItem label="车间" value={selected.workshop} />
+        <DetailItem label="设备名称" value={selected.equipmentName} />
+        <DetailItem label="规格型号" value={selected.equipmentModel} mono />
         <DetailItem label="更换配件" value={selected.replacedParts} />
         <DetailItem label="维修人员" value={peopleOf(selected).join('、')} />
         {selected.remarks ? <DetailItem label="备注" value={selected.remarks} /> : null}

@@ -35,7 +35,7 @@ export class MaintenanceController {
 
   @Public()
   @Get('options')
-  @ApiOperation({ summary: '登记页联想选项（匿名可读，仅人员/部门/区域/型号/故障分类字段）' })
+  @ApiOperation({ summary: '登记页联想选项（匿名可读，仅人员/部门/区域/设备/故障分类字段）' })
   options() {
     return this.maintenance.optionRows();
   }

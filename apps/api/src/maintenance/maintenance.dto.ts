@@ -39,6 +39,10 @@ export class MaintenanceRecordDto {
   @IsString() @Length(0, 500) personnel!: string;
   @IsString() @Length(0, 500) department!: string;
   @IsString() @Length(0, 500) location!: string;
+  @ApiPropertyOptional({ description: '设备所属车间；旧版登记可留空' })
+  @IsOptional() @IsString() @Length(0, 500) workshop?: string;
+  @ApiPropertyOptional({ description: '设备名称；旧版登记可留空' })
+  @IsOptional() @IsString() @Length(0, 500) equipmentName?: string;
   @IsString() @Length(0, 500) equipmentModel!: string;
   @IsString() @Length(1, 4000) workContent!: string;
   @IsString() @Length(0, 500) workTimeText!: string;

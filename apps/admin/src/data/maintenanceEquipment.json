@@ -1,0 +1,4412 @@
+[
+  {
+    "workshop": "2-EAQ车间",
+    "name": "薄膜蒸发器进料泵",
+    "model": "25FUH-36-2/32-U1/U1-C3C"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "薄膜蒸发器下料斗",
+    "model": "1000*1000*1000/Φ219"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "闭环釜",
+    "model": "F8000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "闭环气液分离罐",
+    "model": "Φ1000*1500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "闭环液储槽",
+    "model": "Φ3200*5600"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "闭环液输送泵",
+    "model": "ITC50-32-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "闭环液外循环泵",
+    "model": "ITC100-80-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "槽余尾气引风机",
+    "model": "20003/h"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "槽余尾气引风机",
+    "model": "HF-241B-7.5KW-4P"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "车间罐区围堰废水液下泵",
+    "model": "65YU-30A-0.6M"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "车间氯苯输送泵",
+    "model": "ITC65-50-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "成品储槽",
+    "model": "Φ1000*2500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "出水隔油器",
+    "model": "Φ2600×7000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "储油槽",
+    "model": "Φ1520*3050"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "粗品储槽",
+    "model": "Φ1000*2500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "粗品蒸馏釜",
+    "model": "Φ1600*1200"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "萃取废碱水计量泵",
+    "model": "SJM4-1190/0.7"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "萃取酸转运泵",
+    "model": "ITC50-32-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "萃取液储槽",
+    "model": "Φ2800*3000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "萃取液分离槽",
+    "model": "Φ1000*8000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "萃取液输送泵",
+    "model": "CQL40-25-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "萃取液稀碱混合输送泵",
+    "model": "ITC50-32-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "萃取液中间槽",
+    "model": "Φ1000*1200"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "袋式过滤器",
+    "model": "1DF-2S，Φ219×1320"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "导热油循环泵",
+    "model": "WRY100-65-230"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "地面冲洗水泵",
+    "model": "40ZMD-32F"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "低温水循环泵",
+    "model": "150KQW187-44-37/4"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "低温水循环槽",
+    "model": "Φ3020*4500*10"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "电动葫芦",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "二次酸析水槽",
+    "model": "Φ1616*3012"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "二滤配制槽",
+    "model": "Φ3030*3000*15/3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "二滤A泵",
+    "model": "IMD65-40-250FT"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "二滤B泵",
+    "model": "65HFM-I-H-30-80"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "二效分离器",
+    "model": "6m3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "二效循环泵",
+    "model": "200LOF-CU-300-10"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "二效蒸发器",
+    "model": "SDCBL-100m2"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "二效蒸发器",
+    "model": "Φ1800*2000，F=10.4m2，带搅拌，80r/min，7.5KW"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "防爆电动叉车",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "防爆降膜式螺杆冷水机组",
+    "model": "EXFCW690a"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "废碱水槽",
+    "model": "Φ2000*3000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "废碱水计量泵",
+    "model": "SJM4-3580/0.4"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "废碱液输送泵",
+    "model": "CQL50-32-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "废铝水输送泵",
+    "model": "65ZMD-20F"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "废酸蒸发器(10平方搪瓷玻璃薄膜蒸发器)",
+    "model": "中1200*5000，10平方，内壁糖瓷，四氟刮刀"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "废酸蒸发水喷射真空泵",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "分离罐",
+    "model": "DN400下/DN1000上X4560,2m3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "分离罐循环出料泵",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "分离剂泵",
+    "model": "ITC40-25-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "分离剂罐",
+    "model": "Φ2200×4000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "分离器",
+    "model": "Φ2000×9800"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "分离相泵",
+    "model": "ITC50-32-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "分离相罐",
+    "model": "Φ2200×4000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "副产硫酸贮槽",
+    "model": "φ5000X8000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "副产硫酸装车泵",
+    "model": "ITC80-65-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "隔膜压滤机(废酸压滤）",
+    "model": "XAZGF80/1000-U"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "隔膜压滤机（铝水压滤0",
+    "model": "XAZGF50/1000-U"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "罐区污水泵",
+    "model": "80ZMD-32F"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "滑阀真空泵尾气冷凝器",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "化学分离反应器",
+    "model": "Φ1600×5400"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "回收低温冷凝器",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "回收冷凝水泵",
+    "model": "ITC50-32-150"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "回收冷凝液罐",
+    "model": "DN1200*3000*8"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "回收水冷却器",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "回收酸冷却器",
+    "model": "YKB50-16/10-25"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "回收相泵",
+    "model": "ITC40-25-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "回收相罐",
+    "model": "Φ2200×4000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "回收真空泵",
+    "model": "2BV-6121"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "回收真空泵水冷却器",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "回收真空气液分离罐",
+    "model": "DN1000*1000*5"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "活性炭吸附装置",
+    "model": "Φ1400*3800"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "机封水收集泵",
+    "model": "IH50-32-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "机械过滤器",
+    "model": "Φ1600×2500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯薄膜蒸发器",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯储罐",
+    "model": "Φ4500*5500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯萃取离心机",
+    "model": "CWL550-M"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯后冷凝器",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯加热器",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯冷凝器",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯升膜蒸发器",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯输送泵",
+    "model": "CQL65-50-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯酸析液混合输送泵",
+    "model": "ITC65-50-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯尾气冷凝器",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯尾气气液分离罐",
+    "model": "Φ800*1000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯卸车泵",
+    "model": "CQL80-65-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯卸车鹤管",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯循环泵",
+    "model": "CQL50-32-150"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯循环槽",
+    "model": "Φ2800*4000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯真空罐",
+    "model": "Φ1200*1500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯真空水箱水分离罐",
+    "model": "Φ1000*1500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯真空水箱水置换泵",
+    "model": "CQL50-32-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯真空水箱尾气冷凝器",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "甲苯蒸馏真空泵组",
+    "model": "RPP80-180"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "碱吸收塔",
+    "model": "Φ2030*7370"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "碱吸收循环泵",
+    "model": "ITC80-65-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "碱洗废水泵",
+    "model": "ITC40-25-150"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "碱洗请水泵",
+    "model": "ITC40-25-150"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "碱洗水槽",
+    "model": "Φ2500*6000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "碱洗水接收槽",
+    "model": "Φ2500*6000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "碱洗水预处理泵",
+    "model": "ITC40-25-150"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "碱洗水预处理槽",
+    "model": "Φ2500*6000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "碱洗液分离槽",
+    "model": "Φ1000*7000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "洁净铝水泵",
+    "model": "IMD50-32-200F"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "精品接料箱",
+    "model": "长2000宽1000高800"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "精制成品釜",
+    "model": "DN1000*1300"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "精制真空罐",
+    "model": "Φ400*2000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "精制蒸馏釜",
+    "model": "DN1000*800"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "净酸泵",
+    "model": "ITCP65-50-200"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "静态混合器",
+    "model": "SK型"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "冷凝结晶切片机",
+    "model": "Φ1500*1500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "冷凝器",
+    "model": "CBL-150m2"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "冷凝器",
+    "model": "SDCBL-100m2 CBL-30m2"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "冷却结晶釜",
+    "model": "8m3 搅拌15kw"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "冷却器",
+    "model": "CBL-30m2"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "离心机",
+    "model": "LGZ1400-720，37kw+3*2kw"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "硫酸干燥塔",
+    "model": "Φ2000*6500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "硫酸干燥吸收循环泵",
+    "model": "ITC80-65-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "铝水沉降槽",
+    "model": "Φ5000*6000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "铝水沉降槽ABCD",
+    "model": "φ5800X6000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "铝水过滤板框",
+    "model": "F=30m2"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "铝水冷却器",
+    "model": "YKB50-16/10-20"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "铝水冷却器",
+    "model": "YKB50-16∕10-20 F=20㎡"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "铝水配制槽",
+    "model": "φ2000X2500 搅拌7.5 kw"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "铝水配制槽",
+    "model": "Φ2500*3000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "铝水压滤泵",
+    "model": "CQB65-40-250FBG"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "铝水贮槽",
+    "model": "φ5000X8000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "铝水装车泵",
+    "model": "ITC100-80-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯、乙苯尾气冷凝器",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯、乙苯尾气气液分离罐",
+    "model": "Φ5800*1700"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯薄膜蒸发器",
+    "model": "换热面积13.96m2,容积5.4立方，搅拌功率7.5KW，减速机KF87-YB7.5-4P-16.00"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯储罐",
+    "model": "Φ4500*5500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯二级冷凝器",
+    "model": "YKB50-16/10-25"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯干气风机",
+    "model": "TBA-6C-7.5KW-2P"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯干燥废盐水泵",
+    "model": "40ZMD-32F"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯冷凝器",
+    "model": "YKB60-16/10-40"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯输送泵",
+    "model": "ITC65-50-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯卸车泵",
+    "model": "CQL80-65-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯卸车鹤管",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯循环槽",
+    "model": "Φ2800*3500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯盐干燥罐",
+    "model": "Φ1400*1800"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯油水分离离心机",
+    "model": "CWL350-M"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯油水分离器",
+    "model": "Φ1200*1800"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯真空水箱水冷却循环泵",
+    "model": "HF50-32-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯真空水箱水置换泵",
+    "model": "ITC50-32-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯蒸馏釜",
+    "model": "K5000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯蒸馏水槽",
+    "model": "Φ2800*4500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯蒸馏水输送泵",
+    "model": "ITC65-50-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯蒸馏真空泵组",
+    "model": "RPP-80-180"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯蒸馏真空罐",
+    "model": "Φ1000*1200"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氯苯蒸馏真空冷凝器",
+    "model": "YKB50-16/10-25"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "罗茨滑阀真空泵组",
+    "model": "2H-160A ZJP-1200"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "罗茨滑阀真空泵组",
+    "model": "JZP2H300-4AM"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "母液泵",
+    "model": "CQB65-50-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "母液罐",
+    "model": "立式DN2000，H4500,搅拌5.5kw"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "内燃平衡重式叉车",
+    "model": "CPCD50-QCK"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "逆反应分离器",
+    "model": "Φ2000×9800"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "逆反应加热器",
+    "model": "固定管板式，F=20.1㎡"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "逆反应器",
+    "model": "Φ1600×5400"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "凝水输送泵-稀盐酸泵",
+    "model": "40-OF-CF-5-15"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "膨胀槽",
+    "model": "Φ1110*2410*5"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "气液分离罐",
+    "model": "8m3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "气液分离器",
+    "model": "Φ500×1000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "热水泵A",
+    "model": "65KQW25-50-7.5/2+HT"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "热水泵B",
+    "model": "125KQW100-20-11/4+HT"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "热水泵C(新增）",
+    "model": "IH50-32-200A"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "热酸泵",
+    "model": "ITC65-50-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "热稀酸罐",
+    "model": "Φ4024*5000*4"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "三效薄膜蒸发器",
+    "model": "15m2，搅拌15KW/4P,88r/min"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "三效薄膜蒸发器",
+    "model": "15m2，搅拌15KW/4P，88r/min"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "三效分离器",
+    "model": "8m3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "三效循环泵",
+    "model": "200LOF-CU-300-10"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "三效蒸发器",
+    "model": "SDCBL-100m2"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "升膜分离罐",
+    "model": "Φ1400*1800"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "双口加料斗",
+    "model": "正口DN300斜口DN200"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "水解.酰化水喷射真空泵",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "水解釜",
+    "model": "F8000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "水解尾气冷凝器",
+    "model": "YKB50-16/10-20"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "水解液离心机",
+    "model": "CWL450-M"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "水解液输送泵",
+    "model": "ITC80-65-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "水冷器",
+    "model": "E2003，DN500列管长3米 F=40m2 ，下联E2004，DN500列管长1.5米 F=20m2"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "水力喷射器",
+    "model": "JW- RPP-65-280X2"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "水洗分离槽",
+    "model": "Φ1000*6000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酸加热器",
+    "model": "YKB50-16/10-35"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酸加热器",
+    "model": "YKB50-16/10-35，F=35m2"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酸加热器",
+    "model": "YKB50-16/10-50"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酸析釜",
+    "model": "V=3m3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酸析外循环冷却器",
+    "model": "YKB60-16/10-40"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酸析尾气气液分离罐",
+    "model": "Φ800*1000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酸析尾气引风机",
+    "model": "TBA-6C-5.5KW-2P"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酸析液外循环泵",
+    "model": "ITC100-80-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酸析液中间槽",
+    "model": "Φ1000*1200"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酸预热器",
+    "model": "YKB50-16/10-20"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "尾气冷凝器",
+    "model": "YKB400-10"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "尾气冷凝器",
+    "model": "YKB60-16/10-40"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "尾气引风机",
+    "model": "TBA-9D-15KW-4P"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "无水氯化铝投料装置",
+    "model": "组合件"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "稀碱配制槽",
+    "model": "Φ2000*3000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "稀净酸槽",
+    "model": "Φ5032*5500*16/3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "稀硫酸循环泵",
+    "model": "ITCP100-80-150"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酰化釜",
+    "model": "K5000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酰化冷凝器",
+    "model": "YKB50-16/10-20"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酰化尾气缓冲罐",
+    "model": "Φ1200*1200"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酰化尾气气液分离罐",
+    "model": "Φ800*1000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酰化尾气气液分离罐",
+    "model": "Φ800*1200"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酰化尾气深冷器",
+    "model": "YKB60-16/10-30"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酰化尾气吸收塔",
+    "model": "Φ600/Φ1200*7600"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "酰化尾气引风机",
+    "model": "HF-241B-15KW-4P"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "行车",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "循环泵",
+    "model": "IH80-65-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "循环给料槽",
+    "model": "Φ2000×3000×6，V=9m3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "循环水泵",
+    "model": "300KQW900-40-132/4"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "循环水槽",
+    "model": "Φ5000*10000*14"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "循环水冷却塔",
+    "model": "GFNL-750"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "压榨水泵",
+    "model": "CDM5-18FSW"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "烟囱",
+    "model": "Φ630*5000*15"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "烟酸输送泵",
+    "model": "CQL65-40-200"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "盐水池",
+    "model": "Φ1500*1000*1000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "盐酸吸收循环槽",
+    "model": "Φ2600*3600"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "氧化铝吸附床",
+    "model": "Φ800*1200"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "液碱泵",
+    "model": "ITC40-25-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "液碱高位槽",
+    "model": "Φ1600*3500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "液压升降机",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "一滤泵",
+    "model": "IMD65-40-250FT"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "一滤配制槽",
+    "model": "Φ3030*3000*15/3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "一滤转运槽",
+    "model": "Φ5032*5500*16/3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "一滤转运酸泵",
+    "model": "ITC80-65-160A"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "一效出料泵",
+    "model": "40LOF-CF-5-15"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "一效分离器",
+    "model": "4m3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "一效蒸发器",
+    "model": "CBL-100m2"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "一效蒸发器",
+    "model": "Φ1800*2480，F=18.8m2，V=8m3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "乙苯储罐",
+    "model": "Φ6000*7000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "乙苯计量槽",
+    "model": "Φ800*1200"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "乙苯输送泵",
+    "model": "CQL65-50-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "乙苯卸车泵",
+    "model": "CQL80-65-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "乙苯卸车鹤管",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "雨水收集池液下泵",
+    "model": "100YU-38A-2M"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "预热器",
+    "model": "SCBL-30m2"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "原酸转运泵",
+    "model": "ITC50-32-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "原酸转运泵",
+    "model": "UHB-ZK80/50-20"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "原酸转运槽",
+    "model": "Φ5032*5500*16/3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "增湿塔",
+    "model": "Φ830*3000*15"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "增湿液泵",
+    "model": "ITC50-32-125A"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "蒸发冷凝液泵",
+    "model": "Q=30m3/h，H=20m，5.5KW，防爆"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "蒸发冷凝液槽",
+    "model": "Φ3000×2500×6，V=17m3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "蒸发浓缩液泵",
+    "model": "Q=30m3/h，H=32m"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "蒸发器",
+    "model": "CBL-30m2"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "蒸发循环泵",
+    "model": "150LOF-CU-180-10"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "蒸汽分配台",
+    "model": "Φ1224*3200*12"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "蒸汽冷凝水泵",
+    "model": "Q=25m3/h，H=20m，5.5KW，防爆"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "蒸汽冷凝水槽",
+    "model": "φ2000X2500，8M3"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "蒸汽冷凝水槽",
+    "model": "Φ2400*3000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "蒸汽冷凝水槽（新增）",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "ALCL3废水中间槽",
+    "model": "Φ3024*2024*2024"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "ALCL3尾气风机",
+    "model": "HF-241B-7.5KW-4P"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "BE酸溶解釜",
+    "model": "F8000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "BE酸溶解外循环泵",
+    "model": "ITC100-80-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "BE酸溶解外循环冷却器",
+    "model": ""
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "HCL降膜吸收器",
+    "model": "YKX50-25"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "HCL尾气吸收循环泵",
+    "model": "ITC65-50-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "HCL尾气引风机",
+    "model": "HF-301B-22KW-2P"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "HCL吸收塔",
+    "model": "Φ1200/Φ2000*7500"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "HCL吸收循环泵",
+    "model": "ITC65-50-125"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "HCL吸收转料泵",
+    "model": "ITC80-65-160"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "SO3缓冲罐",
+    "model": "Φ820*1600*10"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "SO3尾气吸收塔",
+    "model": "Φ500*4000"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "SO3尾气吸收循环泵",
+    "model": "CQB80-65-125FD"
+  },
+  {
+    "workshop": "2-EAQ车间",
+    "name": "SO3引风机",
+    "model": "TBA-8C-7.5KW-4P"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "1#螺旋",
+    "model": "LS250 5t/h 34rpm 3kw变频调速"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "2#螺旋",
+    "model": "LS250 5t/h 34rpm 3kw变频调速"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "3#螺旋",
+    "model": "LS250 5t/h 34rpm 3kw变频调速"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "4#螺旋",
+    "model": "LS250 5t/h 34rpm 3kw变频调速"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "板式换热器",
+    "model": ""
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "包装机组",
+    "model": "7t/h"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "采料泵",
+    "model": "65FUD-50K-10/25"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "成品仓库行车",
+    "model": ""
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "成品料仓",
+    "model": "Ø 4000×（2000+1900）×8"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "抽负风机",
+    "model": "HF-301B-F"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "稠厚器",
+    "model": "Φ2500×(1500+740)×10，V=9m3"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "粗品分配斗",
+    "model": "2000/1000×1500×12"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "粗品水环真空泵",
+    "model": "2BE1- 253-0"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "粗品中间槽",
+    "model": "Φ2444×4332×10/塑12"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "粗品中间槽冷却器",
+    "model": "ф325*6 L=3811 Φ25×2.5,n=45"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "粗品中间槽循环泵",
+    "model": "100FUD-50K"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "粗品中间输送泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "大洗槽",
+    "model": ""
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "大洗槽泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "带滤机真空排液罐",
+    "model": "Φ400×1200×10"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "带滤机真空排液罐",
+    "model": "Φ500×1200×10"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "第二反应釜",
+    "model": "Φ2600/Φ2400×5000"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "第一反应釜",
+    "model": "Φ2200/Φ2000×4900"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "斗式提升机",
+    "model": "NE15x7365 H7960 4kw"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "兑冷泵",
+    "model": "IHF125-100-200"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "兑冷槽",
+    "model": "PPHΦ4000×4200×30"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "干燥鼓风机",
+    "model": "4-72-8C"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "干燥尾气洗涤塔",
+    "model": "Ø 1830×6015×15"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "干燥引风机",
+    "model": "GF-H900C-37KW/4"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "过道螺旋",
+    "model": "LS250 5t/h 34rpm 3kw变频调速"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "加碱桶",
+    "model": "1.2m3"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "减重计量秤",
+    "model": "可承重1.8T，净计量范围0~1.2t"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "碱洗泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "碱洗塔",
+    "model": "Ø 1500×6000×15"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "结晶器轴流泵",
+    "model": "ZLH2100-2.5"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "精品带式过滤机",
+    "model": "DU10m2/800"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "精品分配斗",
+    "model": "2000/1000×1500×12"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "精品水环真空泵",
+    "model": "2BE1- 303-0"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "空气加热器",
+    "model": "SRL18×12D"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "冷风床",
+    "model": "Ø 1500/2100×4600×6"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "冷风床鼓风机",
+    "model": "9-26-5.6A"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "连续结晶器",
+    "model": "Φ5000/Φ4000×6164"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "连续溶解槽",
+    "model": "PPH6000×1000×1300×30"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "料仓进口螺旋",
+    "model": "LS250 5t/h 34rpm 3kw变频调速"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "母液补充泵",
+    "model": "IHF65-40-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "母液补充桶",
+    "model": "1.2m3"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "母液槽",
+    "model": "Φ5000×3500×25"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "母液回收泵",
+    "model": "IHF40-32-250"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "尿素加料斗",
+    "model": "Φ1420×1456×8"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "尿素螺旋机",
+    "model": "Φ100 H345 进出口间距1360 n=34rpm 变频1.5kw"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "尿素转运车",
+    "model": "L3000xW1600xH300 轻轨"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "溶解过滤器",
+    "model": "Ø1600×1000×12"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "溶解母液泵",
+    "model": "IHF125-100-200"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "三楼行车",
+    "model": ""
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "石墨加热器",
+    "model": "YKZ-1000-100m2"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "碳化硅热交换器",
+    "model": "CHE350.3800.14-17.4S"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "外冷器洗液泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "尾排烟囱",
+    "model": "Ø 624×4835×12 带斗笠"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "尾洗泵",
+    "model": "IHF80-50-315 30m3/h H32m 5.5kw 1450rpm 变频IP55 比重1.2"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "稀释釜",
+    "model": "Φ2050/Φ1900×4700"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "稀释母液泵",
+    "model": "IHF65-40-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "稀酸中间泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "稀酸中间槽",
+    "model": "Φ5000×3500×10"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "洗涤水泵A",
+    "model": "IRG50-160"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "洗涤水泵B",
+    "model": "IRG50-160"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "洗涤水槽",
+    "model": ""
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "洗液槽",
+    "model": "Φ2345×2800×20"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "洗液槽母液循环泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "旋风分离器",
+    "model": "Ø 1200×4695×8"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "应急稀释釜",
+    "model": "Φ3200×2800×25"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "振动电机",
+    "model": "YZS40-6型 2台3kw"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "振动筛",
+    "model": "800*2100"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "转鼓真空过滤机",
+    "model": "G16/2.0-U，16 ㎡"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "转筒干燥机",
+    "model": "Φ2.0*15m烘干机"
+  },
+  {
+    "workshop": "氨基磺酸车间（二期）",
+    "name": "转窑进口螺旋",
+    "model": "LS250 5t/h 34rpm 3kw变频调速"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "板式换热器",
+    "model": ""
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "采料泵",
+    "model": "65FUD-50K-10/25"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "稠厚器",
+    "model": "Φ2500×(1500+740)×10，V=9m3"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "粗品带滤机洗涤水槽（老）",
+    "model": "Φ2444×4332×10/塑12 V=20.3m3 7.5kw-4"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "粗品带式过滤机",
+    "model": "DU10m2/800 12500×900/20mm， 真空耗量18m3/min，洗水耗量1.5-2m3/h 空气耗量1.5-2m3/h 带自控柜"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "粗品分配斗",
+    "model": "2000/1000×1500×12"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "粗品水环真空泵",
+    "model": "2BE1- 253-0 55KW"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "粗品中间槽",
+    "model": "搅拌43rpm Φ2444×4332×10/塑12 V=20.3m3 7.5kw-4"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "粗品中间槽冷却器",
+    "model": "Φ38×2.5，Φ750×3000,95m2"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "粗品中间槽循环泵",
+    "model": "HZJ200-150-250A"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "粗品中间输送泵",
+    "model": "IHF80-50-315 30m3/h H32m 7.5kw-4 1450rpm 变频IP55 比重1.55"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "带滤机真空排液罐",
+    "model": "Φ400×1200×10"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "带滤机真空排液罐",
+    "model": "Φ500×1200×10"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "地槽液下泵",
+    "model": ""
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "地槽液下泵",
+    "model": "40FY-16"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "第二反应釜a",
+    "model": "Φ1824/Φ2020×4500，V=7.42m3 搅拌n=69rpm RF型减速机 搅拌功率11kW-4"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "第二反应釜b",
+    "model": "Φ1824/Φ2020×4500，V=7.42m3 搅拌n=69rpm RF型减速机 搅拌功率11kW-4"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "第一反应釜",
+    "model": "Φ1424/Φ1620×4800，V=4.17m3"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "电除雾器",
+    "model": "Ø1840×9052 37管 主材PVC 直流输入9.2kw 绝缘箱加热9kw"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "兑冷泵",
+    "model": "IHF125-100-200"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "兑冷槽",
+    "model": "Φ2444×4332×10/塑12 V=20.3m3"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "二楼循环水泵",
+    "model": "300S32A 600m3/h H30m 75kw 1450rpm 变频IP55"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "返溶釜",
+    "model": "Φ2444×2332×10"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "返溶釜泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "合成尾气洗涤泵",
+    "model": "IHF65-50-160"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "合成尾气洗涤塔",
+    "model": "Φ1200×6424 PPH"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "减重计量秤",
+    "model": "可承重1.8T，净计量范围0~1.2t"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "结晶器轴流泵",
+    "model": "ZLH2100-2.5"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "精品带式过滤机",
+    "model": "DU10m2/800"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "精品分配斗",
+    "model": "2000/1000×1500×12"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "精品水环真空泵",
+    "model": "2BE1- 303-0"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "连续结晶器",
+    "model": "Φ5000/Φ4000×6164,V=61m3"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "连续溶解槽",
+    "model": "6000×1000×1300×30"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "凉水塔",
+    "model": "GFNGP-750 (LF47B)"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "凉水塔旁滤器",
+    "model": "BRM48-02"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "母液槽",
+    "model": "卧式 Φ3640×7000×20 V=61m3"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "母液回收泵",
+    "model": "IHF40-32-250"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "母液回收泵",
+    "model": "IHF65-40-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "尿素仓库行车",
+    "model": "LD5-22.3"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "尿素加料斗",
+    "model": "Φ1420×1456×8，V=1.58m3"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "尿素螺旋机",
+    "model": "Φ100 H345 进出口间距1360 n=34rpm 变频1.5kw"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "旁滤器循环水槽",
+    "model": "Ø2m×3m"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "热水泵",
+    "model": "ISW80-160"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "热水泵",
+    "model": "NBG 80-50200/210"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "溶解过滤器",
+    "model": ""
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "溶解母液泵",
+    "model": "IHF65-50-160"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "三楼行车",
+    "model": "LDA"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "三楼循环水泵",
+    "model": "IS150-125-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "石墨加热器",
+    "model": "YKZ-1000-100m2"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "碳化硅热交换器",
+    "model": "CHE350380014"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "外冷器洗液泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "稀释釜",
+    "model": "Φ1786/Φ1920×4605，V=6.04m3，RF型减速机"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "稀释母液泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "稀酸成品泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "稀酸大罐",
+    "model": "Φ10000×13000"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "稀酸地槽泵",
+    "model": ""
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "稀酸中间泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "稀酸中间槽",
+    "model": "Φ5000×3500×26 V=69m3"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "洗涤水泵（老）",
+    "model": ""
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "洗液槽",
+    "model": "Φ2444×4332×10/塑12 V=20.3m3 7.5kw-4"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "洗液槽母液循环泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "循环水槽",
+    "model": "Ø 5024×9500×12"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "烟酸屏蔽泵",
+    "model": "HV65-50DJ/413J4F-B1S4"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "溢流母液泵",
+    "model": "100FDU-38-47/16-U3/U3-C3"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "溢流母液槽",
+    "model": "Φ2444×4332×10/塑12 V=20.3m3"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "引碳风机",
+    "model": "1000~1500Nm3/h 全塑"
+  },
+  {
+    "workshop": "氨基磺酸车间（一期）",
+    "name": "应急稀释釜",
+    "model": "Φ4000×2800×25"
+  },
+  {
+    "workshop": "环保车间",
+    "name": "电动葫芦",
+    "model": "2吨"
+  },
+  {
+    "workshop": "环保车间",
+    "name": "工程塑料液下泵",
+    "model": "50FYUC-30-20/25-1500-800"
+  },
+  {
+    "workshop": "环保车间",
+    "name": "投石灰螺旋",
+    "model": ""
+  },
+  {
+    "workshop": "环保车间（废水处理）",
+    "name": "板框压滤机",
+    "model": "XMZGF100-1000-U"
+  },
+  {
+    "workshop": "环保车间（废水处理）",
+    "name": "沉降池水回用泵",
+    "model": "100FUH-28-80/18-C3"
+  },
+  {
+    "workshop": "环保车间（废水处理）",
+    "name": "废水提升泵",
+    "model": "100FUH-28-80/18-C3"
+  },
+  {
+    "workshop": "环保车间（废水处理）",
+    "name": "搅拌减速机",
+    "model": "GRF-87-Y5.5-4P-17.15-M4-Φ350-IEC"
+  },
+  {
+    "workshop": "环保车间（废水处理）",
+    "name": "聚铁反应搅拌减速机",
+    "model": "GRF-87-Y5.5-4P-17.15-M4-Φ350-IEC"
+  },
+  {
+    "workshop": "环保车间（废水处理）",
+    "name": "罗茨风机",
+    "model": "HTSR250"
+  },
+  {
+    "workshop": "环保车间（废水处理）",
+    "name": "污泥浓缩罐",
+    "model": "Φ4000*4000"
+  },
+  {
+    "workshop": "环保车间（废水处理）",
+    "name": "污泥压滤泵",
+    "model": "100FDU-50-100/55-U1/U1-C3F"
+  },
+  {
+    "workshop": "环保车间（废水处理）",
+    "name": "新废水池大液下泵",
+    "model": "100FYUC-50-100/20-1500+800/"
+  },
+  {
+    "workshop": "环保车间（废水处理）",
+    "name": "絮凝反应搅拌减速机",
+    "model": "GRF-87-Y5.5-4P-17.15-M4-Φ350-IEC"
+  },
+  {
+    "workshop": "环保车间（废水处理）",
+    "name": "液下渣浆泵",
+    "model": "50FYUC-30-20/25-1500+1500"
+  },
+  {
+    "workshop": "环保车间（废水处理）",
+    "name": "FBL过滤器",
+    "model": "Φ3600×7600FBL1808-40-S101"
+  },
+  {
+    "workshop": "环保车间（后期雨水处理）",
+    "name": "计量泵",
+    "model": ""
+  },
+  {
+    "workshop": "环保车间（后期雨水处理）",
+    "name": "潜水泵",
+    "model": ""
+  },
+  {
+    "workshop": "环保车间（后期雨水处理）",
+    "name": "石灰泵",
+    "model": "65FDU-50-30/40-C"
+  },
+  {
+    "workshop": "环保车间（后期雨水处理）",
+    "name": "污泥泵",
+    "model": ""
+  },
+  {
+    "workshop": "环保车间（后期雨水处理）",
+    "name": "药剂储罐",
+    "model": ""
+  },
+  {
+    "workshop": "环保车间（后期雨水处理）",
+    "name": "一体化设备",
+    "model": "碳钢衬胶防腐，18x3x3.2m，碳钢衬胶防腐:"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "3#化工泵（水泵）",
+    "model": "50FUB-30K"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "除害塔风机",
+    "model": "HF-241B-7.5KW-4p"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "除害塔水泵",
+    "model": "Z304ABCD"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "除害吸收塔",
+    "model": "T710-711"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "二级过滤器",
+    "model": "Φ3300*7000"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "搅拌减速机",
+    "model": "GRF97-Y7.5-4P-27.58-M4-D350-ZPIEC"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "搅拌装置",
+    "model": "RF87-(Y4-4P)-23.51-"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "搅拌装置",
+    "model": "RF87-(Y4-4P)-23.51-M4-350"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "聚铁搅拌加药桶",
+    "model": "Φ1040×1190，V=1m3加药桶MC-1000L"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "聚铁输送泵",
+    "model": "JDMS-2000/0.3"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "硫化提升泵",
+    "model": "40FUH-50T-20/36-C3"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "清液贮槽",
+    "model": "DN2500×3600"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "石灰配置槽",
+    "model": "Φ2200*2200"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "石灰配置槽搅拌",
+    "model": "搅拌器DS320-900，搅拌轴SA60-2030，n=80rpm"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "石灰渣浆泵A",
+    "model": "65FDU-50-30/40-C"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "石灰渣浆泵B",
+    "model": "UHB-UF型耐腐耐磨泵"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "卧罐采出泵",
+    "model": "65FUH-54-50/23-K"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "污泥罐",
+    "model": "Φ3000*3000"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "污泥罐搅拌",
+    "model": "GRF109-Y7.5-47.63-M4-D450"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "污酸储罐A/B",
+    "model": "Φ4000*6000"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "稀酸反应罐",
+    "model": "Φ4000*4000"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "稀酸压滤机",
+    "model": "KAZGF/1000-U"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "稀酸中和罐",
+    "model": "Φ4000*4000"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "稀酸转酸泵",
+    "model": "40FCU-70-25/65-K"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "卸料泵",
+    "model": "65FUB-54K"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "压滤泵",
+    "model": "50FUH-30-20/25-C3"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "压滤水卧式贮罐",
+    "model": "DN2800×10500"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "一级沉降池",
+    "model": "Φ3300*6800"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "中和废水压滤泵",
+    "model": "100FDU-50-100/55-U1/U1-C3F"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "中间水槽",
+    "model": "Φ3000*3000"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "中间水槽液下泵",
+    "model": "50FYUC-30-20/25-1500"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "PAM加料泵",
+    "model": "MPD3500"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "PAM加药泵A/B",
+    "model": "MPD3500"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "PAM加药罐",
+    "model": "Φ860*1140"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "PAM加药罐搅拌",
+    "model": "BLC09-11-Y0.75"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "PAM加药桶",
+    "model": "Φ1212*1200*6"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "SC-M加药泵A/B",
+    "model": "GM330/0.5"
+  },
+  {
+    "workshop": "环保车间（稀酸处理）",
+    "name": "SC-M药剂储罐",
+    "model": "Φ4000*6000"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "1#螺旋输送机",
+    "model": "ZXLS325*6500"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "10#螺旋输送机",
+    "model": "ZXLS325*2800"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "2#螺旋输送机",
+    "model": "ZXLS400*6000"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "3#螺旋输送机",
+    "model": "ZXLS400*6000"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "3吨柴油机械叉车",
+    "model": "CPC30"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "5#螺旋输送机",
+    "model": "ZXYLLS325*4800"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "6#螺旋输送机",
+    "model": "ZXLS273*5800"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "7#螺旋输送机",
+    "model": "ZXLS273*5800"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "8#螺旋输送机",
+    "model": "ZXLS325*5000"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "9#螺旋输送机",
+    "model": "ZXLS325*5000"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "包装料仓",
+    "model": "2000*1200*4300"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "布袋除尘器",
+    "model": "GMC-250、GMC-200"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "超低噪声玻璃管逆流式凉水塔",
+    "model": "CBNL3-175T"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "齿轮油泵",
+    "model": ""
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "氮气储罐",
+    "model": "F=20m3"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "氮气加热器",
+    "model": "DN430×2286"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "导热油冷却器",
+    "model": "F=20m2"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "导热油循环泵",
+    "model": "65-50-160"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "电动葫芦1",
+    "model": "CD1"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "电动葫芦2",
+    "model": "CD1"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "电支单梁桥式起重机",
+    "model": "CD3t—16.8m H=8M"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "二氧化硅",
+    "model": "气相法A200"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "粉末成型器",
+    "model": "WSB-2配套（无型号）"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "粉碎机（冲击磨）",
+    "model": "C120"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "粉碎机冷却器",
+    "model": ""
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "风机",
+    "model": "9-19N67.7A"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "干燥料仓",
+    "model": "3500*2750*4475"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "干燥尾气冷却器",
+    "model": "F=20m2"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "管链式提升机",
+    "model": "YE3-100L2-4"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "进料料仓",
+    "model": "2200*1000*2200"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "凉水塔循环泵（变频，清水泵）",
+    "model": "IS150-125-250A"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "螺杆空气压缩机",
+    "model": "BLT40A"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "模温机",
+    "model": "MZRQ-95AQT"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "气液分离罐",
+    "model": "2m3"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "实验室小型粉碎机",
+    "model": "容量100g（各厂家型号不同）"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "手动液压叉车",
+    "model": ""
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "水环真空泵",
+    "model": "2BV2071"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "水喷射真空泵",
+    "model": "PP280"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "台式白度仪",
+    "model": "WSB-2"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "提升机",
+    "model": "TH250"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "压缩空气储罐",
+    "model": "C19-1455"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "真空耙式干燥机",
+    "model": "ZB-7000 型"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "制氮机组",
+    "model": "ZSN-50B"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "中间料仓",
+    "model": "3500*2750*4475"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "锥混机",
+    "model": "DSH"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "自动包装机",
+    "model": "LCS-CK"
+  },
+  {
+    "workshop": "焦磷酸哌嗪车间",
+    "name": "PH计",
+    "model": "PHS-3C"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "1#电炉",
+    "model": "9组、1800KW"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "1#污酸泵",
+    "model": "32FUH-20-10/10-K"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "105成品酸贮槽",
+    "model": "φ20000×10000"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "105酸拨酸槽",
+    "model": "φ3820×2500"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "105酸高位槽",
+    "model": "φ6500×6400"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "105酸阳极换热器",
+    "model": "800X6000 230m2"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "105酸液下泵",
+    "model": "JHB114-24"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "105洗涤塔",
+    "model": "φ2500×10900"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "2#电炉",
+    "model": "5组、1200KW"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "2#污酸泵",
+    "model": "50FUH-30-20/30-C3"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "98成品酸贮槽",
+    "model": "φ20000×10000"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "98酸拨酸槽",
+    "model": "φ3820×2500"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "98酸高位槽",
+    "model": "φ6500×6400"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "98酸液下泵",
+    "model": "JHB114-24"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "安全水封槽",
+    "model": "φ1450×1950"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "摆线针轮减速机",
+    "model": "BWD-18-43-1.5KW"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "摆线针轮减速机",
+    "model": "BWD-18-43-2.2KW"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "摆线针轮减速机",
+    "model": "BWD13-29-4"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "摆线针轮减速机",
+    "model": "BWD27-43-4"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "摆线针轮减速机",
+    "model": "BWED2215-3481-0.55KW"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "摆线针轮减速机",
+    "model": "XWD7-87-5.5"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "摆线针轮减速机",
+    "model": "XWED85-121-Y7.5-ZP"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "板式换热器",
+    "model": "BR-0.23"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "背压机循环水泵A",
+    "model": "7NWH100-160A"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "背压机循环水泵B",
+    "model": "7NWH100-160A"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "背压式发电机组",
+    "model": "B3-35/10"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "玻璃钢中、低温凉水塔",
+    "model": "GFN-1500M3/h"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "柴油槽",
+    "model": "φ1200×2500"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "铲车",
+    "model": "LG855BG"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "成品酸大气连通罐",
+    "model": "φ1000×2000"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "成品酸冷器",
+    "model": "EM10FW-1.0/30-92 27m2"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "齿轮箱",
+    "model": "GS250-33"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "抽凝式发电机组",
+    "model": "C6-3.43/0.981"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "除尘增湿水泵",
+    "model": "32UHB-ZK-8-18"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "除盐水泵A",
+    "model": "KQWH100-200B"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "除盐水泵B",
+    "model": "KQWH100-200B"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "纯水高位槽",
+    "model": "Φ2430×4000×15 双层液位 下：上＝3：1"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "粗硫铁矿料斗",
+    "model": "φ2420×2200"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "大力热力喷雾式除氧器",
+    "model": "YDQ55"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "带式输送机",
+    "model": "B650"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "单梁电动起重机",
+    "model": "20t"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "地下酸槽",
+    "model": "φ5000×2400"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "地下酸槽液下泵",
+    "model": "JHB34-22"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "低压电动油泵",
+    "model": "CHY18"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "第二换热器",
+    "model": "φ5090×7140"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "第三换热器",
+    "model": "5874×8730"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "第四换热器a",
+    "model": "5844×7920"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "第四换热器b",
+    "model": "5844×13291"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "第一换热器",
+    "model": "φ5090×7520"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "电除尘刮板机",
+    "model": "MSR40"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "电除尘器",
+    "model": "LD75㎡-4-6"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "电动排空阀",
+    "model": "DN100/CF8"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "电动盘车装置",
+    "model": "DP4-47"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "电动盘车装置",
+    "model": "Y100L2-4"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "动力波洗涤器",
+    "model": "Φ4500*10700"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "动力波循环水泵",
+    "model": "250FUH-45-650/30-C3"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "二级电除雾器",
+    "model": "SDDH-37"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "二级分离罐",
+    "model": "2300*6000 容积26m³"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "二级预热器",
+    "model": "YKB400-15M²"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "二吸酸阳极换热器",
+    "model": "155m2"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "二吸酸液下泵",
+    "model": "JHB430-21"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "二吸塔",
+    "model": "φ4700×10300"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "二效降膜蒸发器",
+    "model": "DHE900-60-2.5/25V"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "二效冷凝水罐",
+    "model": "DN800*1200"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "二效循环泵",
+    "model": "IHF4 80-50-185"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "反洗水泵",
+    "model": "KQW200/235-18.5/4"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "沸腾炉",
+    "model": "φ11742×22510"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "干排滚筒冷却水泵",
+    "model": "100FUH-38-80/24-K"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "干燥酸阳保酸冷器",
+    "model": "790m2"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "干燥酸液下泵",
+    "model": "JHB430-21"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "干燥塔",
+    "model": "φ4700×12700"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "高温刮板机",
+    "model": "MSR50"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "高压电动油泵",
+    "model": "65Y60"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "高压水泵A",
+    "model": "CRCM64-5-1"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "高压水泵B",
+    "model": "CRCM64-5-1"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "锅炉给水泵",
+    "model": "DG45-80×8"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "锅炉加药泵",
+    "model": "JZ"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "锅炉加药桶",
+    "model": "JY-1-2-60"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "过滤器",
+    "model": "DN350"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "红渣短皮带机",
+    "model": "B650X17米"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "红渣长皮带机",
+    "model": "B650X20米"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "呼吸过滤器",
+    "model": "599×599×1300中效电袋式过滤器F8型 PTE滤袋 200M3/h 过滤精度<3μm 压降<1kPa 接管DN80"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "夹套式冷渣机",
+    "model": "φ1420×10500"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "减速机",
+    "model": "GKA77-Y3-4P-40.1-M3"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "减速机",
+    "model": "GKA77-Y5.5-4P-40.1-M3"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "减速机",
+    "model": "RF107-(Y11-4P)-22.62-M4-350"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "减速机",
+    "model": "ZQ350-48.57-I"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "减速机",
+    "model": "ZQ500-31.5-Ⅰ"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "精品酸板换",
+    "model": "BR05M-1.0/100-50-F"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "精品酸洗涤塔循环泵",
+    "model": "CQB100-80-160L"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "净化省煤器",
+    "model": "2650*2820*10724"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "净化水洗塔",
+    "model": "Φ5500*16620"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "空气过滤器",
+    "model": "599×599×1300中效电袋式过滤器F8型 PTE滤袋 1000M3/h 过滤精度<3μm 压降<1kPa 接管DN200"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "冷凝水输送泵",
+    "model": "IHF40-25-160"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "冷却塔风机",
+    "model": "GFN-3000m³/h"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "冷却塔专用风机",
+    "model": "LF70B-155"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "冷却增湿滚筒",
+    "model": "φ2400/φ1320×13000"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "离心泵",
+    "model": "IRG150-250I"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "离心鼓风机",
+    "model": "AⅠ1100-1.198/1.004"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "凝结水泵A",
+    "model": "100NB/60"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "凝结水泵B",
+    "model": "100NB/60"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "排渣高温刮板机",
+    "model": "MSR50"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "破碎振动筛",
+    "model": "900X1800"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "破碎振动筛",
+    "model": "ZZS1848ZF"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "汽包",
+    "model": "φ1580×40"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "清洗水泵",
+    "model": "KQWH80-125-200A"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "燃油泵",
+    "model": "CB-B50"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "上炉皮带",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "事故处理池",
+    "model": "φ14000×2000"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "事故水高位水槽",
+    "model": "Φ3500*3000"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "事故酸液下泵",
+    "model": "JHB100-20"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "试剂酸泵A改为（中间水泵C）",
+    "model": "50-32-125"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "试剂酸泵B改为（中间水泵D）",
+    "model": "50-32-125"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "双片网片式油滤器",
+    "model": "MSL65-80"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "双氧水输送泵",
+    "model": "FIJ40-25-160"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "双氧水卸车泵",
+    "model": "IJ65-40-315"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "水洗塔循环泵",
+    "model": "200FUH-40S-300/28-C3"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "水洗塔循环水泵",
+    "model": "250FUH-45-600/30-C3"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "酸水接收罐",
+    "model": "1200*2200 容积2m³"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "碳化硅式热交换器",
+    "model": "CHE350.3200.14-14.6SII"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "通用桥式起重机",
+    "model": "QZ-10t"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "脱吸塔",
+    "model": "Φ920×6850×(10+3) Φ38PTFE鲍尔环高3500"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "尾洗塔循环泵",
+    "model": "200FUH-40S-300/28-C3"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "污酸贮槽",
+    "model": "Φ3500*4000"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "吸收板换",
+    "model": "F＝150m2 酸160M3/h 90-65℃ 水360t/h 32-40℃ 酸单进单出DN250 水单进单出DN250"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "吸收磁力泵",
+    "model": "IMD125-100-200F 160M3/h H=30m N=37kw变频电机 IP55 2900rpm"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "吸收过滤器",
+    "model": "Φ630×8×2000，多袋式，过滤面积3m3"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "吸收塔",
+    "model": "Φ3028×12500×(14+3) 100S低铁高强瓷质波板规整填料4000高，酸口DN250,烟气口DN800"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "稀酸板式换热器",
+    "model": "EM280W-1.0/130-171"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "稀油站",
+    "model": "LYZ-63"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "洗涤酸冷却器",
+    "model": "150m2"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "洗涤酸冷却器",
+    "model": "Φ816×6000×8 F＝230m2 ，酸口DN250"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "消防泵",
+    "model": "XBD5.1/15G-L"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "星型卸灰阀",
+    "model": "DN400"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "旋风除尘器",
+    "model": "HY15φ2950"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "循环水泵A",
+    "model": "KQSN350-N19/320"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "循环水泵B",
+    "model": "KQSN350-N19/320"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "循环水泵C",
+    "model": "KQSN350-N19/320"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "烟酸过滤器",
+    "model": "篮式GDA10H-10P-250 滤网80目 过滤面积0.6m2 180M3/h，接管DN250"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "烟酸塔",
+    "model": "φ4020×12320"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "烟酸塔循环泵",
+    "model": "IJ200-150-315-V-PK"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "烟酸洗涤泵",
+    "model": "不锈钢磁力泵JMC125-80-160 180M3/h H=26m N=30kw变频电机 IP55 2900rpm 主材316"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "烟酸洗涤塔",
+    "model": "Φ3024×10600×12，PTFE折流除沫器两层共高400，烟气180℃→80℃。酸口DN250，烟气口进DN1000、出DN800"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "烟酸中间槽",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "一级电除雾器",
+    "model": "SDDJ-37"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "一吸酸板式换热器",
+    "model": "T20-MWFG"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "一吸酸阳极换热器",
+    "model": "240m2"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "一吸酸液下泵",
+    "model": "JHB430-21"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "一吸塔",
+    "model": "φ4700×10300"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "一效分离罐",
+    "model": "1300*6000 容积8m³"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "一效降膜蒸发器",
+    "model": "DHE1000-80-2.5/25V"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "一效冷凝水罐",
+    "model": "DN800*1200"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "一效循环泵",
+    "model": "IHF4 80-50-185"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "溢流螺旋排灰机",
+    "model": "φ300×2380"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "溢流螺旋排灰机",
+    "model": "φ300×3380"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "油泵",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "油燃烧器",
+    "model": "F-QRF-TQ200"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "油站",
+    "model": "SR300LSS"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "余热锅炉",
+    "model": "HL56-3.82/450-Ⅰ"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "预干燥塔",
+    "model": "∮5500*14600"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "预干燥塔循环泵",
+    "model": "200FUH-40S-300/28-C3"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "预热器",
+    "model": "15m²、材质：石墨"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "原水泵",
+    "model": "L50-400-45"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "圆盘给料机",
+    "model": "KR20（φ2000）"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "圆柱齿轮减速机",
+    "model": "ZQ400-20.4-Ⅰ"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "圆柱齿轮减速机",
+    "model": "ZQ650-23.34-3CA"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "圆柱齿轮减速器",
+    "model": "ZSC400-27.07-Ⅰ"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "再生水泵",
+    "model": "CDLF16"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "渣浆泵",
+    "model": "50FUH-30-20/25-C3"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "渣水分离桶",
+    "model": "Φ2000×3000"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "真空缓冲罐",
+    "model": "800*1600 容积0.6m³"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "真空机组",
+    "model": "抽气量500m³/h"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "蒸汽高温过热器",
+    "model": "QCF101/590-56"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "蒸汽冷凝器",
+    "model": "YKB800 100M²"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "直流齿轮油泵",
+    "model": "CHY18"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "制动器",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "中、低温凉水塔循环泵",
+    "model": "KPS(II)25-350"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "中、低温凉水塔循环泵",
+    "model": "KQSN300-M13/331"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "中和水泵",
+    "model": "KQWH100/125A"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "中间槽",
+    "model": "Φ2820×3500×(10+3)"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "中间磁力泵",
+    "model": "CQB50-32-160FD 15M3/h H=29m N=7.5kw变频电机 IP55 2900rpm"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "中间水泵A",
+    "model": "KQWH100-160A"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "中间水泵B",
+    "model": "KQWH100-160A"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "中间酸板换",
+    "model": "F＝8.5m2 酸8M3/h 90-45℃ 水40t/h 32-38℃ 酸管口DN65 水管口DN100"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "抓斗",
+    "model": "U48（容积2m3）"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "转化器",
+    "model": "φ11000×23000"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "自来水备用贮槽",
+    "model": "φ6000×10×8700"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "自来水管道泵",
+    "model": "KQL150/400-45/4"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "CN过滤器",
+    "model": "CNⅡ3300"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "R型热水循环泵",
+    "model": "250RⅡ-62H"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "SO2脱吸塔",
+    "model": "Φ2000 ×4800"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "SO2主风机",
+    "model": "BⅡ2200-1.365/0.915"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "TDY电动滚筒",
+    "model": "TDY75型"
+  },
+  {
+    "workshop": "硫酸车间",
+    "name": "YD电动滚筒",
+    "model": "带宽650、滚筒直径500"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "1#絮凝剂配制槽",
+    "model": "Φ1000×800×6，V=0.5m³"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "2#絮凝剂配制槽",
+    "model": "Φ1200×900×6，V=0.75m³"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "3#絮凝剂配制槽",
+    "model": "Φ1200×1500×6 V=1.6m3"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "3m皮带",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "4.25m皮带",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "玻璃钢稀酸罐",
+    "model": "DN3800*6000"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "出垛二输送",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "出垛三输送",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "出垛四输送",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "出垛一输送",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "除尘器后烟囱",
+    "model": "Φ1600×27000×3"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "穿梭车",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "大小螺旋",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "倒包皮带",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "吊泵行车",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "顶升电机一、二、三",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "二次压滤水泵",
+    "model": "CDL5-18FSWPCM"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "二级清液槽",
+    "model": "Φ4800×3800×8，V=68m³"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "二级清液槽泵",
+    "model": "CZx50-315"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "反应槽",
+    "model": "Φ4800×3800×10 材质304"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "反应槽液下泵",
+    "model": "85LJYA-25-4"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "反应水洗喷淋塔泵",
+    "model": "65FDU-50-40/32-C3"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "反应水洗填料塔泵",
+    "model": "65FDU-50-40/32-C3"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "反应尾气风机",
+    "model": "HF-301B"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "反应尾气水洗喷淋塔",
+    "model": "Φ1800×7000×15"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "反应尾气水洗填料塔",
+    "model": "Φ1800×7000×15"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "缝包输送",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "隔膜板框压滤机",
+    "model": "XMZGF150/1250-UB"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "隔膜计量泵",
+    "model": "YB3-63M2-4"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "鼓风电机",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "滚筒输送一、二、三",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "过渡输送",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "机械手",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "棘滚输送",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "结晶器中转槽",
+    "model": "Φ3000×3500×8 V=24m³"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "结晶中转槽泵",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "进七水料仓螺旋A",
+    "model": "ZXLSU315×5m"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "进七水料仓螺旋B",
+    "model": "ZXLSU315×6.8m"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "进一水沸腾床螺旋AB",
+    "model": "ZXLSU315"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "冷结晶器",
+    "model": "Φ5000/Φ4000×5900"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "冷凝水泵",
+    "model": "IRG50-160"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "冷却分筛转窑",
+    "model": "LSG-1.8X10"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "离心机",
+    "model": "HR630-N"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "离心机输送螺旋",
+    "model": "ZXLSU315*6430"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "立式轴流泵",
+    "model": "ZLH2100-2.5"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "链条一、二输送",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "凉水塔",
+    "model": "GFNGP-750"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "凉水塔旁滤器",
+    "model": "BRM48-02"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "螺旋电机",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "母液槽",
+    "model": "Φ4800×3800×8，V=68m³"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "母液槽泵",
+    "model": "CZx100-315"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "浓密机",
+    "model": "Φ5000×（2500+1000）×8 材质304"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "浓密机浊液中间槽",
+    "model": "Φ3000×3500×8 V=25m3"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "浓酸输送泵",
+    "model": "IHF65-40-315"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "浓酸稀释槽",
+    "model": "Φ4000×3200×10，V=32m³"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "浓酸稀释循环泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "七水布袋除尘器",
+    "model": "GMC-240"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "七水沸腾床进料螺旋",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "七水干燥鼓风机",
+    "model": "9-26"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "七水干燥加热器",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "七水干燥冷风机",
+    "model": "9-26"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "七水干燥引风机",
+    "model": "4-72"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "七水料仓出料螺旋",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "七水硫酸镁沸腾床",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "七水硫酸镁料仓",
+    "model": "Φ4000×3800×8，V=33m³"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "取包输送",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "收集绞龙",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "输送机",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "输送机、缝包机",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "甩后液泵",
+    "model": "HFY65-25"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "甩后液槽",
+    "model": "Φ1600×1500×6 V=3m3"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "踢包输送",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "提升机",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "无组织废水收集槽",
+    "model": "Φ1600×1800×6，V=3.6m³"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "稀酸泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "稀酸转运泵",
+    "model": "IHF80-50-315"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "洗液泵",
+    "model": "CZx50-315"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "洗液槽",
+    "model": "Φ3800×3800×8 V=43m3"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "旋风分离器",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "循环水泵",
+    "model": "KQSN300-M13/331"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "压滤泵",
+    "model": "MHT80-65-400-I-BK"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "压滤水箱",
+    "model": "Φ1600×2000×10，V=4m³"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "氧化镁仓库单梁行车",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "氧化镁行车",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "一级清液槽",
+    "model": "Φ4800×3800×8，V=68m³"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "一级清液槽泵",
+    "model": "CZx80-315"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "一水布袋除尘器",
+    "model": "GMC-60"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "一水斗提机",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "一水沸腾床冷却器",
+    "model": "LS-500"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "一水干燥鼓风机",
+    "model": "9-38"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "一水干燥引风机",
+    "model": "4-73"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "一水料仓出料螺旋",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "一水硫酸镁称重包装机组",
+    "model": "DCS-50G型电子包装秤"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "一水硫酸镁沸腾床",
+    "model": "GXF-7000-B"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "一水硫酸镁料仓",
+    "model": "Φ4000×3300×8，V=27m³"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "一水破碎干燥机",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "蒸汽冷凝水槽",
+    "model": "Φ3000×3000×8 V=22m3"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "装车机器人",
+    "model": ""
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "FBL过滤器",
+    "model": "Φ3300×6500×8，V=41m³"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "FBL浊液中间槽",
+    "model": "Φ3000×3500×8 V=25m3"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "FBL浊液中间槽泵",
+    "model": "CZ080-315"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "MHT 轻型渣浆泵 （采料泵）",
+    "model": "MHT80-50-315-BK"
+  },
+  {
+    "workshop": "硫酸镁车间",
+    "name": "S弯输送",
+    "model": ""
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "包装机",
+    "model": "垂直螺旋脱气式吨包机HEF-1000B"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "包装机",
+    "model": "JKF-159CE阀口型包装设备"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "布袋除尘器",
+    "model": "小布袋1万m³/h，大布袋除尘器3万m³/h"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "冲击磨机组",
+    "model": "CR1200，分级机18.5kw;主机132kw,布袋出料电机4kw,关风机1.5kw ,2台。合计157.5kw。"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "冲击磨引风机",
+    "model": "Y9-19No8D;设计风量9000m³/小时，风压13000Pa。电机功率75kw."
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "储气罐",
+    "model": "V=20m³"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "储气罐",
+    "model": "Φ2400×3600,20m³"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "二氧化碳风机（水环真空泵）",
+    "model": "2BE1-203-980,980r/min，Y250M-6-37KW,18.4m³/min,耗水量3m³/h"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "反应槽",
+    "model": "容积：38m³；高度4000；内径3500。304制作；采用原搅拌器，搅拌转数42r/min；其中BD槽的搅拌功率为37千瓦，AC槽为45千瓦。"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "反应浆料泵",
+    "model": "AZ100-65-250-X,流量60立方米/小时；扬程20米 装机容量：11kw。"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "分汽包",
+    "model": "VN=0.07m³"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "改性槽A/B/C",
+    "model": "φ3500*4000电机YVP-45-4P"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "改性输料泵",
+    "model": "AZ80-50-250-PK"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "干燥鼓风机",
+    "model": "电机型号YX3-225S-4"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "干燥引风机",
+    "model": "DZTY.GF12"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "高压隔膜压滤机A/B",
+    "model": "XAZGFDP200/1250-UK"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "管路粉料鼓风机",
+    "model": "罗茨风机7.5kw,LZSR65。2.2m³/min,44.1kpa,1640rmp"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "挤压水泵",
+    "model": "SDL45-60FBWSC,电机YB3-180M-2"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "挤压水槽",
+    "model": ""
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "空气加热器",
+    "model": "XSG16型"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "空气压缩机",
+    "model": "BMVF11 外形尺寸:1000*670*1090"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "冷冻式压缩空气干燥机",
+    "model": "GD350GF"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "冷凝水收集槽",
+    "model": ""
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "冷凝水收集槽泵",
+    "model": ""
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "冷凝水收集液下泵",
+    "model": "80FYR-315"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "离心分离液泵",
+    "model": "聚丙烯离心泵65FP-32 流量29m³/h扬程32m"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "离心分离液槽",
+    "model": "DN3600*4800设计温度120度，V=20m³"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "离心机A/B",
+    "model": "型号LW520*2080-N， 主机功率45kw，辅机18.5kw"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "离心浆料槽",
+    "model": "φ3500X8X2500（304），V=24m³,搅拌XLDY-11KW-8-47."
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "离心浆料输送泵",
+    "model": "G-70-1，螺杆泵，流量20m³/h扬程30m功率4P/7.5kw.304不锈钢材质"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "立式压滤机",
+    "model": "压滤机型号HVPF-55，装机容量62.5KW。带控制柜。"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "立压分散浆料输送泵",
+    "model": "G-85-1，螺杆泵，流量30立方米/h 扬程40m"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "立压机上料泵A",
+    "model": "AZ100-65-250-PK，扬程80米，流量80m³/h。功率45kw。"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "立压机上料泵B",
+    "model": "AZ65-40-250-PK 2900转 流量30m³/h扬程80m 电机YE4-200L1-2"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "立压滤饼分散槽A",
+    "model": "高1600*直径2200，搅拌器DS810-600功率18.5KW"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "立压滤饼分散槽B",
+    "model": "高1800mm直径2200mm"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "立压滤饼分散槽C",
+    "model": ""
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "立压滤饼分散槽D",
+    "model": ""
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "立压洗涤泵A",
+    "model": "IJ100-65-250-PK流量80m³/h 扬程80m 功率37kw"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "立压洗涤泵B",
+    "model": "AZ65-40-250-PK 2900转 流量30m³/h扬程80m 电机YE4-200L1-2"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "料仓",
+    "model": "φ3000*7200+（3000*1570），V=54m³,"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "料仓引风机",
+    "model": "料仓引风机1.5kw"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "料仓B",
+    "model": "2123*4000+4577*4000 59m³可装料21.8吨6.7米高"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "滤布洗涤泵",
+    "model": "CDLF15-90FSWSC流量：15m³/h，扬程107m，转速2900r/min功率7.5kw"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "配料槽",
+    "model": "φ2400X10X2000,V=9m³，321,XLDY-11KW-8-47（31r/min），带冷却夹套。"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "配料输送泵",
+    "model": "G-70-1，螺杆泵。流量20立方米/h扬程30m功率4P/7.5kw304不锈钢材质"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "喷淋泵",
+    "model": "IH80-65-160，扬程32米，流量50立方米/小时 电机功率11kw."
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "清水槽",
+    "model": "φ5000X10X6000（304）,V=110m³"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "闪蒸干燥机组 （一套）",
+    "model": "XSG-1600型闪蒸干燥：物料接触部分为不锈钢；采用中压过热蒸汽加热；加热器出口温度为240℃，布袋出口温度为90℃；每小时水分干燥量为1.5吨。装机容量为155kw。"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "闪蒸进料螺旋A/B",
+    "model": "BWD3-59-Y2.2-ZP 电机GD100L2-2"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "碳化槽",
+    "model": "Φ4000*5500*8，V=38m³"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "碳化液储槽",
+    "model": "容积：25m³；高度2500；内径3500。304制作；搅拌转数42r/min"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "碳化A泵",
+    "model": "CZ80-250B，流量20m³/h，扬程30m，功率11kw"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "碳化B泵",
+    "model": "AZ65-40-250-X,流量15m³/h，扬程20m，功率4kw"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "卧压分散浆料泵",
+    "model": "G-85-1，螺杆泵，流量30m³/h 扬程40m"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "卧压机上料泵A/B",
+    "model": "AZ65-40-250-PK 2900转 流量30m³/h扬程80m 电机YE4-200L1-2"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "卧压机洗涤泵A/B",
+    "model": "AZ65-40-250-PK 2900转 流量30m³/h扬程80m 电机YE4-200L1-2"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "卧压滤饼分散槽A/B",
+    "model": "V=12m³"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "卧压洗涤液泵",
+    "model": "IJ-50-32-130PK;制备材质304。流量15立方米/小时；扬程20米，装机容量：3kw。"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "卧压洗涤液槽",
+    "model": "直径4000，高度3000，304，V=38m³"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "洗涤塔",
+    "model": "Φ2500×6000mm，10mm不锈钢V=29m³，磨粉与干燥来的尾气进入洗涤塔除尘。内径2500. 衡阳德亿设备制作有限公司"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "旋风分离器",
+    "model": "XSG-1600型"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "压滤淡水槽",
+    "model": "φ5200X10X7500（304），V=100m³"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "压滤淡水输送泵",
+    "model": "ISG50-125(I)扬程21.5米，流量17.5立方米/小时，功率3千瓦"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "压滤浆料槽",
+    "model": "容积：25m³；高度2500；内径3500。304制作；搅拌转数42r/min；其中两个槽的搅拌功率为11千瓦。"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "压滤母液槽",
+    "model": "Φ4000X10X8000（304）,V=100m³"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "压滤母液输送泵",
+    "model": "100-65-250，IJ系列。流量50m³/小时,扬程20米，电机功率7.5kw"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "液压式小袋整形机",
+    "model": "JKZ-600B"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "正反螺旋输送机",
+    "model": "JK219-3L"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "自动缠膜机",
+    "model": "1650型（YZ-CR1800）"
+  },
+  {
+    "workshop": "水滑石车间",
+    "name": "QD80带式输送机A/B",
+    "model": "KA77-4-4P-25.66-M1 胶带型号CC-56胶带规格B=1000"
+  }
+]

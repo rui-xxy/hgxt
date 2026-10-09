@@ -38,12 +38,12 @@ export function inPeriod(record: MaintenanceRecord, period: MaintenancePeriod): 
 
 export function recordsCsv(records: MaintenanceRecord[]): void {
   const headers = [
-    '日期', '原始日期', '报表年', '报表月', '维修人员', '部门', '区域 / 位置', '设备型号',
+    '日期', '原始日期', '报表年', '报表月', '维修人员', '部门', '区域 / 位置', '车间', '设备名称', '规格型号',
     '工作内容', '工作时间', '更换配件', '故障类型', '故障原因', '维修工时', '返工', '备注',
   ];
   const rows = records.map((record) => [
     record.date ?? '', record.sourceDateText, record.reportYear, record.reportMonth,
-    record.personnel, record.department, record.location, record.equipmentModel,
+    record.personnel, record.department, record.location, record.workshop, record.equipmentName, record.equipmentModel,
     record.workContent, record.workTimeText, record.replacedParts, record.faultType,
     record.faultCause, record.repairHours ?? '', record.isRework ? '是' : '否', record.remarks,
   ]);

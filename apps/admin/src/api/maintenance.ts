@@ -11,6 +11,8 @@ export interface MaintenanceRecord {
   personnel: string;
   department: string;
   location: string;
+  workshop: string;
+  equipmentName: string;
   equipmentModel: string;
   workContent: string;
   workTimeText: string;
@@ -27,7 +29,7 @@ export type MaintenanceRecordInput = Omit<MaintenanceRecord, 'id' | 'sourceRow' 
 /** 匿名登记用的联想选项行：仅分类字段（后端 /maintenance/options 返回） */
 export type MaintenanceOptionsRow = Pick<
   MaintenanceRecord,
-  'personnel' | 'department' | 'location' | 'equipmentModel' | 'faultType' | 'faultCause'
+  'personnel' | 'department' | 'location' | 'workshop' | 'equipmentName' | 'equipmentModel' | 'faultType' | 'faultCause'
 >;
 
 export const maintenanceApi = {

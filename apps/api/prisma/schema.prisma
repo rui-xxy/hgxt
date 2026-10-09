@@ -208,6 +208,8 @@ model MaintenanceRecord {
   personnel       String   @default("")
   department      String   @default("")
   location        String   @default("")
+  workshop        String   @default("")
+  equipmentName   String   @default("")
   equipmentModel  String   @default("")
   workContent     String   @default("")
   workTimeText    String   @default("")
