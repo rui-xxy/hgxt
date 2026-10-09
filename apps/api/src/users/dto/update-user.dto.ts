@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { PAGE_PERMISSION_VALUES, Role, type PagePermission } from '@hgxt/shared';
+import { CURRENT_DEPARTMENTS, PAGE_PERMISSION_VALUES, Role, type PagePermission } from '@hgxt/shared';
 import { Transform } from 'class-transformer';
 import { ArrayUnique, IsArray, IsIn, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
 
@@ -29,6 +29,12 @@ export class UpdateUserDto {
   @IsString()
   @MaxLength(32)
   phone?: string | null;
+
+  @ApiPropertyOptional({ description: '部门；null=清空，缺省=不修改', nullable: true, enum: CURRENT_DEPARTMENTS })
+  @Transform(trimString)
+  @IsOptional()
+  @IsIn(CURRENT_DEPARTMENTS, { message: '部门不合法' })
+  department?: string | null;
 
   @ApiPropertyOptional({ description: '角色（不能降级最后一个管理员）', enum: Role })
   @IsOptional()

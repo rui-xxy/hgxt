@@ -7,6 +7,7 @@ export function toUserDTO(user: User): UserDTO {
     id: user.id,
     username: user.username,
     name: user.name,
+    department: user.department,
     phone: user.phone,
     role: user.role,
     pagePermissions: user.pagePermissions.filter((permission): permission is PagePermission =>

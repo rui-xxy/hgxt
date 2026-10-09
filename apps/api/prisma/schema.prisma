@@ -27,12 +27,15 @@ enum RevokedReason {
   PASSWORD_RESET // 密码重置
   USER_DISABLED  // 用户被禁用
   REUSE_DETECTED // 疑似泄露（超宽限期复用，连坐吊销）
+  FORCE_OFFLINE  // 管理员强制下线（访问监控）
 }
 
 model User {
   id            String         @id @default(uuid())
   username      String         @unique
   name          String
+  /// 部门（CURRENT_DEPARTMENTS 之一）；访问监控按部门统计活跃
+  department    String?
   email         String?        @unique
   phone         String?
   passwordHash  String
@@ -46,6 +49,7 @@ model User {
   updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]
   formSubmissions FormSubmission[]
+  accessEvents  AccessEvent[]
 }
 
 /// Refresh Token 只存 sha256 哈希；轮换 = 旧的标记 revokedAt + revokedReason、写入新行。
@@ -60,6 +64,33 @@ model RefreshToken {
   createdAt     DateTime      @default(now())
 
   @@index([userId])
+}
+
+// 访问监控事件流：登录/登出/页面访问/心跳/数据操作/导出，全部监控视图从这张表实时聚合。
+// username/name/department 冗余存储——用户被删（SetNull）后日志仍可读。
+model AccessEvent {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  username   String
+  name       String   @default("")
+  department String?
+  /// login | login_failed | logout | page_view | heartbeat | submit | update | export
+  action     String
+  /// 页面标识（PAGE_CATALOG 的 key，如 board / brief / forms）
+  page       String?
+  detail     String?
+  /// desktop | mobile（按 User-Agent 判定）
+  device     String   @default("desktop")
+  /// User-Agent 摘要（如 "Chrome 129 · Windows"）
+  client     String?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@index([page, createdAt])
 }
 
 model Form {

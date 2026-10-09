@@ -77,6 +77,12 @@ const MaintenanceRecordsPage = lazy(() =>
 const MaintenanceNewPage = lazy(() =>
   import('./pages/MaintenanceNewPage').then((m) => ({ default: m.MaintenanceNewPage })),
 );
+const MonitorOverviewPage = lazy(() =>
+  import('./pages/monitor/MonitorOverviewPage').then((m) => ({ default: m.MonitorOverviewPage })),
+);
+const MonitorMemberPage = lazy(() =>
+  import('./pages/monitor/MonitorMemberPage').then((m) => ({ default: m.MonitorMemberPage })),
+);
 
 export default function App() {
   const navigate = useNavigate();
@@ -146,6 +152,22 @@ export default function App() {
               element={
                 <RequireSuperAdmin>
                   <UsersPage />
+                </RequireSuperAdmin>
+              }
+            />
+            <Route
+              path="monitor"
+              element={
+                <RequireSuperAdmin>
+                  <MonitorOverviewPage />
+                </RequireSuperAdmin>
+              }
+            />
+            <Route
+              path="monitor/:id"
+              element={
+                <RequireSuperAdmin>
+                  <MonitorMemberPage />
                 </RequireSuperAdmin>
               }
             />

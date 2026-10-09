@@ -6,6 +6,7 @@ import type {
 import { CURRENT_DEPARTMENTS, normalizeDepartmentValue, parseDepartmentNames } from '@hgxt/shared';
 import { Prisma, type Form, type FormSubmission } from '../generated/prisma/client';
 import { PrismaService } from '../database/prisma.service';
+import { MonitorService } from '../monitor/monitor.service';
 import { FormListQuery, SubmissionListQuery } from './query.dto';
 
 /** 事项表的部门选项统一使用现行名称，旧称在保存时归一。 */
@@ -141,7 +142,10 @@ function sparseControlData(data: FormData): FormData {
 
 @Injectable()
 export class FormsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly monitor: MonitorService,
+  ) {}
 
   async list(query: FormListQuery): Promise<FormPageResult> {
     const page = query.page ?? 1;
@@ -307,7 +311,7 @@ export class FormsService {
       const date = data.field_date as string;
       const patch = Object.fromEntries(Object.entries(data).filter(([key, value]) => key !== 'field_date' && value !== null && value !== ''));
       if (!Object.keys(patch).length) throw new BadRequestException('请至少填写一项中控数据或生产情况记录');
-      return this.prisma.$transaction(async (tx) => {
+      const result = await this.prisma.$transaction(async (tx) => {
         // 同一天由不同岗位分别填写时，串行查找并合并字段，避免产生重复日期或覆盖其他岗位的值。
         await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtext(${id}), hashtext(${date}))`;
         const [existing] = await tx.$queryRaw<{ id: string }[]>`
@@ -328,10 +332,24 @@ export class FormsService {
         `;
         return asSubmission(updated);
       });
+      if (submitterId) {
+        // 访问监控：中控数据按日期合并——首日为提交、同日续写为修改
+        await this.monitor.recordForUser(
+          submitterId,
+          result.createdAt === result.updatedAt ? 'submit' : 'update',
+          'form-fill',
+          `${form.title} · ${date}`,
+        );
+      }
+      return result;
     }
-    return asSubmission(await this.prisma.formSubmission.create({
+    const submission = asSubmission(await this.prisma.formSubmission.create({
       data: { formId: id, data: data as Prisma.InputJsonValue, submitterId },
     }));
+    if (submitterId) {
+      await this.monitor.recordForUser(submitterId, 'submit', 'form-fill', form.title);
+    }
+    return submission;
   }
 
   async saveSubmissions(id: string, body: SaveFormSubmissionsBody, submitterId: string) {
@@ -372,6 +390,18 @@ export class FormsService {
         await tx.formSubmission.deleteMany({ where: { formId: id, id: { in: body.deleted } } });
       }
     });
+    // 访问监控：数据页维护按动作拆两条事件（新增=提交、修改/删除=修改）
+    if (created.length) {
+      await this.monitor.recordForUser(submitterId, 'submit', 'forms', `${form.title} · 新增 ${created.length} 行`);
+    }
+    if (updated.length || body.deleted.length) {
+      await this.monitor.recordForUser(
+        submitterId,
+        'update',
+        'forms',
+        `${form.title} · 修改 ${updated.length}${body.deleted.length ? ` / 删除 ${body.deleted.length}` : ''} 行`,
+      );
+    }
     return { created: created.length, updated: updated.length, deleted: body.deleted.length };
   }
 

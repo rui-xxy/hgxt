@@ -31,6 +31,7 @@ export async function resetDbWithAdmin(
   prisma: PrismaService,
 ): Promise<{ adminId: string }> {
   await prisma.refreshToken.deleteMany();
+  await prisma.accessEvent.deleteMany();
   await prisma.user.deleteMany();
   const admin = await prisma.user.create({
     data: {

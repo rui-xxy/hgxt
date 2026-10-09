@@ -38,6 +38,8 @@ export interface UserDTO {
   id: string;
   username: string;
   name: string;
+  /** 部门（CURRENT_DEPARTMENTS 之一）；未设置为 null */
+  department: string | null;
   phone: string | null;
   role: Role;
   pagePermissions: PagePermission[];
@@ -81,6 +83,7 @@ export interface CreateUserBody {
   name: string;
   password: string;
   phone?: string;
+  department?: string | null;
   role: Role;
   pagePermissions?: PagePermission[];
 }
@@ -88,6 +91,7 @@ export interface CreateUserBody {
 export interface UpdateUserBody {
   name?: string;
   phone?: string | null;
+  department?: string | null;
   role?: Role;
   pagePermissions?: PagePermission[];
 }
@@ -102,6 +106,45 @@ export interface ResetPasswordBody {
 
 export { CURRENT_DEPARTMENTS, normalizeDepartmentValue, parseDepartmentNames } from './departments.js';
 export { calculateMaintenanceHours } from './maintenance-hours.js';
+
+// 访问监控（AccessEvent 聚合）
+export {
+  PAGE_CATALOG,
+  MONITOR_ACTION_LABELS,
+  MONITOR_LOG_TAB_ACTIONS,
+  MONITOR_DEVICE_LABELS,
+  MONITOR_SECURITY_KIND_LABELS,
+  monitorPageInfo,
+  monitorPageLabel,
+  shanghaiDateKey,
+  shanghaiDayStart,
+  shanghaiTime,
+  shiftDateKey,
+  diffDateKeys,
+  shanghaiWeekday,
+  countWorkdays,
+  isValidDateKey,
+} from './monitor.js';
+export type {
+  MonitorPageCatalogItem,
+  MonitorAction,
+  MonitorLogTab,
+  MonitorDevice,
+  TrackEventBody,
+  MonitorOverviewResult,
+  MonitorSecurityKind,
+  MonitorSecurityItem,
+  MonitorSecurityResult,
+  MonitorOnlineItem,
+  MonitorOnlineResult,
+  MonitorPageHeatRow,
+  MonitorPageHeatResult,
+  MonitorDepartmentsResult,
+  MonitorLogItem,
+  MonitorLogQuery,
+  MonitorLogResult,
+  MonitorMemberResult,
+} from './monitor.js';
 
 export type FormFieldType = 'text' | 'number' | 'date' | 'select';
 export interface FormField {

@@ -52,6 +52,15 @@ export class UsersController {
     return this.usersService.updateStatus(id, dto.status, currentUser.id);
   }
 
+  @Post(':id/force-offline')
+  @ApiOperation({ summary: '强制下线（不改密码，仅使全部会话立即失效；访问监控使用）' })
+  forceOffline(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() currentUser: AuthUser,
+  ): Promise<UserDTO> {
+    return this.usersService.forceOffline(id, currentUser.id);
+  }
+
   @Post(':id/reset-password')
   @ApiOperation({ summary: '重置用户密码（重置后该用户全部会话失效）' })
   resetPassword(

@@ -65,6 +65,7 @@ export function UsersPage() {
       updateUserApi(id, {
         name: values.name,
         phone: values.phone || null,
+        department: values.department || null,
         role: values.role,
         pagePermissions: values.pagePermissions ?? [],
       }),
@@ -118,6 +119,7 @@ export function UsersPage() {
         name: values.name,
         password: values.password ?? '',
         phone: values.phone || undefined,
+        department: values.department || undefined,
         role: values.role,
         pagePermissions: values.pagePermissions ?? [],
       });
@@ -132,6 +134,13 @@ export function UsersPage() {
       render: (username: string) => <span className="mono">{username}</span>,
     },
     { title: '姓名', dataIndex: 'name', ellipsis: true },
+    {
+      title: '部门',
+      dataIndex: 'department',
+      width: 140,
+      ellipsis: true,
+      render: (department: string | null) => department ?? <span className="hgxt-muted">—</span>,
+    },
     {
       title: '角色',
       dataIndex: 'role',
@@ -284,7 +293,7 @@ export function UsersPage() {
           columns={columns}
           dataSource={usersQuery.data?.items}
           loading={usersQuery.isFetching}
-          scroll={{ x: 1000, y: 'var(--hgxt-paged-viewport-height)', scrollToFirstRowOnChange: true }}
+          scroll={{ x: 1100, y: 'var(--hgxt-paged-viewport-height)', scrollToFirstRowOnChange: true }}
           pagination={false}
         /></div>
         <TablePageFooter page={page} pageSize={pageSize} total={usersQuery.data?.total ?? 0}

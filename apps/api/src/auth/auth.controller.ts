@@ -1,14 +1,21 @@
-import { Body, Controller, Get, HttpCode, Post, UseFilters, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Req, UseFilters, UseGuards } from '@nestjs/common';
+import type { Request } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import type { LoginResponse, RefreshResponse, UserDTO } from '@hgxt/shared';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser, type AuthUser } from '../common/decorators/current-user.decorator';
 import { ThrottlerExceptionFilter } from '../common/filters/throttler-exception.filter';
+import { parseUserAgent } from '../common/utils/ua';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { LogoutDto } from './dto/logout.dto';
+
+/** 从请求里取访问监控需要的元数据（IP + User-Agent 摘要） */
+function requestMeta(req: Request) {
+  return { ip: typeof req.ip === 'string' ? req.ip : null, ua: parseUserAgent(req.headers['user-agent']) };
+}
 
 /**
  * A5：只对认证端点限流（内部系统全公司常共享出口 IP，全局限流会误伤正常使用）。
@@ -26,8 +33,8 @@ export class AuthController {
   @HttpCode(200)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @ApiOperation({ summary: '登录（用户名 + 密码，同 IP 每分钟最多 10 次）' })
-  login(@Body() dto: LoginDto): Promise<LoginResponse> {
-    return this.authService.login(dto.username, dto.password);
+  login(@Body() dto: LoginDto, @Req() req: Request): Promise<LoginResponse> {
+    return this.authService.login(dto.username, dto.password, requestMeta(req));
   }
 
   @Public()
@@ -44,8 +51,8 @@ export class AuthController {
   @HttpCode(200)
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @ApiOperation({ summary: '登出（作废传入的 refresh token，幂等）' })
-  async logout(@Body() dto: LogoutDto): Promise<{ success: true }> {
-    await this.authService.logout(dto.refreshToken);
+  async logout(@Body() dto: LogoutDto, @Req() req: Request): Promise<{ success: true }> {
+    await this.authService.logout(dto.refreshToken, requestMeta(req));
     return { success: true };
   }
 

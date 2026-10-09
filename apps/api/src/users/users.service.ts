@@ -17,6 +17,7 @@ import { PrismaService } from '../database/prisma.service';
 import type { Prisma } from '../generated/prisma/client';
 import { hashPassword } from '../common/utils/argon';
 import { isRecordNotFound, isUniqueViolation } from '../common/utils/prisma-errors';
+import { MonitorService } from '../monitor/monitor.service';
 import { toUserDTO } from './user.mapper';
 
 /** E2：用户名统一小写存储，唯一性与登录都不区分大小写 */
@@ -26,7 +27,10 @@ function normalizeUsername(value: string): string {
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly monitor: MonitorService,
+  ) {}
 
   async findAll(query: UserPageQuery): Promise<UserPageResult> {
     const page = query.page ?? 1;
@@ -70,6 +74,7 @@ export class UsersService {
         data: {
           username: normalizeUsername(dto.username),
           name: dto.name.trim(),
+          department: dto.department || null,
           phone: dto.phone?.trim() || null,
           passwordHash,
           role: dto.role,
@@ -96,6 +101,7 @@ export class UsersService {
             ...(dto.name !== undefined && { name: dto.name.trim() }),
             // E3 语义：undefined = 不修改；null = 清空；string = 设置值
             ...(dto.phone !== undefined && { phone: dto.phone === null ? null : dto.phone.trim() }),
+            ...(dto.department !== undefined && { department: dto.department === null ? null : dto.department }),
             ...(dto.role !== undefined && { role: dto.role }),
             ...(dto.pagePermissions !== undefined && { pagePermissions: dto.pagePermissions }),
           },
@@ -109,6 +115,35 @@ export class UsersService {
     }
   }
 
+  /**
+   * 强制下线（访问监控）：不改密码，只把 authVersion +1（旧 Access Token 立即失效）
+   * 并吊销全部 Refresh Token。不能对自己使用——那等于把自己踢出当前会话。
+   */
+  async forceOffline(id: string, currentUserId: string): Promise<UserDTO> {
+    if (id === currentUserId) {
+      throw new BadRequestException('不能强制下线当前登录的账号');
+    }
+    try {
+      const user = await this.prisma.$transaction(async (tx) => {
+        const updated = await tx.user.update({
+          where: { id },
+          data: { authVersion: { increment: 1 } },
+        });
+        await tx.refreshToken.updateMany({
+          where: { userId: id, revokedAt: null },
+          data: { revokedAt: new Date(), revokedReason: 'FORCE_OFFLINE' },
+        });
+        return toUserDTO(updated);
+      });
+      // 访问监控：给用户近期用过的每台设备写登出边界事件，「当前在线」立即全部移出
+      await this.monitor.recordKickAllDevices(id, '管理员强制下线');
+      return user;
+    } catch (error) {
+      if (isRecordNotFound(error)) throw new NotFoundException('用户不存在');
+      throw error;
+    }
+  }
+
   async updateStatus(id: string, status: UserStatus, currentUserId: string): Promise<UserDTO> {
     if (id === currentUserId && status === 'DISABLED') {
       throw new BadRequestException('不能禁用当前登录的账号');
@@ -116,17 +151,22 @@ export class UsersService {
 
     try {
       // A3：禁用 + 踢下线必须同事务；A4：不能禁用最后一个管理员
-      return await this.prisma.$transaction(async (tx) => {
+      const user = await this.prisma.$transaction(async (tx) => {
         await assertNotLastActiveSuperAdmin(tx, id, { status });
-        const user = await tx.user.update({ where: { id }, data: { status } });
+        const updated = await tx.user.update({ where: { id }, data: { status } });
         if (status === 'DISABLED') {
           await tx.refreshToken.updateMany({
             where: { userId: id, revokedAt: null },
             data: { revokedAt: new Date(), revokedReason: 'USER_DISABLED' },
           });
         }
-        return toUserDTO(user);
+        return toUserDTO(updated);
       });
+      // 访问监控：给用户近期用过的每台设备写登出边界事件（多设备同时在线也会全部移出）
+      if (status === 'DISABLED') {
+        await this.monitor.recordKickAllDevices(id, '账号被禁用');
+      }
+      return user;
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
       if (isRecordNotFound(error)) throw new NotFoundException('用户不存在');

@@ -6,6 +6,7 @@ import { PagePermission, Role, type PagePermission as PagePermissionType } from 
 import { logoutApi } from '../api/auth';
 import { listForms } from '../api/forms';
 import { useMe } from '../api/hooks';
+import { pageKeyOfPath, startHeartbeat, trackPageView } from '../api/monitor';
 import { tokenStore } from '../api/client';
 import { queryClient } from '../api/queryClient';
 import {
@@ -16,6 +17,7 @@ import {
   LogoutIcon,
   MoonIcon,
   PackageIcon,
+  ShieldIcon,
   SlidersIcon,
   SunIcon,
   SystemNavIcon,
@@ -109,9 +111,14 @@ const MODULES: ModuleDef[] = [
     icon: SystemNavIcon,
     title: '系统',
     path: '/users',
-    match: (p) => p.startsWith('/users'),
+    match: (p) => p.startsWith('/users') || p.startsWith('/monitor'),
     adminOnly: true,
-    sections: [{ items: [{ label: '成员管理', path: '/users', icon: UsersIcon }] }],
+    sections: [{
+      items: [
+        { label: '成员管理', path: '/users', icon: UsersIcon },
+        { label: '访问监控', path: '/monitor', icon: ShieldIcon },
+      ],
+    }],
   },
 ];
 
@@ -131,6 +138,8 @@ function pageName(pathname: string): string {
   if (pathname.startsWith('/plan/settings')) return '生产计划设置';
   if (pathname.startsWith('/plan')) return '计划与完成';
   if (pathname.startsWith('/users')) return '成员管理';
+  if (pathname === '/monitor') return '访问监控';
+  if (pathname.startsWith('/monitor/')) return '成员访问详情';
   return 'HGXT';
 }
 
@@ -154,6 +163,24 @@ export function AdminLayout() {
   const closeTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => () => window.clearTimeout(closeTimer.current), []);
+
+  // 访问监控埋点：只在路由变化时触发一次；表单名走 ref 现取（先同步标题再上报），
+  // 避免导航数据异步加载完成后对同一次进入重复上报
+  const formTitleRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    formTitleRef.current = location.pathname.startsWith('/forms/')
+      ? formNavigation.data?.items.find((form) => location.pathname === `/forms/${form.id}`)?.title
+      : undefined;
+  }, [location.pathname, formNavigation.data]);
+  useEffect(() => {
+    const target = pageKeyOfPath(location.pathname);
+    if (!target) return;
+    trackPageView(target.page, target.detail ?? formTitleRef.current);
+    // 注意：故意不依赖表单导航数据——标题异步到达不该产生第二条访问记录
+  }, [location.pathname]);
+
+  // 访问监控：每 60 秒一次在线心跳（仅登录后的后台布局内）
+  useEffect(() => startHeartbeat(), []);
 
   const openFlyout = (key: string) => {
     window.clearTimeout(closeTimer.current);

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Checkbox, Flex, Form, Input, Modal, Select } from 'antd';
-import { PagePermission, Role, type PagePermission as PagePermissionType, type UserDTO } from '@hgxt/shared';
+import { CURRENT_DEPARTMENTS, PagePermission, Role, type PagePermission as PagePermissionType, type UserDTO } from '@hgxt/shared';
 
 const PAGE_OPTIONS: { label: string; value: PagePermissionType }[] = [
   { label: '计划与完成', value: PagePermission.PLAN },
@@ -13,6 +13,7 @@ export interface UserFormValues {
   name: string;
   password?: string;
   phone?: string;
+  department?: string | null;
   role: Role;
   pagePermissions: PagePermissionType[];
 }
@@ -41,6 +42,7 @@ export function UserFormModal({ open, initial, submitting, onCancel, onSubmit }:
           username: initial.username,
           name: initial.name,
           phone: initial.phone ?? '',
+          department: initial.department ?? null,
           role: initial.role,
           pagePermissions: initial.pagePermissions,
         });
@@ -106,6 +108,13 @@ export function UserFormModal({ open, initial, submitting, onCancel, onSubmit }:
         )}
         <Form.Item name="phone" label="手机号" rules={[{ max: 32 }]}>
           <Input placeholder="选填" />
+        </Form.Item>
+        <Form.Item name="department" label="部门">
+          <Select
+            allowClear
+            placeholder="选填（访问监控按部门统计）"
+            options={CURRENT_DEPARTMENTS.map((name) => ({ value: name, label: name }))}
+          />
         </Form.Item>
         <Form.Item name="role" label="角色" rules={[{ required: true, message: '请选择角色' }]}>
           <Select

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PAGE_PERMISSION_VALUES, Role, type PagePermission } from '@hgxt/shared';
+import { CURRENT_DEPARTMENTS, PAGE_PERMISSION_VALUES, Role, type PagePermission } from '@hgxt/shared';
 import { Transform } from 'class-transformer';
 import {
   IsArray,
@@ -50,6 +50,12 @@ export class CreateUserDto {
   @IsString()
   @MaxLength(32)
   phone?: string;
+
+  @ApiProperty({ description: '部门（现行部门清单之一）', required: false, enum: CURRENT_DEPARTMENTS })
+  @Transform(trimString)
+  @IsOptional()
+  @IsIn(CURRENT_DEPARTMENTS, { message: '部门不合法' })
+  department?: string;
 
   @ApiProperty({ description: '角色', enum: Role })
   @IsIn(Object.values(Role), { message: '角色不合法' })

@@ -369,3 +369,20 @@ export const FileSearchIcon = createIcon(
     <path d="M18 18l2 2" />
   </>,
 );
+
+/* ---------- 访问监控 ---------- */
+export const DeviceMonitorIcon = createIcon(
+  'DeviceMonitorIcon',
+  <>
+    <rect x="3" y="4" width="18" height="12" rx="2" />
+    <path d="M9 20h6M12 16v4" />
+  </>,
+);
+
+export const SmartphoneIcon = createIcon(
+  'SmartphoneIcon',
+  <>
+    <rect x="7" y="2.5" width="10" height="19" rx="2.5" />
+    <path d="M11 18h2" />
+  </>,
+);

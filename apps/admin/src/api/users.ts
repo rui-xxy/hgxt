@@ -30,6 +30,11 @@ export function updateUserStatusApi(id: string, status: UserStatus): Promise<Use
   return request<UserDTO>(`/users/${id}/status`, { method: 'PATCH', body: { status } });
 }
 
+/** 强制下线：不改密码，全部会话（access + refresh）立即失效 */
+export function forceOfflineApi(id: string): Promise<UserDTO> {
+  return request<UserDTO>(`/users/${id}/force-offline`, { method: 'POST' });
+}
+
 export function deleteUserApi(id: string): Promise<{ success: true }> {
   return request<{ success: true }>(`/users/${id}`, { method: 'DELETE' });
 }
