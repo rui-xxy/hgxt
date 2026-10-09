@@ -19,24 +19,11 @@ function LandingRedirect() {
 
 /**
  * 设备维修登记入口：无需登录即可填报（后端提交接口已开放并限流）。
- * 已登录用户则沿用原带导航布局 + 页面权限校验的版本。
+ * 登录与否都直接进入手机登记页；已登录用户保留页面权限校验。
  */
 function MaintenanceNewGate() {
   if (!tokenStore.getAccessToken()) return <MaintenanceNewPage />;
-  return (
-    <Routes>
-      <Route element={<AdminLayout />}>
-        <Route
-          index
-          element={
-            <RequirePageAccess permission={PagePermission.MAINTENANCE}>
-              <MaintenanceNewPage />
-            </RequirePageAccess>
-          }
-        />
-      </Route>
-    </Routes>
-  );
+  return <RequirePageAccess permission={PagePermission.MAINTENANCE}><MaintenanceNewPage /></RequirePageAccess>;
 }
 
 // F3：路由级拆包——业务页面按需加载，不进首屏主包
@@ -118,7 +105,6 @@ export default function App() {
             <Route path="forms" element={<RequireSuperAdmin><FormsPage /></RequireSuperAdmin>} />
             <Route path="maintenance" element={<RequirePageAccess permission={PagePermission.MAINTENANCE}><MaintenanceOverviewPage /></RequirePageAccess>} />
             <Route path="maintenance/records" element={<RequirePageAccess permission={PagePermission.MAINTENANCE}><MaintenanceRecordsPage /></RequirePageAccess>} />
-            <Route path="maintenance/new" element={<RequirePageAccess permission={PagePermission.MAINTENANCE}><MaintenanceNewPage /></RequirePageAccess>} />
             <Route path="board" element={<WorkshopBoardPage />} />
             <Route path="energy" element={<EnergyCenterPage />} />
             <Route path="materials" element={<MaterialsPage />} />

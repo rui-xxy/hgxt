@@ -85,6 +85,18 @@ function presetFromTime(range: [Dayjs, Dayjs] | null): TimePreset {
   return 'custom';
 }
 
+/** 填写页交给手机系统打开原生日期选择器，避免桌面日历弹层超出窄屏。 */
+function MaintenanceDateInput({ value, onChange, id }: {
+  value?: Dayjs | null;
+  onChange?: (date: Dayjs | null) => void;
+  id?: string;
+}) {
+  return <input id={id} className="maintenance-entry-date" type="date" aria-label="日期"
+    value={value?.format('YYYY-MM-DD') ?? ''}
+    onChange={(event) => onChange?.(event.target.value ? dayjs(event.target.value) : null)}
+    onClick={(event) => event.currentTarget.showPicker?.()} />;
+}
+
 function valuesFromRecord(record: MaintenanceRecord): FormValues {
   return {
     date: record.date ? dayjs(record.date) : null,
@@ -414,6 +426,7 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
         {!editId ? <Button type="text" onClick={saveDraft}>草稿</Button> : <span />}
       </header>
       <Form<FormValues> form={form} layout="vertical" initialValues={EMPTY_FORM} onFinish={submit} className="maintenance-entry-form" requiredMark={false}>
+        <div className="maintenance-entry-scroll">
         <section className="maintenance-entry-hero">
           <Form.Item name="workContent" label="做了什么" rules={[{ required: true, whitespace: true, message: '请填写工作内容' }]}>
             <Input.TextArea variant="borderless" autoSize={{ minRows: 2, maxRows: 6 }} placeholder="描述维修、巡检或更换工作" maxLength={1000} />
@@ -422,7 +435,7 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
         </section>
 
         <section className="maintenance-entry-group" aria-label="基础信息">
-          <Form.Item name="date" label="日期" className="maintenance-entry-row" rules={[{ required: !editId, message: '请选择日期' }]}><DatePicker variant="borderless" className="maintenance-full-width" allowClear={!!editId} format="YYYY-MM-DD" onChange={(nextDate) => { if (!editId && nextDate) form.setFieldValue('reportPeriod', nextDate.startOf('month')); }} /></Form.Item>
+          <Form.Item name="date" label="日期" className="maintenance-entry-row" rules={[{ required: !editId, message: '请选择日期' }]}><MaintenanceDateInput onChange={(nextDate) => { if (!editId && nextDate) form.setFieldValue('reportPeriod', nextDate.startOf('month')); }} /></Form.Item>
           <Form.Item name="personnel" label="维修人员" className="maintenance-entry-row" rules={[{ required: true, type: 'array', min: 1, message: '请选择维修人员' }]}><Select variant="borderless" mode="multiple" placeholder="选择维修人员" options={peopleOptions} maxTagCount={2} open={false} onClick={() => openPicker('personnel')} /></Form.Item>
           <Form.Item name="department" label="所属部门" className="maintenance-entry-row"><Input variant="borderless" readOnly placeholder="选择部门" suffix={<ArrowRightIcon width={16} height={16} />} onClick={() => openPicker('department')} /></Form.Item>
           <Form.Item name="location" label="区域 / 位置" className="maintenance-entry-row"><Input variant="borderless" readOnly placeholder="选择区域" suffix={<ArrowRightIcon width={16} height={16} />} onClick={() => openPicker('location')} /></Form.Item>
@@ -455,6 +468,7 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
             <Form.Item name="remarks" label="备注" className="maintenance-entry-notes"><Input.TextArea variant="borderless" autoSize={{ minRows: 2, maxRows: 5 }} placeholder="可选" /></Form.Item>
           </section>
         </details>
+        </div>
         <div className="maintenance-phone-footer"><Button type="primary" block htmlType="submit" loading={mutation.isPending} icon={<SaveIcon width={16} height={16} />}>{editId ? '保存修改' : '提交'}</Button></div>
       </Form>
     </div>
