@@ -26,3 +26,13 @@ export function latestValues(id: string): Promise<FormLastValuesResult> {
 export function saveSubmissions(id: string, body: SaveFormSubmissionsBody): Promise<{ created: number; updated: number; deleted: number }> {
   return request(`/forms/${id}/submissions/batch`, { method: 'POST', body });
 }
+
+export interface ControlCatalogItem { id: string; code: string; title: string }
+export function controlCatalog(): Promise<ControlCatalogItem[]> { return request('/forms/control/catalog'); }
+export function controlRange(from: string, to: string): Promise<{ forms: ControlCatalogItem[]; rows: FormSubmissionDTO[] }> {
+  const params = new URLSearchParams({ from, to });
+  return request(`/forms/control/range?${params}`);
+}
+export function patchControlValue(body: { formId: string; date: string; fieldId: string; value: string | number | null }): Promise<FormSubmissionDTO> {
+  return request('/forms/control/value', { method: 'POST', body });
+}

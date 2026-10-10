@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { App as AntdApp, ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import 'dayjs/locale/zh-cn';
-import { darkTheme, lightTheme } from './tokens';
+import { darkTheme, lightTheme, sulfuricControlPalette } from './tokens';
 
 export type ThemeMode = 'light' | 'dark';
 
@@ -49,7 +49,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // 自定义 CSS 的配色变量（styles/global.css）随 data-theme 切换
   useEffect(() => {
-    document.documentElement.dataset.theme = mode;
+    const root = document.documentElement;
+    root.dataset.theme = mode;
+    for (const [name, value] of Object.entries(sulfuricControlPalette[mode])) root.style.setProperty(`--hg-sc-${name}`, value);
   }, [mode]);
 
   const themeConfig = mode === 'dark' ? darkTheme : lightTheme;

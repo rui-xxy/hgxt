@@ -9,11 +9,18 @@ import manifest from '../prisma/form-schemas/manifest.json';
 import { buildSulfuricControlRows, type SulfuricControlSnapshot } from '../prisma/import-sulfuric-control';
 
 describe('硫酸中控 Excel 数据提取', () => {
-  it('四张品质表单完整且不重叠地覆盖原有字段，生产情况记录独立成表', () => {
+  it('四张品质表单覆盖原有字段并补充晚班入炉矿铅锌检测，生产情况记录独立成表', () => {
     const parts = [assaySchema, washingSchema, acidSchema, notesSchema];
     const fieldIds = parts.flatMap((part) => part.slice(1).map((field) => field.id));
     expect(fieldIds).toHaveLength(new Set(fieldIds).size);
-    expect(fieldIds.sort()).toEqual(schema.slice(1).map((field) => field.id).sort());
+    expect(fieldIds.sort()).toEqual([...schema.slice(1).map((field) => field.id), 'field_night_pb', 'field_night_zn'].sort());
+    expect(assaySchema.filter((field) => field.subgroup === '入炉矿（晚班）').map((field) => field.title)).toEqual([
+      '有效硫（%）', '水分（%）', '铅（%）', '锌（%）',
+    ]);
+    expect(assaySchema.find((field) => field.id === 'field_BG')?.title).toBe('水分（g/m³）');
+    expect(washingSchema.find((field) => field.id === 'field_AC')?.subgroup).toBe('动力波');
+    expect(acidSchema.find((field) => field.id === 'field_AX')?.subgroup).toBe('试剂酸质量（中间槽）');
+    expect(acidSchema.find((field) => field.id === 'field_AQ')?.section).toBe('酸浓缩');
     expect(acidSchema.some((field) => field.id === 'field_notes')).toBe(false);
     expect(notesSchema.at(-1)).toMatchObject({ id: 'field_notes', title: '生产情况记录' });
     expect(manifest.filter((entry) => entry.code.startsWith('sulfuric_control_'))).toHaveLength(4);

@@ -102,8 +102,35 @@ describe('forms 表单填写与数据表格', () => {
     expect(third.body.id).toBe(first.body.id);
     expect(third.body.data).toMatchObject({ field_date: '2026-09-28', field_AK: 94.48, field_AC: 0.31, field_notes: '生产正常' });
     expect(await prisma.formSubmission.count({ where: { formId: control.id } })).toBe(1);
+    const exactDecimal = await submit({ field_AK: '94.480' });
+    expect(exactDecimal.body.data.field_AK).toBe('94.480');
+    const pending = await submit({ field_AK: '待出' });
+    expect(pending.body.data.field_AK).toBe('待出');
+    const catalog = await http(app).get('/api/forms/control/catalog').expect(200);
+    expect(catalog.body.some((item: { id: string }) => item.id === control.id)).toBe(true);
+    await http(app).get('/api/forms/control/range?from=2026-09-28&to=2026-09-28').expect(401);
+    const summary = await http(app).get('/api/forms/control/range?from=2026-09-28&to=2026-09-28').set('Authorization', auth()).expect(200);
+    expect(summary.body.rows.some((row: { formId: string; data: { field_AK: string } }) => row.formId === control.id && row.data.field_AK === '待出')).toBe(true);
+    const corrected = await http(app).post('/api/forms/control/value').set('Authorization', auth())
+      .send({ formId: control.id, date: '2026-09-28', fieldId: 'field_AK', value: 95.1 }).expect(201);
+    expect(corrected.body.data).toMatchObject({ field_AK: 95.1, field_AC: 0.31, field_notes: '生产正常' });
+    await http(app).post('/api/forms/control/value').set('Authorization', auth())
+      .send({ formId: control.id, date: '2026-09-28', fieldId: 'field_AK', value: null }).expect(201);
+    const cleared = await prisma.formSubmission.findUniqueOrThrow({ where: { id: first.body.id } });
+    expect((cleared.data as Record<string, unknown>).field_AK).toBeUndefined();
     await http(app).post(`/api/forms/${control.id}/submissions`).set('Authorization', auth())
       .send({ data: { field_date: '2026-09-28' } }).expect(400);
+
+    for (const [code, title] of [
+      ['sulfuric_control_washing', '硫酸中控 02｜动力波·水洗塔'],
+      ['sulfuric_control_acid', '硫酸中控 03｜预干燥·酸浓缩·尾吸·试剂酸'],
+      ['sulfuric_control_notes', '硫酸中控 04｜生产情况记录'],
+    ]) await prisma.form.create({ data: { code, title, category: '品质', schema: [{ id: 'field_date', title: '日期', type: 'date', hidden: true }] } });
+    const grouped = await http(app).get('/api/forms?category=品质&pageSize=1').set('Authorization', auth()).expect(200);
+    expect(grouped.body.total).toBe(1);
+    expect(grouped.body.items).toMatchObject([{ id: 'sulfuric-control', code: 'sulfuric_control_group', title: '硫酸中控化验', latestEntryDate: '2026-09-28' }]);
+    const searched = await http(app).get('/api/forms?keyword=动力波').set('Authorization', auth()).expect(200);
+    expect(searched.body.items.some((item: { code: string }) => item.code === 'sulfuric_control_group')).toBe(true);
   });
 
   it('编辑导入行时保留未修改的数字型文本和较长的历史记录', async () => {

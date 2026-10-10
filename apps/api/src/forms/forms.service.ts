@@ -90,6 +90,13 @@ function cleanData(form: Form, input: unknown, previousData?: FormData): FormDat
         throw new BadRequestException(`${field.title}为必填项`);
       }
       data[field.id] = null;
+    } else if (form.code?.startsWith('sulfuric_control_') && raw === '待出') {
+      data[field.id] = raw;
+    } else if (form.code?.startsWith('sulfuric_control_') && raw === '不检') {
+      data[field.id] = raw;
+    } else if (form.code?.startsWith('sulfuric_control_') && field.type === 'number' && typeof raw === 'string' && /^-?(?:\d+(?:\.\d*)?|\.\d+)$/.test(raw)) {
+      // 中控记录按原样保存小数位（例如 0.3100），不强制转换成 JS Number。
+      data[field.id] = raw;
     } else if (field.type === 'number') {
       if (typeof raw !== 'number' || !Number.isFinite(raw)) {
         throw new BadRequestException(`${field.title}必须是数字`);
@@ -147,24 +154,81 @@ export class FormsService {
     private readonly monitor: MonitorService,
   ) {}
 
+  /** 只公开四张中控表单的入口，不公开历史填报。 */
+  async controlCatalog() {
+    const forms = await this.prisma.form.findMany({
+      where: { status: 'published', code: { in: ['sulfuric_control_assay', 'sulfuric_control_washing', 'sulfuric_control_acid', 'sulfuric_control_notes'] } },
+      select: { id: true, code: true, title: true },
+    });
+    const order = ['sulfuric_control_assay', 'sulfuric_control_washing', 'sulfuric_control_acid', 'sulfuric_control_notes'];
+    return forms.sort((a, b) => order.indexOf(a.code ?? '') - order.indexOf(b.code ?? ''));
+  }
+
+  /** 管理员总表只查询所选日期范围，避免四张表各拉取全部历史。 */
+  async controlRange(from: string, to: string) {
+    if (!isDate(from) || !isDate(to) || from > to ||
+      (new Date(`${to}T00:00:00Z`).getTime() - new Date(`${from}T00:00:00Z`).getTime()) > 92 * 86_400_000) {
+      throw new BadRequestException('日期范围无效或超过 93 天');
+    }
+    const forms = await this.controlCatalog();
+    const ids = forms.map((form) => form.id);
+    if (!ids.length) return { forms, rows: [] };
+    const rows = await this.prisma.$queryRaw<FormSubmission[]>(Prisma.sql`
+      SELECT * FROM "FormSubmission"
+      WHERE "formId" IN (${Prisma.join(ids)})
+        AND data->>'field_date' >= ${from} AND data->>'field_date' <= ${to}
+      ORDER BY data->>'field_date' DESC, "createdAt" DESC
+    `);
+    return { forms, rows: rows.map(asSubmission) };
+  }
+
+  /** 单格修改只更新目标 JSON 键；同日期岗位续写不会被整行覆盖。 */
+  async patchControlValue(input: { formId: string; date: string; fieldId: string; value: string | number | null }, submitterId: string) {
+    if (!input || !isDate(input.date) || typeof input.fieldId !== 'string') throw new BadRequestException('修改内容无效');
+    const form = await this.findForm(input.formId);
+    if (!form.code?.startsWith('sulfuric_control_') || input.fieldId === 'field_date' ||
+      !schemaOf(form).some((field) => field.id === input.fieldId)) throw new BadRequestException('中控字段无效');
+    const checked = cleanData(form, { field_date: input.date, [input.fieldId]: input.value });
+    const value = checked[input.fieldId];
+    const result = await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtext(${form.id}), hashtext(${input.date}))`;
+      const [existing] = await tx.$queryRaw<{ id: string }[]>`
+        SELECT id FROM "FormSubmission" WHERE "formId" = ${form.id} AND data->>'field_date' = ${input.date}
+        ORDER BY "createdAt" DESC LIMIT 1 FOR UPDATE
+      `;
+      if (!existing) {
+        if (value === null) throw new BadRequestException('这一天还没有记录');
+        return asSubmission(await tx.formSubmission.create({
+          data: { formId: form.id, data: { field_date: input.date, [input.fieldId]: value } as Prisma.InputJsonValue, submitterId },
+        }));
+      }
+      const [updated] = await tx.$queryRaw<FormSubmission[]>`
+        UPDATE "FormSubmission"
+        SET data = CASE WHEN ${value === null} THEN data - ${input.fieldId}
+          ELSE jsonb_set(data, ARRAY[${input.fieldId}]::text[], ${JSON.stringify(value)}::jsonb, true) END,
+          "updatedAt" = NOW()
+        WHERE id = ${existing.id} AND "formId" = ${form.id} RETURNING *
+      `;
+      return asSubmission(updated);
+    });
+    await this.monitor.recordForUser(submitterId, 'update', 'forms', `${form.title} · ${input.date} · ${input.fieldId}`);
+    return result;
+  }
+
   async list(query: FormListQuery): Promise<FormPageResult> {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
+    const keyword = query.keyword?.trim().toLocaleLowerCase('zh-CN') ?? '';
     const where: Prisma.FormWhereInput = {
       status: 'published',
-      ...(query.keyword?.trim() ? { title: { contains: query.keyword.trim(), mode: 'insensitive' } } : {}),
       ...(query.category?.trim() ? { category: query.category.trim() } : {}),
     };
-    const [forms, total] = await Promise.all([
-      this.prisma.form.findMany({
-        where,
-        include: { _count: { select: { submissions: true } } },
-        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
-      this.prisma.form.count({ where }),
-    ]);
+    // 一个业务入口对应四张实际表。先组合再分页，避免跨页时出现重复入口或总数不准。
+    const forms = await this.prisma.form.findMany({
+      where,
+      include: { _count: { select: { submissions: true } } },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    });
     // 各表按自己的 date 字段取最新归属日期
     const latest = new Map<string, string | null>();
     const hasMaintenance = forms.some((form) => form.code === 'maintenance_log');
@@ -187,8 +251,7 @@ export class FormsService {
       `);
       latest.set(form.id, row?.latest ?? null);
     }
-    return {
-      items: forms.map((form): FormDTO => ({
+    const items = forms.map((form): FormDTO => ({
         id: form.id,
         code: form.code,
         title: form.title,
@@ -199,9 +262,27 @@ export class FormsService {
         parkingEnabled: form.parkingEnabled,
         latestEntryDate: latest.get(form.id) ?? null,
         submissionCount: form.code === 'maintenance_log' ? maintenance?.[0] ?? 0 : form._count.submissions,
-      })),
-      total, page, pageSize,
-    };
+      }));
+    const grouped: FormDTO[] = [];
+    const controlTitles: string[] = [];
+    for (const item of items) {
+      if (!item.code?.startsWith('sulfuric_control_')) { grouped.push(item); continue; }
+      controlTitles.push(item.title);
+      const existing = grouped.find((entry) => entry.code === 'sulfuric_control_group');
+      if (existing) {
+        existing.submissionCount += item.submissionCount;
+        if (item.latestEntryDate && (!existing.latestEntryDate || item.latestEntryDate > existing.latestEntryDate)) existing.latestEntryDate = item.latestEntryDate;
+      } else grouped.push({
+        id: 'sulfuric-control', code: 'sulfuric_control_group', title: '硫酸中控化验', category: item.category,
+        entryMode: 'form', description: '01 矿样·干吸·风机 / 02 动力波·水洗塔 / 03 预干燥·酸浓缩·尾吸·试剂酸 / 04 生产情况记录',
+        schema: [], parkingEnabled: false, latestEntryDate: item.latestEntryDate, submissionCount: item.submissionCount,
+      });
+    }
+    const matched = keyword ? grouped.filter((item) =>
+      item.title.toLocaleLowerCase('zh-CN').includes(keyword) ||
+      (item.code === 'sulfuric_control_group' && controlTitles.some((title) => title.toLocaleLowerCase('zh-CN').includes(keyword))),
+    ) : grouped;
+    return { items: matched.slice((page - 1) * pageSize, page * pageSize), total: matched.length, page, pageSize };
   }
 
   async get(id: string): Promise<FormDTO> {

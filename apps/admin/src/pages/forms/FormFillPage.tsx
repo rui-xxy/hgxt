@@ -7,6 +7,7 @@ import { Link, Navigate, useParams } from 'react-router';
 import type { FormData, FormField, FormLastValuesResult } from '@hgxt/shared';
 import { createSubmission, getForm, latestValues } from '../../api/forms';
 import { emptyParking, serializeParking, type ParkingRecord } from './components/parking';
+import { SulfuricControlMobilePage } from './SulfuricControlMobilePage';
 import './forms.css';
 
 function today() {
@@ -30,7 +31,7 @@ export function FormFillPage() {
   const queryClient = useQueryClient();
   const form = useQuery({ queryKey: ['forms', id], queryFn: () => getForm(id), enabled: !!id });
   // 上次值走专用接口（USER 可用；不再拉全部历史提交）
-  const last = useQuery({ queryKey: ['forms', id, 'latest'], queryFn: () => latestValues(id), enabled: !!id && form.data?.entryMode === 'form' && form.data.code !== 'maintenance_log', refetchOnWindowFocus: false });
+  const last = useQuery({ queryKey: ['forms', id, 'latest'], queryFn: () => latestValues(id), enabled: !!id && form.data?.entryMode === 'form' && form.data.code !== 'maintenance_log' && !form.data.code?.startsWith('sulfuric_control_'), refetchOnWindowFocus: false });
   const [active, setActive] = useState('');
   const [activeCategory, setActiveCategory] = useState('');
   const [activeSubgroup, setActiveSubgroup] = useState('');
@@ -96,6 +97,7 @@ export function FormFillPage() {
   if (form.isLoading) return <div className="forms-fill-shell"><Skeleton active /></div>;
   if (!form.data) return <Result status="404" title="表单不存在" extra={<Link to="/forms">返回表单列表</Link>} />;
   if (form.data.code === 'maintenance_log') return <Navigate to="/maintenance/new" replace />;
+  if (isSulfuricControl) return <SulfuricControlMobilePage key={id} id={id} />;
   if (form.data.entryMode === 'sheet') return <Result status="403" title="请在数据表格中维护事项" extra={<Link to="/forms">返回标题列表</Link>} />;
   if (submitted) return <div className="forms-fill-success"><div className="forms-fill-success-card"><div className="forms-fill-success-icon"><CheckIcon width={24} height={24} /></div><h1>提交成功</h1><p>感谢您的填写，数据已记录</p><Button type="primary" block onClick={() => { setValues({}); setParking([emptyParking(today())]); setActive(''); setActiveCategory(''); setActiveSubgroup(''); setSubmitted(false); setFormKey((key) => key + 1); }}>{isSulfuricControl ? '继续填写' : '再填一份'}</Button></div></div>;
 

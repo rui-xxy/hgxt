@@ -79,6 +79,12 @@ export const controlChartPalette = {
   dark: { blue: dark.brand, paleBlue: '#7186B4', amber: dark.amber, orange: dark.danger, green: dark.ok },
 } as const;
 
+/** 硫酸中控手机设计稿的局部视觉色，保留 HGXT 的明暗主题。 */
+export const sulfuricControlPalette = {
+  light: { hero: '#15273A', accent: '#1D5FD1', accentSoft: '#EAF0FB', mark: '#EDC437', page: '#F2F4F6', pendingBar: '#F0A43A', uncheckedBar: '#B7BEC7' },
+  dark: { hero: dark.bg, accent: dark.brand, accentSoft: dark.brandSoft, mark: '#E3B873', page: dark.side, pendingBar: dark.amber, uncheckedBar: dark.ink3 },
+} as const;
+
 /** 经营简报设计稿的状态色：明亮色用于条、点，深色用于小字。 */
 export const briefPalette = {
   light: {

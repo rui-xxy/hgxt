@@ -28,6 +28,23 @@ export class FormsController {
   list(@Query() query: FormListQuery) { return this.forms.list(query); }
 
   @Public()
+  @Get('control/catalog')
+  @ApiOperation({ summary: '中控四张手机填报表单入口' })
+  controlCatalog() { return this.forms.controlCatalog(); }
+
+  @Get('control/range')
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: '硫酸中控合并总表，按日期范围读取' })
+  controlRange(@Query('from') from: string, @Query('to') to: string) { return this.forms.controlRange(from, to); }
+
+  @Post('control/value')
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: '合并总表单格修改' })
+  patchControlValue(@Body() body: { formId: string; date: string; fieldId: string; value: string | number | null }, @CurrentUser() user: AuthUser) {
+    return this.forms.patchControlValue(body, user.id);
+  }
+
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: '表单与字段定义（凭链接匿名可访问）' })
   get(@Param('id', ParseUUIDPipe) id: string) { return this.forms.get(id); }

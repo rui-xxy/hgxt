@@ -22,7 +22,7 @@
     "title": "酸水接水",
     "type": "number",
     "group": "预干燥·酸浓缩·尾吸·试剂酸",
-    "section": "预干燥塔",
+    "section": "酸浓缩",
     "subgroup": "酸水接水",
     "width": 136,
     "step": 0.01
@@ -69,11 +69,11 @@
   },
   {
     "id": "field_AX",
-    "title": "酸浓(%)",
+    "title": "酸浓（%）",
     "type": "number",
     "group": "预干燥·酸浓缩·尾吸·试剂酸",
     "section": "试剂酸",
-    "subgroup": "试剂酸质量(中间槽)",
+    "subgroup": "试剂酸质量（中间槽）",
     "width": 136,
     "step": 0.01
   },
@@ -83,7 +83,7 @@
     "type": "text",
     "group": "预干燥·酸浓缩·尾吸·试剂酸",
     "section": "试剂酸",
-    "subgroup": "试剂酸质量(中间槽)",
+    "subgroup": "试剂酸质量（中间槽）",
     "width": 170
   },
   {
@@ -92,7 +92,7 @@
     "type": "number",
     "group": "预干燥·酸浓缩·尾吸·试剂酸",
     "section": "试剂酸",
-    "subgroup": "试剂酸质量(中间槽)",
+    "subgroup": "试剂酸质量（中间槽）",
     "width": 136,
     "step": 0.01
   },
@@ -102,7 +102,7 @@
     "type": "number",
     "group": "预干燥·酸浓缩·尾吸·试剂酸",
     "section": "试剂酸",
-    "subgroup": "试剂酸质量(中间槽)",
+    "subgroup": "试剂酸质量（中间槽）",
     "width": 136,
     "step": 0.01
   }

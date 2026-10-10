@@ -22,6 +22,7 @@ const form: FormDTO = {
 describe('硫酸中控填写日期', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
     vi.mocked(getForm).mockResolvedValue(form);
     vi.mocked(latestValues).mockResolvedValue({});
@@ -33,15 +34,12 @@ describe('硫酸中控填写日期', () => {
       <Routes><Route path="/form-fill/:id" element={<FormFillPage />} /></Routes>
     </MemoryRouter></App></QueryClientProvider>);
 
-    const date = await screen.findByRole('textbox', { name: '记录日期' });
-    fireEvent.change(date, { target: { value: '2026年9月28日' } });
-    fireEvent.keyDown(date, { key: 'Enter' });
-    const submit = screen.getByRole('button', { name: '提交已填项目（0）' });
-    expect(submit.hasAttribute('disabled')).toBe(true);
-    fireEvent.change(screen.getByRole('textbox', { name: '有效硫' }), { target: { value: '35.1' } });
-    expect(screen.getByRole('button', { name: '提交已填项目（1）' }).hasAttribute('disabled')).toBe(false);
-    fireEvent.click(screen.getByRole('button', { name: '提交已填项目（1）' }));
+    const date = await screen.findByLabelText('记录日期');
+    fireEvent.change(date, { target: { value: '2026-09-28' } });
+    fireEvent.change(screen.getByLabelText('有效硫'), { target: { value: '35.1' } });
+    fireEvent.change(screen.getByLabelText('水分'), { target: { value: '1.2' } });
+    fireEvent.click(screen.getByRole('button', { name: /提\s*交/ }));
 
-    await waitFor(() => expect(createSubmission).toHaveBeenCalledWith(form.id, { field_date: '2026-09-28', field_B: 35.1, field_C: null }));
+    await waitFor(() => expect(createSubmission).toHaveBeenCalledWith(form.id, { field_date: '2026-09-28', field_B: '35.1', field_C: '1.2' }));
   });
 });

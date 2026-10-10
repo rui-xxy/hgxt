@@ -65,7 +65,7 @@ export function FormsPage() {
         scroll={{ y: 'var(--hgxt-paged-viewport-height)', scrollToFirstRowOnChange: true }}
         dataSource={query.data?.items ?? []}
         columns={[
-          { title: '标题', dataIndex: 'title', key: 'title', ellipsis: true, render: (title: string) => <span className="forms-list-title">{title}</span> },
+          { title: '标题', dataIndex: 'title', key: 'title', ellipsis: true, render: (title: string, form: FormDTO) => <span className="forms-list-title">{title}{form.code === 'sulfuric_control_group' && <small className="forms-muted"> · 4 张表单</small>}</span> },
           { title: '分类', dataIndex: 'category', key: 'category', width: 96 },
           { title: '记录', dataIndex: 'submissionCount', key: 'submissionCount', width: 96, render: (count: number) => <span className="mono">{count.toLocaleString('zh-CN')}</span> },
           { title: '最新填写日期', dataIndex: 'latestEntryDate', key: 'latestEntryDate', width: 168, render: (date: string | null, form: FormDTO) => form.entryMode === 'sheet' ? <span className="forms-muted">—</span> : date ? <span className="mono forms-date-value">{date}</span> : <span className="forms-muted">暂无填写</span> },
@@ -75,8 +75,8 @@ export function FormsPage() {
             width: 136,
             fixed: 'right',
             render: (_: unknown, form: FormDTO) => <Space size={4}>
-              {(isAdmin || form.code === 'maintenance_log') && <Button type="link" size="small" onClick={() => navigate(form.code === 'maintenance_log' ? '/maintenance/records' : `/forms/${form.id}`)}>{form.entryMode === 'sheet' ? '打开表格' : '数据'}</Button>}
-              {form.entryMode === 'form' && <Button type="link" size="small" onClick={() => navigate(form.code === 'maintenance_log' ? '/maintenance/new' : `/form-fill/${form.id}`)}>填写</Button>}
+              {(isAdmin || form.code === 'maintenance_log') && <Button type="link" size="small" onClick={() => navigate(form.code === 'maintenance_log' ? '/maintenance/records' : form.code === 'sulfuric_control_group' ? '/forms/sulfuric-control' : `/forms/${form.id}`)}>{form.code === 'sulfuric_control_group' ? '总表' : form.entryMode === 'sheet' ? '打开表格' : '数据'}</Button>}
+              {form.entryMode === 'form' && <Button type="link" size="small" onClick={() => navigate(form.code === 'maintenance_log' ? '/maintenance/new' : form.code === 'sulfuric_control_group' ? '/control-fill' : `/form-fill/${form.id}`)}>{form.code === 'sulfuric_control_group' ? '打开' : '填写'}</Button>}
               {!isAdmin && form.entryMode === 'sheet' && <span className="forms-muted">仅管理员</span>}
             </Space>,
           },

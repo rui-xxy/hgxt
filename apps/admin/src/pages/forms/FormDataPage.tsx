@@ -36,13 +36,14 @@ export function FormDataPage() {
   const submissions = useQuery({
     queryKey: ['forms', id, 'submissions', page, pageSize, keyword, progress],
     queryFn: () => loadFormSubmissions(id, page, pageSize, { keyword, progress }, isSectioned),
-    enabled: !!id && !!form.data && form.data.code !== 'maintenance_log',
+    enabled: !!id && !!form.data && form.data.code !== 'maintenance_log' && !isSulfuricControl,
     refetchOnWindowFocus: false,
     placeholderData: (previousData, previousQuery) => previousQuery?.queryKey[1] === id ? previousData : undefined,
   });
   useEffect(() => { const error = form.error ?? submissions.error; if (error) message.error(error.message); }, [form.error, submissions.error, message]);
   if (form.isLoading) return <Skeleton active />;
   if (form.data?.code === 'maintenance_log') return <Navigate to="/maintenance/records" replace />;
+  if (isSulfuricControl) return <Navigate to="/forms/sulfuric-control" replace />;
   if (submissions.isLoading) return <Skeleton active />;
   if (!form.data || !submissions.data) return <Result status="404" title="表单不存在" extra={<Link to="/forms">返回表单列表</Link>} />;
 

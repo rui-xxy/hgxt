@@ -9,7 +9,7 @@
   },
   {
     "id": "field_AA",
-    "title": "砷（mg/l)",
+    "title": "砷（mg/l）",
     "type": "text",
     "group": "动力波·水洗塔",
     "section": "动力波",
@@ -18,7 +18,7 @@
   },
   {
     "id": "field_AB",
-    "title": "氟（mg/l)",
+    "title": "氟（mg/l）",
     "type": "number",
     "group": "动力波·水洗塔",
     "section": "动力波",
@@ -28,21 +28,21 @@
   },
   {
     "id": "field_AC",
-    "title": "砷（mg/l)",
+    "title": "砷（mg/l）",
     "type": "number",
     "group": "动力波·水洗塔",
     "section": "动力波",
-    "subgroup": "动力 波",
+    "subgroup": "动力波",
     "width": 136,
     "step": 0.01
   },
   {
     "id": "field_AD",
-    "title": "氟（mg/l)",
+    "title": "氟（mg/l）",
     "type": "number",
     "group": "动力波·水洗塔",
     "section": "动力波",
-    "subgroup": "动力 波",
+    "subgroup": "动力波",
     "width": 136,
     "step": 0.01
   },
@@ -52,7 +52,7 @@
     "type": "number",
     "group": "动力波·水洗塔",
     "section": "动力波",
-    "subgroup": "动力 波",
+    "subgroup": "动力波",
     "width": 136,
     "step": 0.01
   },

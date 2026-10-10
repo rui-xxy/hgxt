@@ -37,6 +37,10 @@ const UsersPage = lazy(() =>
 const FormsPage = lazy(() => import('./pages/forms/FormsPage').then((m) => ({ default: m.FormsPage })));
 const FormDataPage = lazy(() => import('./pages/forms/FormDataPage').then((m) => ({ default: m.FormDataPage })));
 const FormFillPage = lazy(() => import('./pages/forms/FormFillPage').then((m) => ({ default: m.FormFillPage })));
+const SulfuricControlHomePage = lazy(() => import('./pages/forms/SulfuricControlMobilePage').then((m) => ({ default: m.SulfuricControlHomePage })));
+const SulfuricControlPendingPage = lazy(() => import('./pages/forms/SulfuricControlMobilePage').then((m) => ({ default: m.SulfuricControlPendingPage })));
+const SulfuricControlMePage = lazy(() => import('./pages/forms/SulfuricControlMobilePage').then((m) => ({ default: m.SulfuricControlMePage })));
+const SulfuricControlSummaryPage = lazy(() => import('./pages/forms/SulfuricControlSummaryPage').then((m) => ({ default: m.SulfuricControlSummaryPage })));
 const WorkshopBoardPage = lazy(() =>
   import('./pages/production/WorkshopBoardPage').then((m) => ({ default: m.WorkshopBoardPage })),
 );
@@ -97,12 +101,16 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         {/* 表单填写页无需登录：凭链接直接填报（后端对应接口已开放并限流） */}
         <Route path="form-fill/:id" element={<FormFillPage />} />
+        <Route path="control-fill" element={<SulfuricControlHomePage />} />
+        <Route path="control-fill/pending" element={<SulfuricControlPendingPage />} />
+        <Route path="control-fill/me" element={<SulfuricControlMePage />} />
         <Route path="maintenance/new" element={<MaintenanceNewGate />} />
         <Route element={<RequireAuth />}>
           <Route element={<AdminLayout />}>
             <Route index element={<LandingRedirect />} />
             <Route path="workspace" element={<RequireSuperAdmin><HomePage /></RequireSuperAdmin>} />
             <Route path="forms" element={<RequireSuperAdmin><FormsPage /></RequireSuperAdmin>} />
+            <Route path="forms/sulfuric-control" element={<RequireSuperAdmin><SulfuricControlSummaryPage /></RequireSuperAdmin>} />
             <Route path="maintenance" element={<RequirePageAccess permission={PagePermission.MAINTENANCE}><MaintenanceOverviewPage /></RequirePageAccess>} />
             <Route path="maintenance/records" element={<RequirePageAccess permission={PagePermission.MAINTENANCE}><MaintenanceRecordsPage /></RequirePageAccess>} />
             <Route path="board" element={<WorkshopBoardPage />} />
