@@ -51,14 +51,14 @@ export class MaintenanceController {
   }
 
   @Patch('records/:id')
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @ApiOperation({ summary: '修改维修记录（管理员）' })
   update(@Param('id', ParseUUIDPipe) id: string, @Body() body: MaintenanceRecordDto) {
     return this.maintenance.update(id, body);
   }
 
   @Delete('records/:id')
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @ApiOperation({ summary: '删除维修记录（管理员）' })
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.maintenance.remove(id);

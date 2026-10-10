@@ -14,6 +14,7 @@ describe('monitor 访问监控', () => {
   let adminToken = '';
   let userToken = '';
   let userId = '';
+  let managerToken = '';
 
   beforeAll(async () => {
     app = await createTestApp();
@@ -45,6 +46,7 @@ describe('monitor 访问监控', () => {
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ action: 'page_view', page: 'monitor' })
       .expect(204);
+    expect(await prisma.accessEvent.count({ where: { username: 'admin' } })).toBe(0);
 
     for (const action of ['export', 'login', 'submit', 'heartbeat-extra']) {
       const res = await agent
@@ -106,16 +108,47 @@ describe('monitor 访问监控', () => {
       .expect(204);
   });
 
+  it('管理员可管理业务表单，但访问监控和成员管理仅超级管理员可见', async () => {
+    await agent.post('/api/users').set('Authorization', `Bearer ${adminToken}`)
+      .send({ username: 'manager', name: '业务管理员', password: 'User@12345678', role: 'ADMIN' }).expect(201);
+    const login = await agent.post('/api/auth/login')
+      .send({ username: 'manager', password: 'User@12345678' }).expect(200);
+    managerToken = login.body.accessToken;
+    await agent.post('/api/monitor/events').set('Authorization', `Bearer ${managerToken}`)
+      .send({ action: 'page_view', page: 'forms' }).expect(204);
+    await agent.get('/api/forms').set('Authorization', `Bearer ${managerToken}`).expect(200);
+    await agent.get('/api/monitor/overview').set('Authorization', `Bearer ${managerToken}`).expect(403);
+    await agent.get('/api/users').set('Authorization', `Bearer ${managerToken}`).expect(403);
+  });
+
   it('总览：KPI、小时分布与设备占比反映埋点', async () => {
     const res = await agent.get('/api/monitor/overview').set('Authorization', `Bearer ${adminToken}`).expect(200);
     expect(res.body.kpis.pageViews.count).toBeGreaterThanOrEqual(2);
     expect(res.body.kpis.online.count).toBeGreaterThanOrEqual(2);
     expect(res.body.kpis.online.mobile).toBeGreaterThanOrEqual(1);
-    expect(res.body.kpis.logins.users).toBeGreaterThanOrEqual(2);
+    expect(res.body.kpis.visitors.users).toBeGreaterThanOrEqual(2);
+    expect(res.body.kpis.visitors.totalUsers).toBe(2);
     expect(res.body.chart.mode).toBe('hourly');
     expect(res.body.chart.hours).toHaveLength(24);
     const totalBars = res.body.chart.hours.reduce((sum: number, row: { today: number }) => sum + row.today, 0);
     expect(totalBars).toBe(res.body.kpis.pageViews.count);
+  });
+
+  it('访问人数按页面访问去重，不依赖当天是否重新登录；历史超级管理员事件不展示', async () => {
+    const visitor = await prisma.user.create({
+      data: { username: 'returning', name: '免登录访客', passwordHash: 'not-a-real-hash', role: 'USER' },
+    });
+    const superAdmin = await prisma.user.findUniqueOrThrow({ where: { username: 'admin' } });
+    await prisma.accessEvent.createMany({ data: [
+      { userId: visitor.id, actorRole: 'USER', username: visitor.username, name: visitor.name, action: 'page_view', page: 'board' },
+      { userId: visitor.id, actorRole: 'USER', username: visitor.username, name: visitor.name, action: 'page_view', page: 'energy' },
+      { userId: superAdmin.id, actorRole: 'SUPER_ADMIN', username: superAdmin.username, name: superAdmin.name, action: 'page_view', page: 'monitor' },
+    ] });
+    const overview = await agent.get('/api/monitor/overview').set('Authorization', `Bearer ${adminToken}`).expect(200);
+    expect(overview.body.kpis.visitors.users).toBe(3);
+    expect(overview.body.kpis.visitors.totalUsers).toBe(3);
+    const logs = await agent.get('/api/monitor/logs?tab=view').set('Authorization', `Bearer ${adminToken}`).expect(200);
+    expect(logs.body.items.some((item: { username: string }) => item.username === 'admin')).toBe(false);
   });
 
   it('普通用户无权访问监控查询（403）', async () => {
@@ -142,7 +175,7 @@ describe('monitor 访问监控', () => {
     expect(failedRow.detail).toContain('第 1 次');
   });
 
-  it('页面热度按页面聚合；部门活跃统计登录人数', async () => {
+  it('页面热度按页面聚合；部门活跃统计实际访问人数', async () => {
     const pages = await agent.get('/api/monitor/pages').set('Authorization', `Bearer ${adminToken}`).expect(200);
     const board = pages.body.rows.find((row: { page: string }) => row.page === 'board');
     expect(board).toBeDefined();
@@ -280,7 +313,7 @@ describe('monitor 访问监控', () => {
     expect(revoked).not.toBeNull();
   });
 
-  it('访问日志导出 CSV（带 BOM、含表头、公式中和），导出本身计入服务端审计', async () => {
+  it('访问日志导出 CSV（带 BOM、含表头、公式中和），超级管理员导出不记行为', async () => {
     const res = await agent
       .get('/api/monitor/logs/export?tab=all')
       .set('Authorization', `Bearer ${adminToken}`)
@@ -293,14 +326,12 @@ describe('monitor 访问监控', () => {
     // 以 = 开头的姓名被中和为 '=...，Excel 不会当作公式
     expect(res.text).toContain("'=@" );
 
-    // 服务端在真正完成导出处记录 export 事件（含条数）
+    // 超级管理员的导出及其它行为均不入监控事件流
     const exportEvent = await prisma.accessEvent.findFirst({
       where: { action: 'export' },
       orderBy: { createdAt: 'desc' },
     });
-    expect(exportEvent).not.toBeNull();
-    expect(exportEvent!.page).toBe('monitor');
-    expect(exportEvent!.detail).toContain('访问日志 ·');
+    expect(exportEvent).toBeNull();
   });
 
   it('多设备：电脑登出不误伤仍在使用的手机会话', async () => {

@@ -12,6 +12,7 @@ datasource db {
 
 enum Role {
   SUPER_ADMIN
+  ADMIN
   USER
 }
 
@@ -28,6 +29,7 @@ enum RevokedReason {
   USER_DISABLED  // 用户被禁用
   REUSE_DETECTED // 疑似泄露（超宽限期复用，连坐吊销）
   FORCE_OFFLINE  // 管理员强制下线（访问监控）
+  ROLE_CHANGED   // 角色调整后需重新登录
 }
 
 model User {
@@ -72,6 +74,8 @@ model AccessEvent {
   id         String   @id @default(uuid())
   userId     String?
   user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  /// 记录时的角色快照，历史角色变更后仍可排除超级管理员行为
+  actorRole  Role?
   username   String
   name       String   @default("")
   department String?

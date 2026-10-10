@@ -105,13 +105,13 @@ export interface MonitorOverviewResult {
   kpis: {
     /** 当前在线（实时，与统计区间无关）：人数与电脑/手机拆分 */
     online: { count: number; desktop: number; mobile: number };
-    /** 区间内登录过的用户数 / 全部启用用户数与登录率 */
-    logins: { users: number; totalUsers: number; rate: number | null };
-    /** 区间内页面访问次数与人均次数（无登录用户时人均为 null） */
+    /** 区间内实际打开过页面的去重人数 / 全部启用成员数 */
+    visitors: { users: number; totalUsers: number; rate: number | null };
+    /** 区间内页面访问次数与人均次数（无访问成员时人均为 null） */
     pageViews: { count: number; perUser: number | null };
     /** 区间内活跃用户的人均在线时长（小时，按会话估算）与较上一周期的增减（分钟） */
     onlineHours: { avg: number | null; deltaMinutes: number | null };
-    /** 连续 7 天（截至今天）未登录的启用用户数与姓名样例 */
+    /** 连续 7 天（截至今天）未访问页面的启用用户数与姓名样例 */
     inactive7d: { count: number; names: string[] };
     /** 区间内安全提醒条数 */
     security: number;
@@ -122,8 +122,6 @@ export interface MonitorOverviewResult {
     | { mode: 'daily'; days: Array<{ date: string; views: number }> };
   /** 访问高峰（单日模式：最高小时的区间与次数） */
   peak: { label: string; count: number } | null;
-  /** 区间内登录总次数与人数 */
-  loginStat: { count: number; users: number };
   /** 区间内页面访问的设备占比（0-1） */
   deviceSplit: { desktop: number; mobile: number };
 }
@@ -252,7 +250,7 @@ export interface MonitorMemberResult {
     username: string;
     name: string;
     department: string | null;
-    role: 'SUPER_ADMIN' | 'USER';
+    role: 'SUPER_ADMIN' | 'ADMIN' | 'USER';
     status: 'ACTIVE' | 'DISABLED';
     lastLoginAt: string | null;
     createdAt: string;
@@ -268,9 +266,9 @@ export interface MonitorMemberResult {
     /** 当日页面访问次数与去重页面数 */
     views: number;
     distinctPages: number;
-    /** 本月登录天数 / 截至当日的工作日数 */
-    monthLoginDays: number;
-    monthWorkdays: number;
+    /** 本月实际打开页面的天数 / 截至当日的日历天数 */
+    monthVisitDays: number;
+    monthElapsedDays: number;
     /** 本月提交 / 修改次数 */
     monthSubmits: number;
     monthUpdates: number;

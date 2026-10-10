@@ -382,7 +382,7 @@ export function MaintenanceNewPage({ editRecord, onClose, desktop = false }: { e
   // 历史记录只用于联想选项；匿名登记拿不到列表（401），属预期，不阻断填报
   if (query.error && tokenStore.getAccessToken()) return <Alert type="error" showIcon message="维修数据加载失败" description={query.error.message} action={<Button onClick={() => void query.refetch()}>重试</Button>} />;
   if (editId && me.isLoading) return <div className="maintenance-center"><Spin tip="正在核对权限" /></div>;
-  if (editId && me.data?.role !== Role.SUPER_ADMIN) return <Alert type="warning" showIcon message="仅管理员可以编辑维修记录" action={<Button onClick={() => navigate('/maintenance/records')}>返回记录</Button>} />;
+  if (editId && me.data?.role !== Role.SUPER_ADMIN && me.data?.role !== Role.ADMIN) return <Alert type="warning" showIcon message="仅管理员可以编辑维修记录" action={<Button onClick={() => navigate('/maintenance/records')}>返回记录</Button>} />;
   if (editId && !existing) return <Alert type="warning" showIcon message="找不到要编辑的维修记录" action={<Button onClick={() => navigate('/maintenance/records')}>返回记录</Button>} />;
 
   if (desktop) return <div className="maintenance-desktop-editor">

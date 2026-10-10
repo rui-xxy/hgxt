@@ -209,14 +209,14 @@ export class ProductionController {
   }
 
   @Get('plan/settings')
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @ApiOperation({ summary: '生产计划设置：录入年度/月度产量计划、产品销售预算与单耗上限' })
   planSettings(@Query() query: PlanYearQuery) {
     return this.plan.getSettings(query.year ?? new Date().getFullYear());
   }
 
   @Post('plan/settings')
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @ApiOperation({ summary: '保存产量计划、销售预算与单耗上限（单一事务，任一失败整体回滚）' })
   savePlanSettings(@Body() body: PlanSettingsSaveDto) {
     return this.plan.saveSettings(body as never);

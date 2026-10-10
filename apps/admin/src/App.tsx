@@ -4,6 +4,7 @@ import { setAuthFailureHandler, setExternalLogoutHandler, tokenStore } from './a
 import { queryClient } from './api/queryClient';
 import { RequireAuth } from './components/RequireAuth';
 import { RequireSuperAdmin } from './components/RequireSuperAdmin';
+import { RequireAdmin } from './components/RequireAdmin';
 import { RequirePageAccess } from './components/RequirePageAccess';
 import { PagePermission } from '@hgxt/shared';
 import { PageLoading } from './components/PageLoading';
@@ -108,9 +109,9 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route element={<AdminLayout />}>
             <Route index element={<LandingRedirect />} />
-            <Route path="workspace" element={<RequireSuperAdmin><HomePage /></RequireSuperAdmin>} />
-            <Route path="forms" element={<RequireSuperAdmin><FormsPage /></RequireSuperAdmin>} />
-            <Route path="forms/sulfuric-control" element={<RequireSuperAdmin><SulfuricControlSummaryPage /></RequireSuperAdmin>} />
+            <Route path="workspace" element={<RequireAdmin><HomePage /></RequireAdmin>} />
+            <Route path="forms" element={<RequireAdmin><FormsPage /></RequireAdmin>} />
+            <Route path="forms/sulfuric-control" element={<RequireAdmin><SulfuricControlSummaryPage /></RequireAdmin>} />
             <Route path="maintenance" element={<RequirePageAccess permission={PagePermission.MAINTENANCE}><MaintenanceOverviewPage /></RequirePageAccess>} />
             <Route path="maintenance/records" element={<RequirePageAccess permission={PagePermission.MAINTENANCE}><MaintenanceRecordsPage /></RequirePageAccess>} />
             <Route path="board" element={<WorkshopBoardPage />} />
@@ -128,17 +129,17 @@ export default function App() {
             <Route
               path="plan/settings"
               element={
-                <RequireSuperAdmin>
+                <RequireAdmin>
                   <PlanSettingsPage />
-                </RequireSuperAdmin>
+                </RequireAdmin>
               }
             />
             <Route
               path="forms/:id"
               element={
-                <RequireSuperAdmin>
+                <RequireAdmin>
                   <FormDataPage />
-                </RequireSuperAdmin>
+                </RequireAdmin>
               }
             />
             <Route

@@ -13,8 +13,7 @@ import { FormListQuery, SubmissionListQuery } from './query.dto';
 /**
  * 权限模型：
  * - 无需登录：凭表单链接取表单定义 / 提交填报 / 查上次值（提交接口有 IP 限流防灌水）
- * - 仅 SUPER_ADMIN：全部表单列表
- * - 仅 SUPER_ADMIN（数据管理）：读历史提交 / 批量保存（含改、删）
+ * - 管理员及超级管理员：全部表单列表、历史提交与数据维护
  */
 @ApiTags('forms 表单')
 @ApiBearerAuth()
@@ -23,7 +22,7 @@ export class FormsController {
   constructor(private readonly forms: FormsService) {}
 
   @Get()
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @ApiOperation({ summary: '表单列表，最新填写日期来自提交内容' })
   list(@Query() query: FormListQuery) { return this.forms.list(query); }
 
@@ -33,12 +32,12 @@ export class FormsController {
   controlCatalog() { return this.forms.controlCatalog(); }
 
   @Get('control/range')
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @ApiOperation({ summary: '硫酸中控合并总表，按日期范围读取' })
   controlRange(@Query('from') from: string, @Query('to') to: string) { return this.forms.controlRange(from, to); }
 
   @Post('control/value')
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @ApiOperation({ summary: '合并总表单格修改' })
   patchControlValue(@Body() body: { formId: string; date: string; fieldId: string; value: string | number | null }, @CurrentUser() user: AuthUser) {
     return this.forms.patchControlValue(body, user.id);
@@ -66,17 +65,17 @@ export class FormsController {
     return this.forms.lastValues(id);
   }
 
-  // ── 数据管理接口：仅 SUPER_ADMIN ──
+  // ── 数据管理接口：管理员及超级管理员 ──
 
   @Get(':id/submissions')
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @ApiOperation({ summary: '表单数据表格（仅管理员）' })
   listSubmissions(@Param('id', ParseUUIDPipe) id: string, @Query() query: SubmissionListQuery) {
     return this.forms.listSubmissions(id, query);
   }
 
   @Post(':id/submissions/batch')
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @ApiOperation({ summary: '批量保存表格增删改（仅管理员）' })
   saveSubmissions(@Param('id', ParseUUIDPipe) id: string, @Body() body: SaveFormSubmissionsBody, @CurrentUser() user: AuthUser) {
     return this.forms.saveSubmissions(id, body, user.id);

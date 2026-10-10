@@ -16,7 +16,7 @@ export function FormsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const category = searchParams.get('category') ?? '';
   const me = useMe();
-  const isAdmin = me.data?.role === Role.SUPER_ADMIN;
+  const isAdmin = me.data?.role === Role.SUPER_ADMIN || me.data?.role === Role.ADMIN;
   const [search, setSearch] = useState('');
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);

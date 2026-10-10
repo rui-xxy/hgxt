@@ -95,6 +95,9 @@ export class UsersService {
       // A4：降级最后一个管理员的检查必须与写入同事务
       return await this.prisma.$transaction(async (tx) => {
         await assertNotLastActiveSuperAdmin(tx, id, { role: dto.role });
+        const current = await tx.user.findUnique({ where: { id }, select: { role: true } });
+        if (!current) throw new NotFoundException('用户不存在');
+        const roleChanged = dto.role !== undefined && dto.role !== current.role;
         const user = await tx.user.update({
           where: { id },
           data: {
@@ -103,9 +106,16 @@ export class UsersService {
             ...(dto.phone !== undefined && { phone: dto.phone === null ? null : dto.phone.trim() }),
             ...(dto.department !== undefined && { department: dto.department === null ? null : dto.department }),
             ...(dto.role !== undefined && { role: dto.role }),
+            ...(roleChanged && { authVersion: { increment: 1 } }),
             ...(dto.pagePermissions !== undefined && { pagePermissions: dto.pagePermissions }),
           },
         });
+        if (roleChanged) {
+          await tx.refreshToken.updateMany({
+            where: { userId: id, revokedAt: null },
+            data: { revokedAt: new Date(), revokedReason: 'ROLE_CHANGED' },
+          });
+        }
         return toUserDTO(user);
       });
     } catch (error) {
@@ -250,6 +260,6 @@ async function assertNotLastActiveSuperAdmin(
     where: { role: 'SUPER_ADMIN', status: 'ACTIVE', id: { not: targetId } },
   });
   if (remaining === 0) {
-    throw new BadRequestException('系统至少需要保留一个启用状态的管理员');
+    throw new BadRequestException('系统至少需要保留一个启用状态的超级管理员');
   }
 }

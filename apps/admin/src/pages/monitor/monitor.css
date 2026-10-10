@@ -42,7 +42,7 @@
   gap: 4px;
 }
 .mon-kpi-value small { font-size: 13px; color: var(--hg-ink2); font-weight: 400; }
-.mon-kpi-sub { font-size: var(--hg-font-size-xs); color: var(--hg-ink3); margin-top: auto; }
+.mon-kpi-sub { font-size: var(--hg-font-size-xs); color: var(--hg-ink3); margin-top: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mon-kpi-sub b { color: var(--hg-ink2); font-weight: 500; }
 
 /* KPI 数值的状态强调（在线=ok，提醒=amber/danger） */
@@ -175,7 +175,8 @@
 .mon-split-bar .sp-mobile { background: var(--hg-line2); }
 
 /* ── 安全提醒 ───────────────────────────────────────────── */
-.mon-alerts { display: flex; flex-direction: column; overflow: hidden; }
+.mon-alert-panel { box-sizing: border-box; flex: none; height: 19rem; }
+.mon-alerts { display: flex; flex: 1; flex-direction: column; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; }
 .mon-alert {
   display: grid;
   grid-template-columns: 40px 1fr;
@@ -193,7 +194,8 @@
 .mon-alert.is-amber .mon-alert-kind { color: var(--hg-amber); }
 
 /* ── 当前在线 ───────────────────────────────────────────── */
-.mon-online-list { display: flex; flex-direction: column; overflow: hidden; }
+.mon-online-panel { box-sizing: border-box; flex: none; height: 15rem; }
+.mon-online-list { display: flex; flex: 1; flex-direction: column; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; }
 .mon-online-item {
   display: flex;
   align-items: center;

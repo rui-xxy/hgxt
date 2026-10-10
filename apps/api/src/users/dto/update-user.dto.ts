@@ -36,7 +36,7 @@ export class UpdateUserDto {
   @IsIn(CURRENT_DEPARTMENTS, { message: '部门不合法' })
   department?: string | null;
 
-  @ApiPropertyOptional({ description: '角色（不能降级最后一个管理员）', enum: Role })
+  @ApiPropertyOptional({ description: '角色（不能降级最后一个超级管理员）', enum: Role })
   @IsOptional()
   @IsIn(Object.values(Role), { message: '角色不合法' })
   role?: Role;

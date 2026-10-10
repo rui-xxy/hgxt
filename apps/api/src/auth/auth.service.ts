@@ -51,6 +51,7 @@ export class AuthService {
     if (user.status !== 'ACTIVE') {
       await this.monitor.recordLoginFailure({
         userId: user.id,
+        role: user.role,
         username: user.username,
         name: user.name,
         reason: '账号已被禁用',
@@ -63,6 +64,7 @@ export class AuthService {
     if (!valid) {
       await this.monitor.recordLoginFailure({
         userId: user.id,
+        role: user.role,
         username: user.username,
         name: user.name,
         reason: '密码错误',
@@ -78,6 +80,7 @@ export class AuthService {
     });
     await this.monitor.record({
       userId: user.id,
+      role: user.role,
       username: user.username,
       name: user.name,
       department: user.department,
@@ -161,6 +164,7 @@ export class AuthService {
       include: { user: true },
     });
     if (!existing?.user) return;
+    if (existing.user.role === 'SUPER_ADMIN') return;
 
     // 会话时长：取**同一客户端**（UA 摘要一致）的最近一次登录，避免多设备会话混算
     const clientKey = meta.ua?.client ?? null;
@@ -185,6 +189,7 @@ export class AuthService {
     }
     await this.monitor.record({
       userId: existing.userId,
+      role: existing.user.role,
       username: existing.user.username,
       name: existing.user.name,
       department: existing.user.department,

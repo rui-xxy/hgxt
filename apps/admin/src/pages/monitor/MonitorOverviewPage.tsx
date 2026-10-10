@@ -58,8 +58,9 @@ function clockOf(date = new Date()): string {
   return new Date(date.getTime() + 8 * 3_600_000).toISOString().slice(11, 16);
 }
 
-function secondsOf(iso: string): string {
-  return new Date(new Date(iso).getTime() + 8 * 3_600_000).toISOString().slice(11, 19);
+function secondsOf(iso: string, includeDate = false): string {
+  const shanghaiTime = new Date(new Date(iso).getTime() + 8 * 3_600_000).toISOString();
+  return includeDate ? `${shanghaiTime.slice(5, 10)} ${shanghaiTime.slice(11, 19)}` : shanghaiTime.slice(11, 19);
 }
 
 function DeviceChip({ device }: { device: MonitorDevice }) {
@@ -264,12 +265,14 @@ export function MonitorOverviewPage() {
         <div className="mon-kpi">
           <span className="mon-kpi-label">当前在线</span>
           <span className="mon-kpi-value is-ok">{countLabel(kpis?.online.count ?? 0)}<small>人</small></span>
-          <span className="mon-kpi-sub">电脑 {kpis?.online.desktop ?? 0} · 手机 {kpis?.online.mobile ?? 0}</span>
+          <span className="mon-kpi-sub" title={(online.data?.items ?? []).map((item) => item.name || item.username).join('、')}>
+            {online.data?.items.length ? online.data.items.slice(0, 3).map((item) => item.name || item.username).join('、') + (online.data.items.length > 3 ? ' 等' : '') : '当前没有成员在线'}
+          </span>
         </div>
         <div className="mon-kpi">
-          <span className="mon-kpi-label">{period.mode === 'today' ? '今日登录' : '期间登录'}</span>
-          <span className="mon-kpi-value">{countLabel(kpis?.logins.users ?? 0)}<small>/ {kpis?.logins.totalUsers ?? 0} 人</small></span>
-          <span className="mon-kpi-sub">登录率 {kpis?.logins.rate !== undefined && kpis?.logins.rate !== null ? `${Math.round(kpis.logins.rate * 100)}%` : '—'}</span>
+          <span className="mon-kpi-label">{period.mode === 'today' ? '今日访问人数' : '期间访问人数'}</span>
+          <span className="mon-kpi-value">{countLabel(kpis?.visitors.users ?? 0)}<small>/ {kpis?.visitors.totalUsers ?? 0} 人</small></span>
+          <span className="mon-kpi-sub">访问率 {kpis?.visitors.rate !== undefined && kpis?.visitors.rate !== null ? `${Math.round(kpis.visitors.rate * 100)}%` : '—'}</span>
         </div>
         <div className="mon-kpi">
           <span className="mon-kpi-label">页面访问</span>
@@ -284,10 +287,10 @@ export function MonitorOverviewPage() {
           </span>
         </div>
         <div className="mon-kpi">
-          <span className="mon-kpi-label">7 天未登录</span>
+          <span className="mon-kpi-label">7 天未访问</span>
           <span className="mon-kpi-value">{countLabel(kpis?.inactive7d.count ?? 0)}<small>人</small></span>
           <span className="mon-kpi-sub">
-            {kpis?.inactive7d.names.length ? `${kpis.inactive7d.names.join('、')}${kpis.inactive7d.count > kpis.inactive7d.names.length ? ' 等' : ''}` : '全员近期均有登录'}
+            {kpis?.inactive7d.names.length ? `${kpis.inactive7d.names.join('、')}${kpis.inactive7d.count > kpis.inactive7d.names.length ? ' 等' : ''}` : '全员近期均有访问'}
           </span>
         </div>
         <div className="mon-kpi">
@@ -298,6 +301,75 @@ export function MonitorOverviewPage() {
           <span className="mon-kpi-sub">登录失败 · 非工作时间 · 导出 · 新设备</span>
         </div>
       </div>
+
+      {/* 访问日志 */}
+      <section className="mon-panel" aria-label="访问日志">
+        <div className="mon-logbar">
+          <Segmented
+            value={logTab}
+            onChange={(value) => { setLogTab(value as MonitorLogTab); setLogPage(1); }}
+            options={LOG_TABS}
+          />
+          <Select
+            size="middle"
+            style={{ minWidth: 150 }}
+            value={department}
+            onChange={(value) => { setDepartment(value); setLogPage(1); }}
+            options={departmentOptions}
+            loading={departments.isLoading}
+          />
+          <span className="mon-logbar-spacer" />
+          <span className="mon-count">{logs.data ? `共 ${logs.data.total} 条` : ''}</span>
+          <Button icon={<DownloadIcon width={15} height={15} />} onClick={handleExport}>
+            导出
+          </Button>
+        </div>
+        <div className="mon-table-wrap">
+          <table className="mon-table">
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>用户</th>
+                <th>动作</th>
+                <th>页面 / 对象</th>
+                <th>设备</th>
+                <th>IP</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(logs.data?.items ?? []).map((item) => (
+                <tr key={item.id}>
+                  <td className="num" style={{ color: 'var(--hg-ink3)' }}>{secondsOf(item.time, from !== to)}</td>
+                  <td>
+                    {item.userId ? (
+                      <Link className="mon-user-link" to={`/monitor/${item.userId}`}>{item.name || item.username}</Link>
+                    ) : (
+                      <span className="mon-user-link">{item.name || item.username}</span>
+                    )}
+                    {item.department ? <small style={{ color: 'var(--hg-ink3)', marginLeft: 6 }}>{item.department}</small> : null}
+                  </td>
+                  <td className={actionTone(item.action)}>{item.actionLabel}</td>
+                  <td title={item.pageLabel} style={{ maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.pageLabel}</td>
+                  <td><DeviceChip device={item.device} /></td>
+                  <td className="num" style={{ color: 'var(--hg-ink3)' }}>{item.ip ?? '—'}</td>
+                </tr>
+              ))}
+              {!logs.data?.items.length ? (
+                <tr><td colSpan={6} className="mon-table-empty">{logs.isLoading ? '正在加载…' : '本期暂无访问日志'}</td></tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+        {logs.data?.total ? (
+          <TablePageFooter
+            page={logPage}
+            pageSize={logPageSize}
+            total={logs.data.total}
+            onChange={setLogPage}
+            onPageSizeChange={(size) => { setLogPage(1); setLogPageSize(size); }}
+          />
+        ) : null}
+      </section>
 
       {/* 趋势 + 右栏 */}
       <div className="mon-main">
@@ -334,9 +406,9 @@ export function MonitorOverviewPage() {
               <span className="mon-stat-value">{overview.data?.peak ? `${overview.data.peak.label} · ${overview.data.peak.count} 次` : '—'}</span>
             </div>
             <div className="mon-stat">
-              <span className="mon-stat-label">登录</span>
+              <span className="mon-stat-label">访问人数</span>
               <span className="mon-stat-value">
-                {overview.data ? `${countLabel(overview.data.loginStat.count)} 次 · ${overview.data.loginStat.users} 人` : '—'}
+                {overview.data ? `${countLabel(overview.data.kpis.visitors.users)} 人 · ${countLabel(overview.data.kpis.pageViews.count)} 次` : '—'}
               </span>
             </div>
             <div className="mon-stat">
@@ -354,34 +426,7 @@ export function MonitorOverviewPage() {
         </section>
 
         <div className="mon-side">
-          <section className="mon-panel" aria-label="安全提醒">
-            <div className="mon-panel-head">
-              <span className="mon-panel-title">安全提醒</span>
-              <span className="mon-panel-hint">{periodLabel} {security.data ? `${security.data.total} 条` : ''}</span>
-            </div>
-            <div className="mon-alerts">
-              {security.data?.items.length ? (
-                security.data.items.map((item, index) => (
-                  <div key={`${item.time}-${index}`} className={`mon-alert${item.kind === 'login_failed' ? ' is-danger' : item.kind === 'off_hours' || item.kind === 'new_device' ? ' is-amber' : ''}`}>
-                    <span className="mon-alert-time">{timeOf(item.time, today)}</span>
-                    <div className="mon-alert-body">
-                      <span className="mon-alert-kind">
-                        {MONITOR_SECURITY_KIND_LABELS[item.kind]} · {item.name || item.username}
-                      </span>
-                      <span className="mon-alert-detail" title={item.detail}>
-                        {item.detail}
-                        {item.ip ? ` · ${item.ip}` : ''}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="mon-table-empty">{security.isLoading ? '正在加载…' : '本期没有需要关注的安全事件'}</p>
-              )}
-            </div>
-          </section>
-
-          <section className="mon-panel" aria-label="当前在线">
+          <section className="mon-panel mon-online-panel" aria-label="当前在线" id="monitor-online">
             <div className="mon-panel-head">
               <span className="mon-panel-title">当前在线</span>
               <span className="mon-panel-hint">{online.data ? `${online.data.count} 人` : ''} · 10 分钟内活跃</span>
@@ -408,6 +453,34 @@ export function MonitorOverviewPage() {
               )}
             </div>
           </section>
+
+          <section className="mon-panel mon-alert-panel" aria-label="安全提醒">
+            <div className="mon-panel-head">
+              <span className="mon-panel-title">安全提醒</span>
+              <span className="mon-panel-hint">{periodLabel} {security.data ? `${security.data.total} 条` : ''}</span>
+            </div>
+            <div className="mon-alerts">
+              {security.data?.items.length ? (
+                security.data.items.map((item, index) => (
+                  <div key={`${item.time}-${index}`} className={`mon-alert${item.kind === 'login_failed' ? ' is-danger' : item.kind === 'off_hours' || item.kind === 'new_device' ? ' is-amber' : ''}`}>
+                    <span className="mon-alert-time">{timeOf(item.time, today)}</span>
+                    <div className="mon-alert-body">
+                      <span className="mon-alert-kind">
+                        {MONITOR_SECURITY_KIND_LABELS[item.kind]} · {item.name || item.username}
+                      </span>
+                      <span className="mon-alert-detail" title={item.detail}>
+                        {item.detail}
+                        {item.ip ? ` · ${item.ip}` : ''}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="mon-table-empty">{security.isLoading ? '正在加载…' : '本期没有需要关注的安全事件'}</p>
+              )}
+            </div>
+          </section>
+
         </div>
       </div>
 
@@ -456,7 +529,7 @@ export function MonitorOverviewPage() {
       <section className="mon-panel" aria-label="部门活跃">
         <div className="mon-panel-head">
           <span className="mon-panel-title">部门活跃</span>
-          <span className="mon-panel-hint">近 7 天每日登录人数 · 截至 {to}</span>
+          <span className="mon-panel-hint">近 7 天每日访问人数 · 截至 {to}</span>
         </div>
         <div className="mon-table-wrap">
           <table className="mon-table">
@@ -485,81 +558,14 @@ export function MonitorOverviewPage() {
                 );
               })}
               {!departments.data?.rows.length ? (
-                <tr><td colSpan={8} className="mon-table-empty">{departments.isLoading ? '正在加载…' : '近 7 天暂无登录记录'}</td></tr>
+                <tr><td colSpan={8} className="mon-table-empty">{departments.isLoading ? '正在加载…' : '近 7 天暂无访问记录'}</td></tr>
               ) : null}
             </tbody>
           </table>
         </div>
       </section>
 
-      {/* 访问日志 */}
-      <section className="mon-panel" aria-label="访问日志">
-        <div className="mon-logbar">
-          <Segmented
-            value={logTab}
-            onChange={(value) => { setLogTab(value as MonitorLogTab); setLogPage(1); }}
-            options={LOG_TABS}
-          />
-          <Select
-            size="middle"
-            style={{ minWidth: 150 }}
-            value={department}
-            onChange={(value) => { setDepartment(value); setLogPage(1); }}
-            options={departmentOptions}
-            loading={departments.isLoading}
-          />
-          <span className="mon-logbar-spacer" />
-          <span className="mon-count">{logs.data ? `共 ${logs.data.total} 条` : ''}</span>
-          <Button icon={<DownloadIcon width={15} height={15} />} onClick={handleExport}>
-            导出
-          </Button>
-        </div>
-        <div className="mon-table-wrap">
-          <table className="mon-table">
-            <thead>
-              <tr>
-                <th>时间</th>
-                <th>用户</th>
-                <th>动作</th>
-                <th>页面 / 对象</th>
-                <th>设备</th>
-                <th>IP</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(logs.data?.items ?? []).map((item) => (
-                <tr key={item.id}>
-                  <td className="num" style={{ color: 'var(--hg-ink3)' }}>{secondsOf(item.time)}</td>
-                  <td>
-                    {item.userId ? (
-                      <Link className="mon-user-link" to={`/monitor/${item.userId}`}>{item.name || item.username}</Link>
-                    ) : (
-                      <span className="mon-user-link">{item.name || item.username}</span>
-                    )}
-                    {item.department ? <small style={{ color: 'var(--hg-ink3)', marginLeft: 6 }}>{item.department}</small> : null}
-                  </td>
-                  <td className={actionTone(item.action)}>{item.actionLabel}</td>
-                  <td title={item.pageLabel} style={{ maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.pageLabel}</td>
-                  <td><DeviceChip device={item.device} /></td>
-                  <td className="num" style={{ color: 'var(--hg-ink3)' }}>{item.ip ?? '—'}</td>
-                </tr>
-              ))}
-              {!logs.data?.items.length ? (
-                <tr><td colSpan={6} className="mon-table-empty">{logs.isLoading ? '正在加载…' : '本期暂无访问日志'}</td></tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
-        {logs.data?.total ? (
-          <TablePageFooter
-            page={logPage}
-            pageSize={logPageSize}
-            total={logs.data.total}
-            onChange={setLogPage}
-            onPageSizeChange={(size) => { setLogPage(1); setLogPageSize(size); }}
-          />
-        ) : null}
-      </section>
+
     </div>
   );
 }

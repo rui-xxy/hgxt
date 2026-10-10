@@ -59,7 +59,7 @@ export function MonitorMemberPage() {
   const kpis = data.kpis;
   const weekMax = Math.max(1, ...data.weekOnline.map((row) => row.hours));
   const pagesMax = Math.max(1, ...data.commonPages.map((row) => row.count));
-  const fullAttendance = kpis.monthLoginDays >= kpis.monthWorkdays && kpis.monthWorkdays > 0;
+  const visitedEveryDay = kpis.monthVisitDays >= kpis.monthElapsedDays && kpis.monthElapsedDays > 0;
 
   return (
     <div className="mem-page">
@@ -80,7 +80,7 @@ export function MonitorMemberPage() {
             {[
               user.department ?? '未分配部门',
               `账号 ${user.username}`,
-              user.role === 'SUPER_ADMIN' ? '管理员' : '普通用户',
+              user.role === 'SUPER_ADMIN' ? '超级管理员' : user.role === 'ADMIN' ? '管理员' : '普通用户',
             ].join(' · ')}
           </span>
         </div>
@@ -133,9 +133,9 @@ export function MonitorMemberPage() {
           <span className="mon-kpi-sub">{kpis.distinctPages} 个页面</span>
         </div>
         <div className="mon-kpi">
-          <span className="mon-kpi-label">本月登录</span>
-          <span className="mon-kpi-value">{kpis.monthLoginDays}<small>/ {kpis.monthWorkdays} 天</small></span>
-          <span className="mon-kpi-sub">{fullAttendance ? '工作日全勤' : '按工作日统计'}</span>
+          <span className="mon-kpi-label">本月访问天数</span>
+          <span className="mon-kpi-value">{kpis.monthVisitDays}<small>/ {kpis.monthElapsedDays} 天</small></span>
+          <span className="mon-kpi-sub">{visitedEveryDay ? '每天均有访问' : '按实际打开页面统计'}</span>
         </div>
         <div className="mon-kpi">
           <span className="mon-kpi-label">提交 / 修改</span>

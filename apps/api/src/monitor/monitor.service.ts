@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
+  Role,
   MONITOR_ACTION_LABELS,
   MONITOR_LOG_TAB_ACTIONS,
-  countWorkdays,
   diffDateKeys,
   isValidDateKey,
   monitorPageInfo,
@@ -22,7 +22,9 @@ import {
   type MonitorSecurityResult,
   type TrackEventBody,
 } from '@hgxt/shared';
+import type { Role as RoleType } from '@hgxt/shared';
 import { PrismaService } from '../database/prisma.service';
+import type { Prisma } from '../generated/prisma/client';
 import type { UaInfo } from '../common/utils/ua';
 
 /** 在线判定窗口：最近一次活动在 10 分钟内算在线（登出立即终止） */
@@ -70,6 +72,9 @@ const EVENT_SELECT = {
   ip: true,
   createdAt: true,
 } as const;
+
+/** 超级管理员历史事件保留在库中，但不进入任何监控统计或日志。 */
+const VISIBLE_ACTOR = { OR: [{ actorRole: null }, { actorRole: { not: Role.SUPER_ADMIN } }] } satisfies Prisma.AccessEventWhereInput;
 
 /** 心跳之外的活动动作；登出单独处理（它是会话的硬终止边界） */
 const ACTIVITY_ACTIONS = ['heartbeat', 'page_view', 'login', 'submit', 'update', 'export'] as const;
@@ -172,6 +177,7 @@ export class MonitorService {
   /** 写入一条访问事件。监控记录绝不能影响主流程——失败只告警不抛出。 */
   async record(input: {
     userId?: string | null;
+    role?: RoleType | null;
     username: string;
     name?: string | null;
     department?: string | null;
@@ -183,9 +189,14 @@ export class MonitorService {
   }): Promise<void> {
     const ua = input.ua ?? { device: 'desktop' as MonitorDevice, client: null };
     try {
+      const role = input.role ?? (input.userId
+        ? (await this.prisma.user.findUnique({ where: { id: input.userId }, select: { role: true } }))?.role
+        : null);
+      if (role === Role.SUPER_ADMIN) return;
       await this.prisma.accessEvent.create({
         data: {
           userId: input.userId ?? null,
+          actorRole: role ?? null,
           username: input.username,
           name: input.name ?? '',
           department: input.department ?? null,
@@ -206,11 +217,13 @@ export class MonitorService {
   async recordLoginFailure(input: {
     username: string;
     userId?: string | null;
+    role?: RoleType | null;
     name?: string | null;
     reason: string;
     ip?: string | null;
     ua?: UaInfo;
   }): Promise<void> {
+    if (input.role === Role.SUPER_ADMIN) return;
     let attempt = 1;
     try {
       const since = new Date(Date.now() - 15 * 60_000);
@@ -224,6 +237,7 @@ export class MonitorService {
     }
     await this.record({
       userId: input.userId,
+      role: input.role,
       username: input.username,
       name: input.name,
       action: 'login_failed',
@@ -247,11 +261,13 @@ export class MonitorService {
   async trackEvent(userId: string, body: TrackEventBody, ip: string | null, ua: UaInfo): Promise<void> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { username: true, name: true, department: true },
+      select: { username: true, name: true, department: true, role: true },
     });
     if (!user) throw new NotFoundException('账号不存在');
+    if (user.role === Role.SUPER_ADMIN) return;
     await this.record({
       userId,
+      role: user.role,
       username: user.username,
       name: user.name,
       department: user.department,
@@ -277,11 +293,13 @@ export class MonitorService {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { username: true, name: true, department: true },
+        select: { username: true, name: true, department: true, role: true },
       });
       if (!user) return;
+      if (user.role === Role.SUPER_ADMIN) return;
       await this.record({
         userId,
+        role: user.role,
         username: user.username,
         name: user.name,
         department: user.department,
@@ -308,7 +326,7 @@ export class MonitorService {
 
   private async fetchEvents(from: string, to: string, extra?: object): Promise<EventRow[]> {
     return this.prisma.accessEvent.findMany({
-      where: { createdAt: this.rangeWhere(from, to), ...extra },
+      where: { createdAt: this.rangeWhere(from, to), ...VISIBLE_ACTOR, ...extra },
       select: EVENT_SELECT,
       orderBy: { createdAt: 'asc' },
     });
@@ -342,7 +360,6 @@ export class MonitorService {
     ]);
 
     const views = events.filter((e) => e.action === 'page_view');
-    const logins = events.filter((e) => e.action === 'login');
 
     let chart: MonitorOverviewResult['chart'];
     let peak: MonitorOverviewResult['peak'];
@@ -393,10 +410,6 @@ export class MonitorService {
       kpis: { ...kpis, onlineHours: { avg: kpis.onlineHours.avg, deltaMinutes } },
       chart,
       peak,
-      loginStat: {
-        count: logins.length,
-        users: new Set(logins.map((e) => e.userId ?? e.username)).size,
-      },
       deviceSplit:
         views.length === 0
           ? { desktop: 0, mobile: 0 }
@@ -406,24 +419,23 @@ export class MonitorService {
 
   /** KPI 行（在线人数为实时口径） */
   private async overviewKpis(from: string, to: string) {
-    const [events, totalUsers, inactiveUsers, security, online] = await Promise.all([
+    const [events, activeUsers, recentVisits, security, online] = await Promise.all([
       this.fetchEvents(from, to),
-      this.prisma.user.count({ where: { status: 'ACTIVE' } }),
       this.prisma.user.findMany({
-        where: {
-          status: 'ACTIVE',
-          OR: [{ lastLoginAt: null }, { lastLoginAt: { lt: shanghaiDayStart(shiftDateKey(shanghaiDateKey(new Date()), -7)) } }],
-        },
-        select: { name: true },
+        where: { status: 'ACTIVE', role: { not: Role.SUPER_ADMIN } },
+        select: { id: true, name: true },
         orderBy: { createdAt: 'asc' },
       }),
+      this.fetchEvents(shiftDateKey(shanghaiDateKey(new Date()), -6), shanghaiDateKey(new Date()), { action: 'page_view' }),
       this.security(from, to),
       this.onlineList(),
     ]);
 
-    const loginEvents = events.filter((e) => e.action === 'login');
-    const loginUsers = new Set(loginEvents.map((e) => e.userId ?? e.username));
-    const viewCount = events.filter((e) => e.action === 'page_view').length;
+    const visits = events.filter((e) => e.action === 'page_view');
+    const visitors = new Set(visits.map((e) => e.userId).filter((id): id is string => !!id));
+    const recentVisitors = new Set(recentVisits.map((e) => e.userId).filter((id): id is string => !!id));
+    const inactiveUsers = activeUsers.filter((user) => !recentVisitors.has(user.id));
+    const viewCount = visits.length;
     const onlineHours = this.rangeAvgOnlineHoursFromEvents(events);
 
     return {
@@ -432,14 +444,14 @@ export class MonitorService {
         desktop: online.items.filter((i) => i.device === 'desktop').length,
         mobile: online.items.filter((i) => i.device === 'mobile').length,
       },
-      logins: {
-        users: loginUsers.size,
-        totalUsers,
-        rate: totalUsers > 0 ? loginUsers.size / totalUsers : null,
+      visitors: {
+        users: visitors.size,
+        totalUsers: activeUsers.length,
+        rate: activeUsers.length > 0 ? visitors.size / activeUsers.length : null,
       },
       pageViews: {
         count: viewCount,
-        perUser: loginUsers.size > 0 ? viewCount / loginUsers.size : null,
+        perUser: visitors.size > 0 ? viewCount / visitors.size : null,
       },
       onlineHours,
       inactive7d: { count: inactiveUsers.length, names: inactiveUsers.slice(0, 3).map((u) => u.name) },
@@ -572,6 +584,7 @@ export class MonitorService {
     const now = new Date();
     const recent = await this.prisma.accessEvent.findMany({
       where: {
+        ...VISIBLE_ACTOR,
         createdAt: { gte: new Date(now.getTime() - ONLINE_WINDOW_MS) },
         action: { in: [...ACTIVITY_ACTIONS, 'logout'] },
         userId: { not: null },
@@ -596,7 +609,7 @@ export class MonitorService {
     // 只统计启用中的账号（禁用 = 会话已被吊销）
     const candidateIds = [...new Set(activeStreams.map(([key]) => key.split('|')[0]))];
     const activeRows = await this.prisma.user.findMany({
-      where: { id: { in: candidateIds }, status: 'ACTIVE' },
+      where: { id: { in: candidateIds }, status: 'ACTIVE', role: { not: Role.SUPER_ADMIN } },
       select: { id: true },
     });
     const allowedIds = new Set(activeRows.map((row) => row.id));
@@ -608,6 +621,7 @@ export class MonitorService {
     // 会话起点：回溯在线用户近 12 小时事件（含登出边界），仍按（用户×设备）分流
     const history = await this.prisma.accessEvent.findMany({
       where: {
+        ...VISIBLE_ACTOR,
         userId: { in: [...allowedIds] },
         createdAt: { gte: new Date(now.getTime() - 12 * 3_600_000) },
         action: { in: [...ACTIVITY_ACTIONS, 'logout'] },
@@ -743,13 +757,13 @@ export class MonitorService {
     return { from, to, rows };
   }
 
-  /** 部门活跃：截至 to（默认今天）的 7 天，每日登录人数矩阵 */
+  /** 部门活跃：截至 to（默认今天）的 7 天，每日访问人数矩阵 */
   async departments(rawTo?: string): Promise<MonitorDepartmentsResult> {
     const today = shanghaiDateKey(new Date());
     const validatedTo = assertDateKey(rawTo, 'to');
     const to = validatedTo && validatedTo <= today ? validatedTo : today;
     const from = shiftDateKey(to, -6);
-    const events = await this.fetchEvents(from, to, { action: 'login' });
+    const events = await this.fetchEvents(from, to, { action: 'page_view' });
     const dates = Array.from({ length: 7 }, (_, index) => shiftDateKey(from, index));
 
     const acc = new Map<string, Array<Set<string>>>();
@@ -776,6 +790,7 @@ export class MonitorService {
     const actions =
       query.tab && query.tab !== 'all' ? MONITOR_LOG_TAB_ACTIONS[query.tab] : undefined;
     const where = {
+      ...VISIBLE_ACTOR,
       createdAt: this.rangeWhere(from, to),
       ...(actions ? { action: { in: [...actions] } } : { action: { not: 'heartbeat' } }),
       ...(query.department === 'none'
@@ -862,9 +877,9 @@ export class MonitorService {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { username: true, name: true, department: true },
+        select: { username: true, name: true, department: true, role: true },
       });
-      if (!user) return;
+      if (!user || user.role === Role.SUPER_ADMIN) return;
       const devices = await this.prisma.accessEvent.findMany({
         where: { userId, createdAt: { gte: new Date(Date.now() - 24 * 3_600_000) } },
         select: { device: true },
@@ -874,6 +889,7 @@ export class MonitorService {
       for (const device of deviceList) {
         await this.record({
           userId,
+          role: user.role,
           username: user.username,
           name: user.name,
           department: user.department,
@@ -890,7 +906,7 @@ export class MonitorService {
   /** 成员访问详情 */
   async member(userId: string, rawDate?: string): Promise<MonitorMemberResult> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('用户不存在');
+    if (!user || user.role === Role.SUPER_ADMIN) throw new NotFoundException('用户不存在');
     const today = shanghaiDateKey(new Date());
     const validatedDate = assertDateKey(rawDate, 'date');
     const date = validatedDate && validatedDate <= today ? validatedDate : today;
@@ -920,8 +936,8 @@ export class MonitorService {
       select: EVENT_SELECT,
       orderBy: { createdAt: 'asc' },
     });
-    const monthLoginDays = new Set(
-      monthEvents.filter((e) => e.action === 'login').map((e) => shanghaiDateKey(e.createdAt)),
+    const monthVisitDays = new Set(
+      monthEvents.filter((e) => e.action === 'page_view').map((e) => shanghaiDateKey(e.createdAt)),
     ).size;
     const monthSubmits = monthEvents.filter((e) => e.action === 'submit').length;
     const monthUpdates = monthEvents.filter((e) => e.action === 'update').length;
@@ -1049,8 +1065,8 @@ export class MonitorService {
         sessions: sessions.length,
         views: viewEvents.length,
         distinctPages: new Set(viewEvents.map(groupKeyOf)).size,
-        monthLoginDays,
-        monthWorkdays: countWorkdays(monthStart, date),
+        monthVisitDays,
+        monthElapsedDays: diffDateKeys(monthStart, date) + 1,
         monthSubmits,
         monthUpdates,
       },

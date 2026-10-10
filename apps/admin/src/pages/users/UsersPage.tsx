@@ -13,7 +13,8 @@ import { UserFormModal, type UserFormValues } from './UserFormModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
 
 const roleText: Record<string, string> = {
-  [Role.SUPER_ADMIN]: '管理员',
+  [Role.SUPER_ADMIN]: '超级管理员',
+  [Role.ADMIN]: '管理员',
   [Role.USER]: '普通用户',
 };
 

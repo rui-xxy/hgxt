@@ -53,6 +53,7 @@ interface ModuleDef {
   match: (pathname: string) => boolean;
   sections: ModuleSection[];
   adminOnly?: boolean;
+  superAdminOnly?: boolean;
   permission?: PagePermissionType;
 }
 
@@ -112,7 +113,7 @@ const MODULES: ModuleDef[] = [
     title: '系统',
     path: '/users',
     match: (p) => p.startsWith('/users') || p.startsWith('/monitor'),
-    adminOnly: true,
+    superAdminOnly: true,
     sections: [{
       items: [
         { label: '成员管理', path: '/users', icon: UsersIcon },
@@ -152,7 +153,9 @@ export function AdminLayout() {
   const navigate = useNavigate();
   const me = useMe();
   const { mode, toggleMode } = useThemeMode();
-  const isAdmin = me.data?.role === Role.SUPER_ADMIN;
+  const trackingRole = me.data?.role;
+  const isSuperAdmin = trackingRole === Role.SUPER_ADMIN;
+  const isAdmin = isSuperAdmin || trackingRole === Role.ADMIN;
   const formNavigation = useQuery({
     queryKey: ['forms', 'navigation'],
     queryFn: () => listForms({ page: 1, pageSize: 100, keyword: '' }),
@@ -173,14 +176,15 @@ export function AdminLayout() {
       : undefined;
   }, [location.pathname, formNavigation.data]);
   useEffect(() => {
+    if (!trackingRole || trackingRole === Role.SUPER_ADMIN) return;
     const target = pageKeyOfPath(location.pathname);
     if (!target) return;
     trackPageView(target.page, target.detail ?? formTitleRef.current);
     // 注意：故意不依赖表单导航数据——标题异步到达不该产生第二条访问记录
-  }, [location.pathname]);
+  }, [location.pathname, trackingRole]);
 
   // 访问监控：每 60 秒一次在线心跳（仅登录后的后台布局内）
-  useEffect(() => startHeartbeat(), []);
+  useEffect(() => trackingRole && trackingRole !== Role.SUPER_ADMIN ? startHeartbeat() : undefined, [trackingRole]);
 
   const openFlyout = (key: string) => {
     window.clearTimeout(closeTimer.current);
@@ -191,8 +195,8 @@ export function AdminLayout() {
     closeTimer.current = window.setTimeout(() => setHoverKey(null), 140);
   };
 
-  const canSee = (permission?: PagePermissionType) => !permission || isAdmin || !!me.data?.pagePermissions.includes(permission);
-  const modules = MODULES.filter((m) => (!m.adminOnly || isAdmin) && canSee(m.permission)).map((module) => ({
+  const canSee = (permission?: PagePermissionType) => !permission || isSuperAdmin || !!me.data?.pagePermissions.includes(permission);
+  const modules = MODULES.filter((m) => (!m.adminOnly || isAdmin) && (!m.superAdminOnly || isSuperAdmin) && canSee(m.permission)).map((module) => ({
     ...module,
     path: module.key === 'home' ? landingPath() : module.path,
     sections: module.sections.map((section) => ({
@@ -226,7 +230,7 @@ export function AdminLayout() {
         <div className="hgxt-acct-name">{me.data?.name ?? '...'}</div>
         <div className="hgxt-acct-meta">
           <span className="mono">{me.data?.username ?? ''}</span>
-          {me.data ? ` · ${me.data.role === Role.SUPER_ADMIN ? '管理员' : '普通用户'}` : ''}
+          {me.data ? ` · ${me.data.role === Role.SUPER_ADMIN ? '超级管理员' : me.data.role === Role.ADMIN ? '管理员' : '普通用户'}` : ''}
         </div>
       </div>
       <hr />

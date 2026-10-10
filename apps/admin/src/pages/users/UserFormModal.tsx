@@ -120,7 +120,8 @@ export function UserFormModal({ open, initial, submitting, onCancel, onSubmit }:
           <Select
             options={[
               { value: Role.USER, label: '普通用户' },
-              { value: Role.SUPER_ADMIN, label: '管理员' },
+              { value: Role.ADMIN, label: '管理员' },
+              { value: Role.SUPER_ADMIN, label: '超级管理员' },
             ]}
           />
         </Form.Item>
@@ -135,7 +136,7 @@ export function UserFormModal({ open, initial, submitting, onCancel, onSubmit }:
             </Flex>
           </Checkbox.Group>
         </Form.Item>}
-        {role === Role.SUPER_ADMIN && <div className="hgxt-muted">管理员可以访问全部页面。</div>}
+        {role === Role.SUPER_ADMIN && <div className="hgxt-muted">超级管理员可以访问全部页面，包括访问监控与成员管理。</div>}
       </Form>
     </Modal>
   );

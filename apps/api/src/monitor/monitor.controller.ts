@@ -92,7 +92,7 @@ export class MonitorController {
 
   @Get('departments')
   @Roles(Role.SUPER_ADMIN)
-  @ApiOperation({ summary: '部门活跃：截至 to（默认今天）的 7 天每日登录人数' })
+  @ApiOperation({ summary: '部门活跃：截至 to（默认今天）的 7 天每日访问人数' })
   departments(@Query() query: MonitorToDateDto): Promise<MonitorDepartmentsResult> {
     return this.monitor.departments(query.to);
   }
@@ -108,7 +108,7 @@ export class MonitorController {
 
   @Get('logs/export')
   @Roles(Role.SUPER_ADMIN)
-  @ApiOperation({ summary: '访问日志导出 CSV（筛选条件与 logs 一致；导出本身计入审计；超 1 万条截断并在文件内标注）' })
+  @ApiOperation({ summary: '访问日志导出 CSV（筛选条件与 logs 一致；超级管理员的导出不记录；超 1 万条截断并在文件内标注）' })
   async exportLogs(
     @Query() query: MonitorLogsQueryDto,
     @CurrentUser() user: AuthUser,

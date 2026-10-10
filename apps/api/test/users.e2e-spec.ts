@@ -44,6 +44,23 @@ describe('users 用户与权限（A2/A4/E1/E2/E3）', () => {
     expect(res.status).toBe(403);
   });
 
+  it('角色升级为管理员后旧 Access 与 Refresh 立即失效，重新登录取得新权限', async () => {
+    const created = await createUser({
+      username: 'roleprobe', name: '角色探针', password: 'Probe@12345', role: Role.USER,
+    }).expect(201);
+    const login = await http(app).post('/api/auth/login')
+      .send({ username: 'roleprobe', password: 'Probe@12345' }).expect(200);
+    await http(app).patch(`/api/users/${created.body.id}`)
+      .set('Authorization', `Bearer ${adminToken}`).send({ role: Role.ADMIN }).expect(200);
+    expect((await http(app).get('/api/auth/me').set('Authorization', `Bearer ${login.body.accessToken}`)).status).toBe(401);
+    expect((await http(app).post('/api/auth/refresh').send({ refreshToken: login.body.refreshToken })).status).toBe(401);
+    const next = await http(app).post('/api/auth/login')
+      .send({ username: 'roleprobe', password: 'Probe@12345' }).expect(200);
+    expect(next.body.user.role).toBe(Role.ADMIN);
+    await http(app).get('/api/forms').set('Authorization', `Bearer ${next.body.accessToken}`).expect(200);
+    await http(app).get('/api/monitor/overview').set('Authorization', `Bearer ${next.body.accessToken}`).expect(403);
+  });
+
   it('E1：非法 username 被后端参数校验拒绝', async () => {
     const res = await createUser({ username: '@@@@', name: '非法', password: 'Pass@12345', role: Role.USER });
     expect(res.status).toBe(400);
