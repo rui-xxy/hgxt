@@ -3,7 +3,7 @@ import { App, Button, Empty, Modal, Skeleton } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { FormData, FormField } from '@hgxt/shared';
 import { Link, useNavigate } from 'react-router';
-import { controlCatalog, createSubmission, getForm } from '../../api/forms';
+import { controlCatalog, createSubmission, getForm, type ControlCatalogItem } from '../../api/forms';
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, FormsIcon, HistoryIcon, UserIcon } from '../../components/icons';
 import './sulfuric-control-mobile.css';
 
@@ -30,6 +30,37 @@ function readEntry(id: string, date: string): LocalEntry | null {
 function saveEntry(id: string, date: string, entry: LocalEntry) {
   localStorage.setItem(storageKey(id, date), JSON.stringify(entry));
 }
+function migrateLocalWashingEntries(catalog: ControlCatalogItem[]): boolean {
+  const washing = catalog.find((item) => item.code === 'sulfuric_control_washing');
+  const acid = catalog.find((item) => item.code === 'sulfuric_control_acid');
+  if (!washing || !acid) return false;
+  let changed = false;
+  const keys = Array.from({ length: localStorage.length }, (_, index) => localStorage.key(index)).filter((key): key is string => !!key && key.startsWith(`${STORAGE_PREFIX}${washing.id}:`));
+  for (const key of keys) {
+    const date = key.slice(-10);
+    const entry = readEntry(washing.id, date);
+    if (!entry || !['field_AT', 'field_AU', 'field_AF', 'field_AE'].some((fieldId) => fieldId in entry.values)) continue;
+    const moved = Object.fromEntries(['field_AT', 'field_AU'].filter((fieldId) => fieldId in entry.values).map((fieldId) => [fieldId, entry.values[fieldId]]));
+    if (Object.keys(moved).length) {
+      const current = readEntry(acid.id, date);
+      saveEntry(acid.id, date, { values: { ...moved, ...current?.values }, status: current?.status ?? entry.status, savedAt: current?.savedAt ?? entry.savedAt });
+    }
+    const remaining = { ...entry.values };
+    delete remaining.field_AT;
+    delete remaining.field_AU;
+    delete remaining.field_AF;
+    delete remaining.field_AE;
+    if (Object.keys(remaining).length) saveEntry(washing.id, date, { ...entry, values: remaining });
+    else localStorage.removeItem(key);
+    changed = true;
+  }
+  return changed;
+}
+async function loadControlCatalog() {
+  const catalog = await controlCatalog();
+  migrateLocalWashingEntries(catalog);
+  return catalog;
+}
 function rangeOf(title: string): { min: number; max: number } | null {
   const match = title.match(/(\d+(?:\.\d+)?)\s*[-－—～~]\s*(\d+(?:\.\d+)?)/);
   return match ? { min: Number(match[1]), max: Number(match[2]) } : null;
@@ -47,7 +78,7 @@ function ControlMobileNav({ active, pending }: { active: 'home' | 'pending' | 'm
 }
 
 export function SulfuricControlHomePage() {
-  const catalog = useQuery({ queryKey: ['control', 'catalog'], queryFn: controlCatalog });
+  const catalog = useQuery({ queryKey: ['control', 'mobile-catalog'], queryFn: loadControlCatalog });
   const definitions = useQuery({
     queryKey: ['control', 'home-definitions', catalog.data?.map((item) => item.id).join(',')],
     queryFn: () => Promise.all((catalog.data ?? []).map((item) => getForm(item.id))),
@@ -94,7 +125,7 @@ export function SulfuricControlHomePage() {
 }
 
 export function SulfuricControlMePage() {
-  const catalog = useQuery({ queryKey: ['control', 'catalog'], queryFn: controlCatalog });
+  const catalog = useQuery({ queryKey: ['control', 'mobile-catalog'], queryFn: loadControlCatalog });
   const ids = new Set((catalog.data ?? []).map((item) => item.id));
   let drafts = 0, pending = 0;
   for (let index = 0; index < localStorage.length; index++) {
@@ -111,7 +142,7 @@ export function SulfuricControlMePage() {
 
 export function SulfuricControlPendingPage() {
   const { message } = App.useApp();
-  const catalog = useQuery({ queryKey: ['control', 'catalog'], queryFn: controlCatalog });
+  const catalog = useQuery({ queryKey: ['control', 'mobile-catalog'], queryFn: loadControlCatalog });
   const [version, setVersion] = useState(0);
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState('');
@@ -172,6 +203,12 @@ export function SulfuricControlPendingPage() {
 }
 
 export function SulfuricControlMobilePage({ id }: { id: string }) {
+  const catalog = useQuery({ queryKey: ['control', 'mobile-catalog'], queryFn: loadControlCatalog });
+  if (!catalog.data) return <main className="sc-mobile-shell"><Skeleton active /></main>;
+  return <SulfuricControlForm id={id} />;
+}
+
+function SulfuricControlForm({ id }: { id: string }) {
   const { message } = App.useApp();
   const navigate = useNavigate();
   const queryClient = useQueryClient();

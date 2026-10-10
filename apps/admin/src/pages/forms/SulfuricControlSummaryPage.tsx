@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { App, Button, Empty, Modal, Skeleton } from 'antd';
+import { App, Button, Empty, Modal, Popconfirm, Skeleton } from 'antd';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { FormDTO, FormField, FormSubmissionDTO } from '@hgxt/shared';
 import { Link, useSearchParams } from 'react-router';
-import { controlCatalog, getForm, listSubmissions, patchControlValue } from '../../api/forms';
+import { controlCatalog, getForm, listSubmissions, patchControlValue, saveSubmissions } from '../../api/forms';
 import { PageHeader } from '../../components/PageHeader';
 import './sulfuric-control.css';
 
@@ -57,6 +57,14 @@ export function SulfuricControlSummaryPage() {
       await queryClient.invalidateQueries({ queryKey: ['control', 'submissions', variables.formId] });
       setEditing(null);
       message.success('已保存');
+    },
+    onError: (error) => message.error(error.message),
+  });
+  const remove = useMutation({
+    mutationFn: ({ formId, rowId }: { formId: string; rowId: string }) => saveSubmissions(formId, { created: [], updated: [], deleted: [rowId] }),
+    onSuccess: async (_, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ['control', 'submissions', variables.formId] });
+      message.success('已删除记录');
     },
     onError: (error) => message.error(error.message),
   });
@@ -120,6 +128,10 @@ export function SulfuricControlSummaryPage() {
   };
 
   const openEdit = (date: string, column: Column) => setEditing({ date, column, value: display(rowMap.get(date)?.data[column.field.id]) });
+  const rowAction = (date: string) => {
+    const row = rowMap.get(date);
+    return <td className="sc-action-cell"><Popconfirm title={`删除 ${date} 的这条记录？`} description="删除后无法在此页面恢复" okText="删除" okButtonProps={{ danger: true }} cancelText="取消" onConfirm={() => { if (row) remove.mutate({ formId: row.formId, rowId: row.id }); }}><Button type="link" danger size="small" disabled={remove.isPending}>删除</Button></Popconfirm></td>;
+  };
   const selectTab = (index: number) => {
     const next = new URLSearchParams(searchParams);
     next.set('tab', String(index + 1).padStart(2, '0'));
@@ -142,16 +154,16 @@ export function SulfuricControlSummaryPage() {
           const target = event.currentTarget;
           if (submissions.hasNextPage && !submissions.isFetchingNextPage && target.scrollHeight - target.scrollTop - target.clientHeight < 180) void submissions.fetchNextPage();
         }}>
-          {isNotes ? <table className="sc-summary-table sc-notes-table"><colgroup><col className="sc-date-col" /><col /></colgroup><thead><tr><th className="sc-date-head">日期</th><th className="sc-notes-head">生产情况记录</th></tr></thead><tbody>{dates.map((date) => {
+          {isNotes ? <table className="sc-summary-table sc-notes-table"><colgroup><col className="sc-date-col" /><col className="sc-action-col" /><col /></colgroup><thead><tr><th className="sc-date-head">日期</th><th className="sc-action-head">操作</th><th className="sc-notes-head">生产情况记录</th></tr></thead><tbody>{dates.map((date) => {
             const column = columns[0];
             if (!column) return null;
             const value = display(rowMap.get(date)?.data[column.field.id]);
-            return <tr key={date}><th scope="row" className="sc-date-cell">{date.slice(5)} <small>{weekday(date)}</small></th><td className="sc-cell-notes" tabIndex={0} title={`${date} · 双击或按回车修改`} onDoubleClick={() => openEdit(date, column)} onKeyDown={(event) => { if (event.key === 'Enter') openEdit(date, column); }}>{value || <span className="sc-note-empty">未填写</span>}</td></tr>;
-          })}</tbody></table> : <table className="sc-summary-table"><colgroup><col className="sc-date-col" />{columns.map(({ field }) => <col key={field.id} />)}</colgroup><thead>
-            <tr><th rowSpan={3} className="sc-date-head">日期</th>{sections.map((group, index) => <th key={index} colSpan={group.count} className="sc-form-head">{group.title}</th>)}</tr>
+            return <tr key={date}><th scope="row" className="sc-date-cell">{date.slice(5)} <small>{weekday(date)}</small></th>{rowAction(date)}<td className="sc-cell-notes" tabIndex={0} title={`${date} · 双击或按回车修改`} onDoubleClick={() => openEdit(date, column)} onKeyDown={(event) => { if (event.key === 'Enter') openEdit(date, column); }}>{value || <span className="sc-note-empty">未填写</span>}</td></tr>;
+          })}</tbody></table> : <table className="sc-summary-table"><colgroup><col className="sc-date-col" /><col className="sc-action-col" />{columns.map(({ field }) => <col key={field.id} />)}</colgroup><thead>
+            <tr><th rowSpan={3} className="sc-date-head">日期</th><th rowSpan={3} className="sc-action-head">操作</th>{sections.map((group, index) => <th key={index} colSpan={group.count} className="sc-form-head">{group.title}</th>)}</tr>
             <tr>{groups.map((group, index) => <th key={index} colSpan={group.count}>{sectionLabel(group.title)}</th>)}</tr>
             <tr>{columns.map(({ field }) => <th key={field.id} title={field.title}>{field.title}</th>)}</tr>
-          </thead><tbody>{dates.map((date) => <tr key={date}><th scope="row" className="sc-date-cell">{date.slice(5)} <small>{weekday(date)}</small></th>{columns.map((column) => {
+          </thead><tbody>{dates.map((date) => <tr key={date}><th scope="row" className="sc-date-cell">{date.slice(5)} <small>{weekday(date)}</small></th>{rowAction(date)}{columns.map((column) => {
             const value = rowMap.get(date)?.data[column.field.id];
             const current = display(value);
             const isPending = current === '待出', isUnchecked = current === '不检';

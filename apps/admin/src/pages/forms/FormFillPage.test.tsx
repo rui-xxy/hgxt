@@ -4,10 +4,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FormDTO } from '@hgxt/shared';
-import { createSubmission, getForm, latestValues } from '../../api/forms';
+import { controlCatalog, createSubmission, getForm, latestValues } from '../../api/forms';
 import { FormFillPage } from './FormFillPage';
 
-vi.mock('../../api/forms', () => ({ createSubmission: vi.fn(), getForm: vi.fn(), latestValues: vi.fn() }));
+vi.mock('../../api/forms', () => ({ controlCatalog: vi.fn(), createSubmission: vi.fn(), getForm: vi.fn(), latestValues: vi.fn() }));
 
 const form: FormDTO = {
   id: 'control-1', code: 'sulfuric_control_assay', title: '硫酸中控 01｜矿样·干吸·风机', category: '品质',
@@ -24,6 +24,7 @@ describe('硫酸中控填写日期', () => {
     vi.clearAllMocks();
     localStorage.clear();
     vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
+    vi.mocked(controlCatalog).mockResolvedValue([{ id: form.id, code: 'sulfuric_control_assay', title: form.title }]);
     vi.mocked(getForm).mockResolvedValue(form);
     vi.mocked(latestValues).mockResolvedValue({});
     vi.mocked(createSubmission).mockResolvedValue({ id: 'row-1', formId: form.id, data: {}, createdAt: '', updatedAt: '' });

@@ -19,3 +19,9 @@ export function workshopMonthlySeries(dates: string[], values: Array<number | nu
     value: hasData[index] ? total : null,
   }));
 }
+
+/** 月平均按该项目有实录的日期计算，零值计入，空值不计入。 */
+export function averageRecorded(values: Array<number | null | undefined>): number | null {
+  const present = values.filter((value): value is number => value !== null && value !== undefined && Number.isFinite(value));
+  return present.length ? present.reduce((sum, value) => sum + value, 0) / present.length : null;
+}

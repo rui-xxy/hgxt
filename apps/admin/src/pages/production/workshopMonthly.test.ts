@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { workshopMonthlySeries } from './workshopMonthly';
+import { averageRecorded, workshopMonthlySeries } from './workshopMonthly';
 
 describe('workshopMonthlySeries', () => {
   it('汇总所选年份并区分零产量和无记录月份', () => {
@@ -14,5 +14,12 @@ describe('workshopMonthlySeries', () => {
     expect(series[1]).toEqual({ label: '2026-02', value: 0 });
     expect(series[9]).toEqual({ label: '2026-10', value: null });
     expect(series[11]).toEqual({ label: '2026-12', value: null });
+  });
+});
+
+describe('硫酸产量月平均', () => {
+  it('按每项有实录的天数计算，保留零值并跳过缺测', () => {
+    expect(averageRecorded([10, null, 0, undefined, 20])).toBe(10);
+    expect(averageRecorded([null, undefined])).toBeNull();
   });
 });

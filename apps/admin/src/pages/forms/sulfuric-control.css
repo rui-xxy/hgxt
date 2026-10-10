@@ -20,6 +20,7 @@
 .sc-summary-table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; table-layout: fixed; font-variant-numeric: tabular-nums; }
 .sc-summary-table col { width: 3rem; }
 .sc-summary-table col.sc-date-col { width: 6.25rem; }
+.sc-summary-table col.sc-action-col { width: 4rem; }
 .sc-summary-table col.sc-notes-col { width: 16rem; }
 .sc-summary-table th, .sc-summary-table td { box-sizing: border-box; min-width: 3rem; max-width: 3rem; height: 2.4rem; padding: .3rem .15rem; border-right: 1px solid var(--hg-line); border-bottom: 1px solid var(--hg-line); text-align: center; white-space: nowrap; }
 .sc-summary-table thead th { position: sticky; z-index: 10; background: var(--hg-sunken); color: var(--hg-ink2); font-size: var(--hg-font-size-xs); font-weight: 500; }
@@ -28,7 +29,10 @@
 .sc-summary-table thead tr:nth-child(2) th { top: 2.4rem; background: var(--hg-sc-accentSoft); }
 .sc-summary-table thead tr:nth-child(3) th { top: 4.8rem; height: 4rem; white-space: normal; overflow-wrap: anywhere; }
 .sc-summary-table thead .sc-date-head { position: sticky; left: 0; z-index: 30; min-width: 6.25rem; max-width: 6.25rem; }
+.sc-summary-table thead .sc-action-head { position: sticky; left: 6.25rem; z-index: 29; min-width: 4rem; max-width: 4rem; }
 .sc-summary-table tbody .sc-date-cell { position: sticky; left: 0; z-index: 5; min-width: 6.25rem; max-width: 6.25rem; background: var(--hg-surface); color: var(--hg-sc-accent); }
+.sc-summary-table tbody .sc-action-cell { position: sticky; left: 6.25rem; z-index: 4; min-width: 4rem; max-width: 4rem; background: var(--hg-surface); }
+.sc-summary-table tbody .sc-action-cell .ant-btn { padding-inline: .25rem; }
 .sc-summary-table tbody .sc-date-cell small { color: var(--hg-ink3); font-size: var(--hg-font-size-xs); font-weight: 400; }
 .sc-summary-table tbody tr:first-child td, .sc-summary-table tbody tr:first-child .sc-date-cell { background: var(--hg-sc-accentSoft); }
 .sc-summary-table tbody tr:hover td, .sc-summary-table tbody tr:hover .sc-date-cell { background: var(--hg-hover); }
@@ -40,7 +44,8 @@
 .sc-summary-table .sc-field-notes, .sc-summary-table .sc-cell-notes { width: 16rem; min-width: 16rem; max-width: 16rem; overflow: hidden; text-overflow: ellipsis; }
 .sc-notes-table { width: 100%; }
 .sc-notes-table col.sc-date-col { width: 8rem; }
-.sc-notes-table col:not(.sc-date-col) { width: calc(100% - 8rem); }
+.sc-notes-table col:not(.sc-date-col):not(.sc-action-col) { width: calc(100% - 12rem); }
+.sc-notes-table thead .sc-action-head, .sc-notes-table tbody .sc-action-cell { left: 8rem; }
 .sc-notes-table thead th.sc-notes-head, .sc-notes-table tbody td.sc-cell-notes { width: auto; min-width: 0; max-width: none; text-align: left; white-space: normal; }
 .sc-notes-table thead th.sc-notes-head { padding-left: 1rem; }
 .sc-notes-table tbody td.sc-cell-notes { padding: .6rem 1rem; font-family: inherit; white-space: pre-wrap; overflow-wrap: anywhere; }

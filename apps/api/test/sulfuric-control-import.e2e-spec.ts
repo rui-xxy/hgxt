@@ -13,12 +13,15 @@ describe('硫酸中控 Excel 数据提取', () => {
     const parts = [assaySchema, washingSchema, acidSchema, notesSchema];
     const fieldIds = parts.flatMap((part) => part.slice(1).map((field) => field.id));
     expect(fieldIds).toHaveLength(new Set(fieldIds).size);
-    expect(fieldIds.sort()).toEqual([...schema.slice(1).map((field) => field.id), 'field_night_pb', 'field_night_zn'].sort());
+    expect(fieldIds.sort()).toEqual([...schema.slice(1).map((field) => field.id).filter((id) => !['field_AF', 'field_AE'].includes(id)), 'field_night_pb', 'field_night_zn'].sort());
     expect(assaySchema.filter((field) => field.subgroup === '入炉矿（晚班）').map((field) => field.title)).toEqual([
       '有效硫（%）', '水分（%）', '铅（%）', '锌（%）',
     ]);
     expect(assaySchema.find((field) => field.id === 'field_BG')?.title).toBe('水分（g/m³）');
     expect(washingSchema.find((field) => field.id === 'field_AC')?.subgroup).toBe('动力波');
+    expect(washingSchema.some((field) => ['field_AF', 'field_AE', 'field_AT', 'field_AU'].includes(field.id))).toBe(false);
+    expect(acidSchema.slice(5, 9).map((field) => field.id)).toEqual(['field_AV', 'field_AW', 'field_AT', 'field_AU']);
+    expect(acidSchema.find((field) => field.id === 'field_AT')).toMatchObject({ section: '尾气水洗塔', subgroup: '尾气水洗塔稀酸' });
     expect(acidSchema.find((field) => field.id === 'field_AX')?.subgroup).toBe('试剂酸质量（中间槽）');
     expect(acidSchema.find((field) => field.id === 'field_AQ')?.section).toBe('酸浓缩');
     expect(acidSchema.some((field) => field.id === 'field_notes')).toBe(false);
@@ -29,16 +32,16 @@ describe('硫酸中控 Excel 数据提取', () => {
 
   it('按 A 列日期映射重点指标，空白维持缺测，原备注逐条保留', () => {
     const rows = buildSulfuricControlRows(source as unknown as SulfuricControlSnapshot, schema as never);
-    expect(rows).toHaveLength(635);
+    expect(rows).toHaveLength(646);
     expect(rows[0].field_date).toBe('2025-01-01');
-    expect(rows.at(-1)?.field_date).toBe('2026-09-29');
+    expect(rows.at(-1)?.field_date).toBe('2026-10-10');
     const day = rows.find((row) => row.field_date === '2026-09-27');
     expect(day).toMatchObject({ field_B: 36.3, field_F: 35.7, field_G: 8.75,
       field_AK: 94.41, field_AL: 98.44, field_AM: 98.06, field_AN: 104.76,
       field_AV: 39.92, field_AW: 1.98, field_AX: 96.61, field_BB: 8.1 });
     expect(day).not.toHaveProperty('field_J');
     expect(rows.at(-1)).not.toHaveProperty('field_AK');
-    expect(String(rows.at(-1)?.field_notes).split('\n')).toHaveLength(3);
+    expect(String(rows.at(-1)?.field_notes).split('\n')).toHaveLength(2);
     expect(schema.some((field) => field.id === 'field_BL')).toBe(false);
     expect(schema.find((field) => field.id === 'field_BB')?.section).toBe('风机出口');
     expect(schema.find((field) => field.id === 'field_AC')?.group).toBe('动力波·水洗塔');

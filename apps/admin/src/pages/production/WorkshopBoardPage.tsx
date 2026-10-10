@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { Fragment, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { App as AntApp, DatePicker } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -12,7 +12,7 @@ import { SulfuricCalculationModal } from './SulfuricCalculationModal';
 import { SulfuricControlPanel, SulfuricControlPeek } from './SulfuricControlPanel';
 import { SulfuricParkingTable } from './SulfuricParkingTable';
 import { ThermalPanel, ThermalTable } from './ThermalWorkshopView';
-import { workshopMonthlySeries } from './workshopMonthly';
+import { averageRecorded, workshopMonthlySeries } from './workshopMonthly';
 
 const WEEK = ['日', '一', '二', '三', '四', '五', '六'];
 const dayLabel = (d: string) => `${d.slice(5)} 周${WEEK[new Date(`${d}T00:00:00`).getDay()]}`;
@@ -676,7 +676,8 @@ export function WorkshopBoardPage() {
                   const aminoDays = dates.map((date) => aminoMap.get(date));
                   const aminoProduction = sumOrNull(aminoDays.map((day) => day?.production));
                   return (
-                    <tr key={`summary-${entry.month}`} className="sum">
+                    <Fragment key={`summary-${entry.month}`}>
+                    <tr className="sum">
                       <td>合计</td>
                       {isSulfuric && tab === 'prod' && <td className="detail-total-cell">{fmtRecorded(sumOrNull(days.map((d) => d?.production?.total98Equivalent)))}</td>}
                       {!isSulfuric && !isAmino && <><td>{fmtRecorded(sumOrNull(values))}</td><td>—</td></>}
@@ -714,6 +715,24 @@ export function WorkshopBoardPage() {
                         <td className="band-cell" style={groupStyle(PALETTE.reagent)}>{fmtRecorded(sumOrNull(days.map((day) => day?.water)))}</td>
                       </>}
                     </tr>
+                    {isSulfuric && tab === 'prod' && <tr className="sum">
+                      <td>平均</td>
+                      <td className="detail-total-cell">{fmtRecorded(averageRecorded(days.map((d) => d?.production?.total98Equivalent)))}</td>
+                      <td className="band-98">{fmtRecorded(averageRecorded(days.map((d) => d?.production?.acid98)))}</td>
+                      <td className="band-98">{fmtRecorded(averageRecorded(days.map((d) => d?.production?.flow.acid98)))}</td>
+                      <td className="band-98">—</td>
+                      <td className="band-fuming">{fmtRecorded(averageRecorded(days.map((d) => d?.production?.fuming)))}</td>
+                      <td className="band-fuming">{fmtRecorded(averageRecorded(days.map((d) => d?.production?.flow.fuming)))}</td>
+                      <td className="band-fuming">{fmtRecorded(averageRecorded(days.map((d) => d?.production?.internalFuming.aminosulfonic)))}</td>
+                      <td className="band-fuming">{fmtRecorded(averageRecorded(days.map((d) => d?.production?.internalFuming.anthraquinone)))}</td>
+                      <td className="band-fuming">—</td>
+                      <td className="band-reagent">{fmtRecorded(averageRecorded(days.map((d) => d?.production?.reagent)))}</td>
+                      <td className="band-reagent">{fmtRecorded(averageRecorded(days.map((d) => d?.production?.flow.reagent)))}</td>
+                      <td className="band-reagent">—</td>
+                      <td className="band-93">{fmtRecorded(averageRecorded(days.map((d) => d?.production?.acid93)))}</td>
+                      <td className="band-93">{fmtRecorded(averageRecorded(days.map((d) => d?.production?.flow.acid93)))}</td>
+                    </tr>}
+                    </Fragment>
                   );
                 }
                 const s = { label: entry.date, value: workshop?.values[entry.index] ?? null };
