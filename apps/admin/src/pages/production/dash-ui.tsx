@@ -190,6 +190,8 @@ export function MonthBars({
   valueDigits = 0,
   sourcePrecision = false,
   showAverage = true,
+  averageValue,
+  highlightRange,
   axisLabelOf = (label: string) => label.slice(5),
   tooltipTitleOf = (label: string) => label,
 }: {
@@ -202,6 +204,8 @@ export function MonthBars({
   valueDigits?: number;
   sourcePrecision?: boolean;
   showAverage?: boolean;
+  averageValue?: number | null;
+  highlightRange?: { start: string; end: string };
   axisLabelOf?: (label: string) => string;
   tooltipTitleOf?: (label: string) => string;
 }) {
@@ -230,7 +234,7 @@ export function MonthBars({
   const n = data.length || 1;
   const slot = plotW / n;
   const barW = Math.max(4, Math.min(28, slot * 0.72));
-  const avg = values.length ? values.reduce((s, v) => s + v, 0) / values.length : 0;
+  const avg = averageValue ?? (values.length ? values.reduce((s, v) => s + v, 0) / values.length : 0);
   const displayValue = (value: number) => sourcePrecision ? fmtRecorded(value) : fmt(value, valueDigits);
   const occupied = data.flatMap((item, index) => item.value === null ? [] : [index]);
   const gridLines = Array.from({ length: 5 }, (_, i) => {
@@ -242,6 +246,9 @@ export function MonthBars({
   const tipRows = tooltipOf && active ? tooltipOf(active) : null;
   const tipX = active ? padL + data.findIndex((d) => d.label === active) * slot + slot / 2 : 0;
   const everyX = slot < 18 ? 5 : slot < 34 ? 5 : 1;
+  const highlightedIndices = highlightRange
+    ? data.flatMap((day, index) => day.label >= highlightRange.start && day.label <= highlightRange.end ? [index] : [])
+    : [];
 
   return (
     <div ref={wrapRef} style={{ width: '100%' }}>
@@ -252,9 +259,18 @@ export function MonthBars({
             <div className="yl" style={{ top: g.y }}>{g.label}</div>
           </div>
         ))}
+        {highlightedIndices.length ? (
+          <div className="week-band" style={{
+            left: padL + highlightedIndices[0] * slot,
+            top: padT,
+            width: (highlightedIndices.at(-1)! - highlightedIndices[0] + 1) * slot,
+            height: plotH,
+          }} />
+        ) : null}
         {data.map((d, i) => {
           const x = padL + i * slot + (slot - barW) / 2;
           const isSel = d.label === selected;
+          const isWeek = highlightRange && d.label >= highlightRange.start && d.label <= highlightRange.end;
           const label = d.value === null ? '' : displayValue(d.value);
           const nearestLabelGap = Math.min(...occupied.filter((index) => index !== i).map((index) => Math.abs(index - i) * slot), Infinity);
           const showLabel = isSel || d.label === hover || (!sourcePrecision ? slot >= 15 : nearestLabelGap >= label.length * 6 + 6);
@@ -269,7 +285,7 @@ export function MonthBars({
                       top: yOf(d.value),
                       width: barW,
                       height: Math.max(1, padT + plotH - yOf(d.value)),
-                      background: isSel || d.label === hover ? 'var(--brand)' : 'color-mix(in srgb, var(--brand) 32%, var(--bg))',
+                      background: isSel || isWeek || d.label === hover ? 'var(--hg-brand)' : 'color-mix(in srgb, var(--hg-brand) 32%, var(--hg-bg))',
                     }}
                   />
                   {showLabel ? (

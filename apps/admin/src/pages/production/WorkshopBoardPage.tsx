@@ -12,7 +12,9 @@ import { SulfuricCalculationModal } from './SulfuricCalculationModal';
 import { SulfuricControlPanel, SulfuricControlPeek } from './SulfuricControlPanel';
 import { SulfuricParkingTable } from './SulfuricParkingTable';
 import { ThermalPanel, ThermalTable } from './ThermalWorkshopView';
+import { reportWeek, shiftDay, weekStart } from './executiveBriefData';
 import { averageRecorded, workshopMonthlySeries } from './workshopMonthly';
+import { workshopWeekChartSeries, workshopWeekSeries } from './workshopWeek';
 
 const WEEK = ['日', '一', '二', '三', '四', '五', '六'];
 const dayLabel = (d: string) => `${d.slice(5)} 周${WEEK[new Date(`${d}T00:00:00`).getDay()]}`;
@@ -87,7 +89,8 @@ export function WorkshopBoardPage() {
   const [month, setMonth] = useState<string | null>(null);
   const [detailPage, setDetailPage] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
-  const [panelMode, setPanelMode] = useState<'day' | 'month'>('day');
+  const [panelMode, setPanelMode] = useState<'day' | 'week' | 'month'>('day');
+  const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
   const [tab, setTab] = useState<DetailTab>('prod');
   const [workshopView, setWorkshopView] = useState<'board' | 'control'>('board');
   const [calcDate, setCalcDate] = useState<string | null>(null);
@@ -137,6 +140,22 @@ export function WorkshopBoardPage() {
   const validSeries = series.filter((s) => s.value !== null) as Array<{ label: string; value: number }>;
   const fallbackDate = validSeries[validSeries.length - 1]?.label ?? series[series.length - 1]?.label ?? null;
   const activeDate = selected && series.some((s) => s.label === selected) ? selected : fallbackDate;
+  const activeWeek = selectedWeek ?? weekStart(activeDate ?? periodStart);
+  const weekEnd = shiftDay(activeWeek, 6);
+  const weekNumber = reportWeek(activeWeek);
+  const firstWeek = allDates[0] ? weekStart(allDates[0]) : null;
+  const latestWeek = allDates.length ? weekStart(allDates[allDates.length - 1]) : null;
+  const weeklySeries = useMemo(
+    () => workshopWeekSeries(allDates, workshop?.values ?? [], activeWeek),
+    [allDates, workshop, activeWeek],
+  );
+  const weeklyChartSeries = useMemo(
+    () => workshopWeekChartSeries(series, weeklySeries),
+    [series, weeklySeries],
+  );
+  const weeklyValues = weeklySeries.filter((day): day is { label: string; value: number } => day.value !== null);
+  const weeklyTotal = weeklyValues.length ? weeklyValues.reduce((sum, day) => sum + day.value, 0) : null;
+  const weekDates = weeklySeries.map((day) => day.label);
   const tanks = useQuery({ queryKey: ['production', 'tanks', activeDate], queryFn: () => tankLevels(activeDate ?? undefined), enabled: workshopView === 'board' && isSulfuric && Boolean(activeDate) });
   const activeIdx = validSeries.findIndex((s) => s.label === activeDate);
   const activeValue = activeIdx >= 0 ? validSeries[activeIdx].value : null;
@@ -150,6 +169,7 @@ export function WorkshopBoardPage() {
     for (const d of sulfuric.data?.days ?? []) m.set(d.productionDate, d);
     return m;
   }, [sulfuric.data]);
+  const weekSulfuricDays = weekDates.map((date) => dayMap.get(date));
   const sDay = activeDate ? dayMap.get(activeDate) : undefined;
   const aminoMap = useMemo(() => new Map((amino.data?.days ?? []).map((day) => [day.date, day])), [amino.data]);
   const aDay = activeDate ? aminoMap.get(activeDate) : undefined;
@@ -255,38 +275,33 @@ export function WorkshopBoardPage() {
     ];
   };
 
-  const panelRows = useMemo(() => {
-    const days = panelMode === 'day' ? [sDay] : sDays;
-    return ACIDS.map((a) => {
-      let prod = 0;
-      let flow = 0;
-      let amino = 0;
-      let anthraquinone = 0;
-      let aminoSeen = false;
-      let anthraquinoneSeen = false;
-      for (const d of days) {
-        if (!d?.production) continue;
-        prod += d.production[a.key];
-        flow += d.production.flow[a.key];
-        if (a.key === 'fuming') {
-          if (d.production.internalFuming.aminosulfonic !== null) {
-            amino += d.production.internalFuming.aminosulfonic;
-            aminoSeen = true;
-          }
-          if (d.production.internalFuming.anthraquinone !== null) {
-            anthraquinone += d.production.internalFuming.anthraquinone;
-            anthraquinoneSeen = true;
-          }
+  const panelSulfuricDays = panelMode === 'day' ? [sDay] : panelMode === 'week' ? weekSulfuricDays : sDays;
+  const panelRows = ACIDS.map((a) => {
+    let prod = 0;
+    let flow = 0;
+    let amino = 0;
+    let anthraquinone = 0;
+    let aminoSeen = false;
+    let anthraquinoneSeen = false;
+    for (const d of panelSulfuricDays) {
+      if (!d?.production) continue;
+      prod += d.production[a.key];
+      flow += d.production.flow[a.key];
+      if (a.key === 'fuming') {
+        if (d.production.internalFuming.aminosulfonic !== null) {
+          amino += d.production.internalFuming.aminosulfonic;
+          aminoSeen = true;
+        }
+        if (d.production.internalFuming.anthraquinone !== null) {
+          anthraquinone += d.production.internalFuming.anthraquinone;
+          anthraquinoneSeen = true;
         }
       }
-      return { ...a, prod, flow, amino: aminoSeen ? amino : null, anthraquinone: anthraquinoneSeen ? anthraquinone : null };
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [panelMode, sDay, dayMap, visible]);
-  const panelTotal = panelMode === 'day'
-    ? sDay?.production?.total98Equivalent ?? 0
-    : sumOrNull(sDays.map((day) => day?.production?.total98Equivalent)) ?? 0;
-  const panelHasData = (panelMode === 'day' ? [sDay] : sDays).some((d) => d?.production);
+    }
+    return { ...a, prod, flow, amino: aminoSeen ? amino : null, anthraquinone: anthraquinoneSeen ? anthraquinone : null };
+  });
+  const panelTotal = sumOrNull(panelSulfuricDays.map((day) => day?.production?.total98Equivalent));
+  const panelHasData = panelSulfuricDays.some((day) => day?.production);
   const panelMax = Math.max(1, ...panelRows.map((r) => Math.abs(r.prod)));
 
   const switchCode = (next: string) => { setCode(next); setSelected(null); setCalcDate(null); setTab('prod'); setDetailPage(0); };
@@ -297,12 +312,23 @@ export function WorkshopBoardPage() {
   const changeMonth = (delta: number) => {
     setMonth(dayjs(`${monthKey}-01`).add(delta, 'month').format('YYYY-MM'));
     setSelected(null);
+    setSelectedWeek(null);
     setDetailPage(0);
   };
 
+  const selectWeek = (start: string) => {
+    setSelectedWeek(start);
+    setMonth(shiftDay(start, 3).slice(0, 7));
+    setSelected(null);
+    setDetailPage(0);
+    setPanelMode('week');
+  };
+
   const kpiCount = isAmino ? 7 : isFenglian ? 5 : isSulfuric || isOther || isThermal ? 6 : 4;
-  const aPanelDays = panelMode === 'day' ? [aDay] : aDays;
-  const fPanelDays = panelMode === 'day' ? [fDay] : fDays;
+  const aPanelDays = panelMode === 'day' ? [aDay] : panelMode === 'week' ? weekDates.map((date) => aminoMap.get(date)) : aDays;
+  const fPanelDays = panelMode === 'day' ? [fDay] : panelMode === 'week' ? weekDates.map((date) => fenglianMap.get(date)) : fDays;
+  const tPanelDays = panelMode === 'day' ? [tDay] : panelMode === 'week' ? weekDates.map((date) => thermalMap.get(date)) : tDays;
+  const oPanelDays = panelMode === 'day' ? [oDay] : panelMode === 'week' ? weekDates.map((date) => otherMap.get(date)) : oDays;
   const detailDates = allDates.filter((d) => d.startsWith(monthKey));
   const detailEntries: DetailEntry[] = [
     { kind: 'summary', month: monthKey },
@@ -328,6 +354,7 @@ export function WorkshopBoardPage() {
   const onSelectDetailDate = (date: string) => {
     if (date.slice(0, 7) !== monthKey) setMonth(date.slice(0, 7));
     setSelected(date);
+    setPanelMode('day');
   };
 
   return (
@@ -363,6 +390,7 @@ export function WorkshopBoardPage() {
               if (!date) return;
               setMonth(date.format('YYYY-MM'));
               setSelected(null);
+              setSelectedWeek(null);
               setDetailPage(0);
             }}
           />
@@ -437,33 +465,45 @@ export function WorkshopBoardPage() {
           <div className="split">
             <div className="left">
               <div className="ct" style={{ marginBottom: 14 }}>
-                <b>{panelMode === 'day' ? (isThermal ? '日供汽量' : isFenglian ? '干料打包数' : '日产量') : (isThermal ? '月供汽量' : isFenglian ? '月干料打包数' : '月产量')}</b>
+                <b>{panelMode === 'day' ? (isThermal ? '日供汽量' : isFenglian ? '干料打包数' : '日产量') : panelMode === 'week' ? (isThermal ? '周供汽量' : isFenglian ? '周干料打包数' : '周产量') : (isThermal ? '月供汽量' : isFenglian ? '月干料打包数' : '月产量')}</b>
                 <div className="r lg">
-                  {panelMode === 'day' ? <span><i style={{ width: 12, height: 0, borderTop: '1px dashed var(--ink3)', borderRadius: 0, verticalAlign: 3 }} />月均 {fmtRecorded(avg)}</span> : null}
-                  <span><i style={{ background: 'var(--brand)' }} />{panelMode === 'day' ? '选中日' : '选中月'}</span>
+                  {panelMode !== 'month' ? <span><i style={{ width: 12, height: 0, borderTop: '1px dashed var(--ink3)', borderRadius: 0, verticalAlign: 3 }} />月均 {fmtRecorded(avg)}</span> : null}
+                  <span><i style={{ background: 'var(--hg-brand)' }} />{panelMode === 'day' ? '选中日' : panelMode === 'week' ? '选中周' : '选中月'}</span>
                 </div>
               </div>
               <MonthBars
-                data={panelMode === 'day' ? series : annualSeries}
+                data={panelMode === 'month' ? annualSeries : panelMode === 'week' ? weeklyChartSeries : series}
                 unit={workshop.unit}
                 tooltipOf={tooltipOf}
-                showAverage={panelMode === 'day'}
-                selected={panelMode === 'day' ? activeDate : monthKey}
-                onSelect={panelMode === 'day' ? setSelected : (key) => { setMonth(key); setSelected(null); setDetailPage(0); }}
+                showAverage={panelMode !== 'month'}
+                averageValue={panelMode === 'week' ? avg ?? 0 : undefined}
+                selected={panelMode === 'day' ? activeDate : panelMode === 'month' ? monthKey : null}
+                highlightRange={panelMode === 'week' ? { start: activeWeek, end: weekEnd } : undefined}
+                onSelect={panelMode === 'day' ? setSelected : panelMode === 'week' ? (key) => selectWeek(weekStart(key)) : (key) => { setMonth(key); setSelected(null); setSelectedWeek(null); setDetailPage(0); }}
                 sourcePrecision
-                axisLabelOf={panelMode === 'day' ? undefined : (key) => `${Number(key.slice(5))}月`}
-                tooltipTitleOf={panelMode === 'day' ? undefined : (key) => `${key.slice(0, 4)}年${Number(key.slice(5))}月`}
+                axisLabelOf={panelMode === 'month' ? (key) => `${Number(key.slice(5))}月` : undefined}
+                tooltipTitleOf={panelMode === 'month' ? (key) => `${key.slice(0, 4)}年${Number(key.slice(5))}月` : undefined}
               />
             </div>
             <div className="right">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontWeight: 600, fontSize: 14.5 }}>{panelMode === 'day' ? (activeDate ? dayLabel(activeDate) : '—') : `${periodLabel} 累计`}</span>
+                <span style={{ fontWeight: 600, fontSize: 14.5 }}>{panelMode === 'day' ? (activeDate ? dayLabel(activeDate) : '—') : panelMode === 'week' ? `${weekNumber.year} 年第 ${weekNumber.week} 周` : `${periodLabel} 累计`}</span>
                 <Seg options={[{ label: '当日', value: 'day' }, { label: '本月', value: 'month' }]} value={panelMode} onChange={(v) => setPanelMode(v as 'day' | 'month')} />
               </div>
+              <div className={`workshop-week-switch${panelMode === 'week' ? ' is-active' : ''}`}>
+                <button type="button" className="workshop-week-trigger" aria-pressed={panelMode === 'week'} disabled={!allDates.length} onClick={() => { if (panelMode !== 'week') selectWeek(activeWeek); }}>
+                  <strong>第 {weekNumber.week} 周</strong>
+                  <span>{activeWeek.slice(5).replace('-', '/')}—{weekEnd.slice(5).replace('-', '/')} · 周一至周日</span>
+                </button>
+                <div className="workshop-week-actions">
+                  <button type="button" aria-label="上一周" disabled={panelMode !== 'week' || !firstWeek || activeWeek <= firstWeek} onClick={() => selectWeek(shiftDay(activeWeek, -7))}><ChevronLeftIcon width={16} height={16} /></button>
+                  <button type="button" aria-label="下一周" disabled={panelMode !== 'week' || !latestWeek || activeWeek >= latestWeek} onClick={() => selectWeek(shiftDay(activeWeek, 7))}><ChevronRightIcon width={16} height={16} /></button>
+                </div>
+              </div>
               <div style={{ marginTop: 12 }}>
-                <div className="faint" style={{ fontSize: 13 }}>{isSulfuric ? '折 98% 合计' : isThermal ? '总供汽' : isFenglian ? '干料打包数' : panelMode === 'day' ? detailed.data?.productionLabel ?? '日产量' : '本月合计'}</div>
+                <div className="faint" style={{ fontSize: 13 }}>{isSulfuric ? '折 98% 合计' : isThermal ? '总供汽' : isFenglian ? '干料打包数' : panelMode === 'day' ? detailed.data?.productionLabel ?? '日产量' : panelMode === 'week' ? '本周合计' : '本月合计'}</div>
                 <div className="kv" style={{ fontSize: 28 }}>
-                  {fmtRecorded(isSulfuric ? (panelHasData ? panelTotal : null) : panelMode === 'day' ? activeValue : validSeries.length ? total : null)}
+                  {fmtRecorded(isSulfuric ? (panelHasData ? panelTotal : null) : panelMode === 'day' ? activeValue : panelMode === 'week' ? weeklyTotal : validSeries.length ? total : null)}
                   <small>t</small>
                 </div>
               </div>
@@ -492,7 +532,7 @@ export function WorkshopBoardPage() {
                   ))}
                 </div>
               ) : isThermal && thermal.data ? (
-                <ThermalPanel data={thermal.data} days={panelMode === 'day' ? [tDay] : tDays} />
+                <ThermalPanel data={thermal.data} days={tPanelDays} />
               ) : isFenglian ? (
                 <FenglianPanel days={fPanelDays} />
               ) : isAmino ? (
@@ -518,14 +558,14 @@ export function WorkshopBoardPage() {
               ) : isOther && detailed.data ? (
                 <DetailedWorkshopPanel
                   data={detailed.data}
-                  days={panelMode === 'day' ? [oDay] : oDays}
+                  days={oPanelDays}
                 />
               ) : (
                 <div className="stats">
-                  <div><div className="sl">月均日产</div><div className="sv">{fmtRecorded(avg)} t</div></div>
-                  <div><div className="sl">峰值日产</div><div className="sv">{fmtRecorded(peak)} t</div></div>
-                  <div><div className="sl">有效日</div><div className="sv">{validSeries.length} 天</div></div>
-                  <div><div className="sl">较月均</div><div className="sv">{activeValue !== null && avg ? `${pctChange(activeValue, avg)}%` : '—'}</div></div>
+                  <div><div className="sl">{panelMode === 'week' ? '周均日产' : '月均日产'}</div><div className="sv">{fmtRecorded(panelMode === 'week' && weeklyTotal !== null ? weeklyTotal / weeklyValues.length : avg)} t</div></div>
+                  <div><div className="sl">峰值日产</div><div className="sv">{fmtRecorded(panelMode === 'week' ? (weeklyValues.length ? Math.max(...weeklyValues.map((day) => day.value)) : null) : peak)} t</div></div>
+                  <div><div className="sl">有效日</div><div className="sv">{panelMode === 'week' ? weeklyValues.length : validSeries.length} 天</div></div>
+                  <div><div className="sl">较月均</div><div className="sv">{panelMode === 'week' ? (weeklyTotal !== null && avg ? `${pctChange(weeklyTotal / weeklyValues.length, avg)}%` : '—') : activeValue !== null && avg ? `${pctChange(activeValue, avg)}%` : '—'}</div></div>
                 </div>
               )}
             </div>

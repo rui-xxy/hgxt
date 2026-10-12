@@ -181,12 +181,24 @@
 .bars .cbar{position:absolute;padding:0;height:auto;border-radius:4px 4px 0 0;transition:background .14s,height .3s cubic-bezier(.2,.8,.2,1),top .3s cubic-bezier(.2,.8,.2,1)}
 .bars .bv{position:absolute;transform:translateX(-50%);font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;letter-spacing:-.02em}
 .bars .avg{position:absolute;left:40px;right:0;height:0;border-top:1px dashed var(--ink3);opacity:.7;pointer-events:none}
+.bars .week-band{position:absolute;box-sizing:border-box;border:1px solid var(--hg-brand);border-radius:var(--hg-radius-control);background:var(--hg-brand-soft);pointer-events:none}
 .bars .avgl{position:absolute;right:0;transform:translateY(-100%);font-size:12px;color:var(--ink2);background:var(--surface);padding:0 0 2px 6px;pointer-events:none}
 .bars .hit{position:absolute;cursor:pointer}
 .bars .tip{top:auto;bottom:24px}
 .split{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:0;align-items:stretch}
 .split .left{padding-right:20px;min-width:0}
 .split .right{border-left:1px solid var(--line);padding-left:20px;min-width:0}
+.workshop-week-switch{display:flex;align-items:center;gap:.5rem;min-width:0;min-height:3.25rem;margin-top:.625rem;padding:.375rem;border:1px solid var(--hg-line);border-radius:var(--hg-radius-control);background:var(--hg-surface)}
+.workshop-week-switch.is-active{border-color:var(--hg-brand);background:var(--hg-brand-soft)}
+.workshop-week-trigger{display:flex;flex:1;min-width:0;flex-direction:column;align-items:flex-start;gap:.125rem;padding:.125rem .375rem;border:0;background:transparent;color:var(--hg-ink);text-align:left;cursor:pointer}
+.workshop-week-trigger strong{font-size:var(--hg-font-size-sm);font-weight:600;white-space:nowrap}
+.workshop-week-trigger span{max-width:100%;overflow:hidden;color:var(--hg-ink2);font-size:var(--hg-font-size-xs);text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
+.workshop-week-trigger:focus-visible,.workshop-week-actions button:focus-visible{outline:2px solid var(--hg-brand);outline-offset:2px}
+.workshop-week-actions{display:flex;gap:.125rem;visibility:hidden}
+.workshop-week-switch.is-active .workshop-week-actions{visibility:visible}
+.workshop-week-actions button{display:grid;place-items:center;width:1.75rem;height:1.75rem;border:1px solid var(--hg-line);border-radius:var(--hg-radius-control);background:var(--hg-surface);color:var(--hg-ink2);cursor:pointer}
+.workshop-week-actions button:disabled{color:var(--hg-ink3);cursor:not-allowed}
+@media(max-width:760px){.workshop-board-dash .split{grid-template-columns:minmax(0,1fr)}.workshop-board-dash .split .left{padding-right:0}.workshop-board-dash .split .right{border-left:0;border-top:1px solid var(--hg-line);margin-top:1rem;padding:1rem 0 0}}
 .amino-panel{margin-top:10px;border-top:1px solid var(--line)}
 .amino-panel-group{padding-top:8px}
 .amino-panel-heading{display:flex;justify-content:space-between;color:var(--ink2);font-size:var(--ui-font-size-sm);font-weight:600;margin-bottom:2px}
