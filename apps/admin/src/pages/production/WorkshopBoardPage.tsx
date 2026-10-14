@@ -3,13 +3,14 @@ import { App as AntApp, DatePicker } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import type { DetailedWorkshopCode, SulfuricDaySummary } from '@hgxt/shared';
-import { ChevronLeftIcon, ChevronRightIcon } from '../../components/icons';
+import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon } from '../../components/icons';
 import { aminoSummary, detailedWorkshopSummary, fenglianSummary, sulfuricSummary, tankLevels, thermalSummary, workshopOverview } from '../../api/production';
 import { Dash, Kpi, MonthBars, PALETTE, Seg, fmt, fmtRecorded, pctChange } from './dash-ui';
 import { DetailedWorkshopPanel, DetailedWorkshopTable, detailMetricColor } from './DetailedWorkshopView';
 import { FenglianPanel, FenglianTable, type FenglianSelection } from './FenglianWorkshopView';
 import { SulfuricCalculationModal } from './SulfuricCalculationModal';
 import { SulfuricControlPanel, SulfuricControlPeek } from './SulfuricControlPanel';
+import { SulfuricExportDialog } from './SulfuricExportDialog';
 import { SulfuricParkingTable } from './SulfuricParkingTable';
 import { ThermalPanel, ThermalTable } from './ThermalWorkshopView';
 import { reportWeek, shiftDay, weekStart } from './executiveBriefData';
@@ -94,6 +95,7 @@ export function WorkshopBoardPage() {
   const [tab, setTab] = useState<DetailTab>('prod');
   const [workshopView, setWorkshopView] = useState<'board' | 'control'>('board');
   const [calcDate, setCalcDate] = useState<string | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
   const [fenglianSelection, setFenglianSelection] = useState<FenglianSelection>({ group: '' });
   const otherCode: DetailedWorkshopCode | null = code === 'magnesium' || code === 'hydrotalcite' || code === 'anthraquinone' ? code : null;
 
@@ -625,11 +627,14 @@ export function WorkshopBoardPage() {
           ) : isThermal ? (
             <Seg className="tbtabs" options={[{ label: '供汽去向', value: 'prod' }, { label: '电水计量', value: 'consumption' }]} value={tab} onChange={(v) => setTab(v as DetailTab)} />
           ) : null}
-          <div className="r detail-pager">
-            <span>{periodLabel}</span>
-            <button type="button" className="iconbtn" aria-label="翻到更早的明细" disabled={!canPageOlder} onClick={() => turnDetailPage('older')}><ChevronLeftIcon width={16} height={16} /></button>
-            <span>{currentDetailPage + 1} / {detailPageCount}</span>
-            <button type="button" className="iconbtn" aria-label="翻到更新的明细" disabled={!canPageNewer} onClick={() => turnDetailPage('newer')}><ChevronRightIcon width={16} height={16} /></button>
+          <div className="workshop-detail-tools">
+            <div className="r detail-pager">
+              <span>{periodLabel}</span>
+              <button type="button" className="iconbtn" aria-label="翻到更早的明细" disabled={!canPageOlder} onClick={() => turnDetailPage('older')}><ChevronLeftIcon width={16} height={16} /></button>
+              <span>{currentDetailPage + 1} / {detailPageCount}</span>
+              <button type="button" className="iconbtn" aria-label="翻到更新的明细" disabled={!canPageNewer} onClick={() => turnDetailPage('newer')}><ChevronRightIcon width={16} height={16} /></button>
+            </div>
+            {isSulfuric ? <button type="button" className="btn secondary workshop-detail-export" onClick={() => setExportOpen(true)}><DownloadIcon width={16} height={16} />导出</button> : null}
           </div>
         </div>
         {isSulfuric && tab === 'parking' ? (
@@ -834,6 +839,7 @@ export function WorkshopBoardPage() {
         </div>
       </div>
       <SulfuricCalculationModal day={calcDate ? dayMap.get(calcDate) ?? null : null} onClose={() => setCalcDate(null)} />
+      {exportOpen && isSulfuric ? <SulfuricExportDialog days={sulfuric.data?.days ?? []} currentMonth={monthKey} onClose={() => setExportOpen(false)} /> : null}
     </Dash>
   );
 }

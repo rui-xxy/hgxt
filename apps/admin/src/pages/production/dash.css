@@ -19,6 +19,26 @@
 .workshop-month-picker{width:9.75rem;max-width:100%;background:var(--hg-surface)}
 .workshop-month-picker .ant-picker-input>input{font-size:var(--hg-font-size-sm);font-weight:500;text-align:center;font-variant-numeric:tabular-nums}
 .ct .detail-pager{gap:4px}
+.workshop-detail-tools{display:flex;align-items:center;gap:.75rem;margin-left:auto;min-width:0}
+.workshop-detail-tools .detail-pager{margin-left:0;white-space:nowrap}
+.workshop-detail-export{flex:none}
+.workshop-export-dialog .ant-modal-body{padding-top:.5rem}
+.workshop-export-field{padding:.75rem 0 1rem;border-bottom:1px solid var(--hg-line)}
+.workshop-export-label{font-size:var(--hg-font-size-sm);font-weight:600;color:var(--hg-ink);margin-bottom:.625rem}
+.workshop-export-heading{display:flex;align-items:baseline;justify-content:space-between}
+.workshop-export-select-all{border:0;background:transparent;color:var(--hg-brand);font:inherit;font-size:var(--hg-font-size-sm);cursor:pointer}
+.workshop-export-select-all:focus-visible{outline:2px solid var(--hg-brand);outline-offset:2px}
+.workshop-export-period{min-height:2.25rem;margin-top:.75rem}
+.workshop-export-period .ant-select{min-width:12rem}
+.workshop-export-all{color:var(--hg-ink2);font-size:var(--hg-font-size-sm)}
+.workshop-export-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+.workshop-export-section{display:flex;align-items:center;gap:.625rem;min-height:2.5rem;padding:.5rem .75rem;border:1px solid var(--hg-line);border-radius:var(--hg-radius-control);color:var(--hg-ink);cursor:pointer}
+.workshop-export-section:has(input:checked){border-color:var(--hg-brand);background:var(--hg-brand-soft)}
+.workshop-export-section:focus-within{outline:2px solid var(--hg-brand);outline-offset:2px}
+.workshop-export-section input{accent-color:var(--hg-brand)}
+.workshop-export-note{margin:.75rem 0 0;color:var(--hg-ink3);font-size:var(--hg-font-size-xs)}
+.workshop-export-footer{display:flex;justify-content:flex-end;gap:.5rem;padding-top:1.25rem}
+@media(max-width:760px){.workshop-board-dash .ct:has(.workshop-detail-tools){flex-wrap:wrap}.workshop-detail-tools{width:100%;justify-content:space-between}.workshop-export-sections{grid-template-columns:minmax(0,1fr)}}
 .h1{font-family:'Newsreader','Noto Serif SC',serif;font-size:30px;font-weight:500;letter-spacing:-.005em;margin:0;line-height:1.25}
 .sub{color:var(--ink2);font-size:15px;margin-top:6px}
 .btn{height:34px;padding:0 14px;border-radius:9px;border:1px solid transparent;font:inherit;font-size:14.5px;font-weight:500;display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap;transition:background .14s,border-color .14s,opacity .14s,transform .08s;color:var(--ink)}

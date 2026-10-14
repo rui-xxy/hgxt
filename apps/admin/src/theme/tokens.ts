@@ -107,6 +107,24 @@ export const briefPalette = {
   },
 } as const;
 
+/** 车间明细 Excel 导出配色，ARGB 格式与页面分组色一致。 */
+export const workshopExcelPalette = {
+  ink: 'FF1A1A19',
+  muted: 'FF5E5E59',
+  line: 'FFDFDFDB',
+  white: 'FFFFFFFF',
+  side: 'FFF6F6F4',
+  brand: 'FF2F55A4',
+  brandSoft: 'FFE7EDF8',
+  fuming: 'FFEDA100',
+  fumingSoft: 'FFFFF3DB',
+  reagent: 'FF1BAF7A',
+  reagentSoft: 'FFE4F5EF',
+  acid93: 'FFEB6834',
+  acid93Soft: 'FFFDEBE4',
+  graySoft: 'FFF5F5F3',
+} as const;
+
 /** 登录页与《以硫为源》影片共用的浅蓝纸面配色。 */
 export const loginPalette = {
   paper: '#F5F8FC',
