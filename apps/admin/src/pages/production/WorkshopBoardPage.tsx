@@ -190,6 +190,19 @@ export function WorkshopBoardPage() {
   const tDay = activeDate ? thermalMap.get(activeDate) : undefined;
   const tPrevDay = activeIdx > 0 ? thermalMap.get(validSeries[activeIdx - 1].label) : undefined;
   const tDays = series.map((s) => thermalMap.get(s.label));
+  // 供汽来源图显示实际供给：正常日为热电自产，停车日为建滔代供。
+  // 热电自产的 KPI、合计和计划达成仍使用 overview 中的产供值，避免把建滔计入热电。
+  const thermalSourceValue = (label: string, own: number | null) => {
+    const day = thermalMap.get(label);
+    return day?.sulfuricStopped ? day.jiantaoSupply : own;
+  };
+  const thermalSourceSeries = series.map((day) => ({ ...day, value: thermalSourceValue(day.label, day.value) }));
+  const thermalSourceWeekSeries = weeklyChartSeries.map((day) => ({ ...day, value: thermalSourceValue(day.label, day.value) }));
+  const thermalSourceAnnualSeries = workshopMonthlySeries(allDates,
+    allDates.map((date, index) => thermalSourceValue(date, workshop?.values[index] ?? null)), monthKey.slice(0, 4));
+  const thermalSourceValues = thermalSourceSeries.flatMap((day) => day.value === null ? [] : [day.value]);
+  const thermalSourceAvg = thermalSourceValues.length
+    ? thermalSourceValues.reduce((sum, value) => sum + value, 0) / thermalSourceValues.length : null;
   const featuredMetrics = detailed.data?.metrics.filter((metric) => metric.featured) ?? [];
   const sDays = series.map((s) => dayMap.get(s.label));
   const meterColumns = [...new Map((sulfuric.data?.days ?? [])
@@ -237,13 +250,12 @@ export function WorkshopBoardPage() {
     if (isThermal) {
       const days = monthly ? (thermal.data?.days ?? []).filter((day) => day.date.startsWith(label)) : [thermalMap.get(label)];
       if (!days.some(Boolean)) return null;
-      const totalOf = (field: 'totalSupply' | 'externalTotal' | 'internalTotal' | 'jiantaoSupply' | 'selfSupply') => sumOrNull(days.map((day) => day?.[field]));
+      const totalOf = (field: 'externalTotal' | 'internalTotal' | 'jiantaoSupply' | 'selfSupply') => sumOrNull(days.map((day) => day?.[field]));
       return [
-        { name: '总供汽', value: quantity(totalOf('totalSupply'), 't'), color: PALETTE.brand },
         { name: '热电自供', value: quantity(totalOf('selfSupply'), 't'), color: PALETTE.brand },
         { name: '建滔供气', value: quantity(totalOf('jiantaoSupply'), 't'), color: 'var(--hg-danger)' },
-        { name: '外供蒸汽', value: quantity(totalOf('externalTotal'), 't'), color: PALETTE.fuming },
-        { name: '内部供汽', value: quantity(totalOf('internalTotal'), 't'), color: PALETTE.reagent },
+        { name: '热电外供', value: quantity(totalOf('externalTotal'), 't'), color: PALETTE.fuming },
+        { name: '热电内供', value: quantity(totalOf('internalTotal'), 't'), color: PALETTE.reagent },
         { name: '自发电', value: quantity(sumOrNull(days.map((day) => day?.generation.value)), 'kWh'), color: PALETTE.gray },
       ];
     }
@@ -407,7 +419,7 @@ export function WorkshopBoardPage() {
       {workshop ? (
         <div className="kpis enter d1" style={{ gridTemplateColumns: `repeat(${kpiCount}, minmax(0, 1fr))` }}>
           <Kpi
-            label={`${isSulfuric ? '折 98% 产量' : isThermal ? '总供汽' : isFenglian ? '干料打包' : '日产量'} · ${activeDate?.slice(5) ?? '—'}`}
+            label={`${isSulfuric ? '折 98% 产量' : isThermal ? '热电自产供汽' : isFenglian ? '干料打包' : '日产量'} · ${activeDate?.slice(5) ?? '—'}`}
             value={fmtRecorded(activeValue)}
             unit="t"
             delta={pctChange(activeValue, prevValue)}
@@ -425,8 +437,8 @@ export function WorkshopBoardPage() {
             <Kpi label="双氧水消耗" value={fmtRecorded(sDay?.peroxide)} unit="t" delta={pctChange(sDay?.peroxide, prevDay?.peroxide)} good="down" spark={peroxideSeries} />
             <Kpi label="工业用水消耗" value={fmtRecorded(sDay?.water)} unit="m³" delta={pctChange(sDay?.water, prevDay?.water)} good="down" spark={waterSeries} />
           </> : isThermal ? <>
-            <Kpi label="外供蒸汽" value={fmtRecorded(tDay?.externalTotal)} unit="t" delta={pctChange(tDay?.externalTotal, tPrevDay?.externalTotal)} spark={tDays.map((day) => day?.externalTotal ?? null)} />
-            <Kpi label="内部供汽" value={fmtRecorded(tDay?.internalTotal)} unit="t" delta={pctChange(tDay?.internalTotal, tPrevDay?.internalTotal)} spark={tDays.map((day) => day?.internalTotal ?? null)} />
+            <Kpi label="热电外供" value={fmtRecorded(tDay?.externalTotal)} unit="t" delta={pctChange(tDay?.externalTotal, tPrevDay?.externalTotal)} spark={tDays.map((day) => day?.externalTotal ?? null)} />
+            <Kpi label="热电内供" value={fmtRecorded(tDay?.internalTotal)} unit="t" delta={pctChange(tDay?.internalTotal, tPrevDay?.internalTotal)} spark={tDays.map((day) => day?.internalTotal ?? null)} />
             <Kpi label="自发电" value={fmtRecorded(tDay?.generation.value)} unit="kWh" delta={pctChange(tDay?.generation.value, tPrevDay?.generation.value)} spark={tDays.map((day) => day?.generation.value ?? null)} />
             <Kpi label="总水表供水" value={fmtRecorded(tDay?.water.value)} unit="m³" delta={pctChange(tDay?.water.value, tPrevDay?.water.value)} spark={tDays.map((day) => day?.water.value ?? null)} />
             <Kpi label="蒸汽总表" value={fmtRecorded(tDay?.steamMeter.value)} unit="t" delta={pctChange(tDay?.steamMeter.value, tPrevDay?.steamMeter.value)} spark={tDays.map((day) => day?.steamMeter.value ?? null)} />
@@ -468,20 +480,22 @@ export function WorkshopBoardPage() {
         <div className="card enter d2" style={{ marginTop: 16, padding: '18px 20px' }}>
           <div className="split">
             <div className="left">
-              <div className="ct" style={{ marginBottom: 14 }}>
-                <b>{panelMode === 'day' ? (isThermal ? '日供汽量' : isFenglian ? '干料打包数' : '日产量') : panelMode === 'week' ? (isThermal ? '周供汽量' : isFenglian ? '周干料打包数' : '周产量') : (isThermal ? '月供汽量' : isFenglian ? '月干料打包数' : '月产量')}</b>
+              <div className={`ct${isThermal ? ' thermal-chart-heading' : ''}`} style={{ marginBottom: 14 }}>
+                <b>{isThermal ? '供汽来源量' : panelMode === 'day' ? (isFenglian ? '干料打包数' : '日产量') : panelMode === 'week' ? (isFenglian ? '周干料打包数' : '周产量') : (isFenglian ? '月干料打包数' : '月产量')}</b>
                 <div className="r lg">
-                  {panelMode !== 'month' ? <span><i style={{ width: 12, height: 0, borderTop: '1px dashed var(--ink3)', borderRadius: 0, verticalAlign: 3 }} />月均 {fmtRecorded(avg)}</span> : null}
+                  {panelMode !== 'month' ? <span><i style={{ width: 12, height: 0, borderTop: '1px dashed var(--ink3)', borderRadius: 0, verticalAlign: 3 }} />月均 {fmtRecorded(isThermal ? thermalSourceAvg : avg)}</span> : null}
                   <span><i style={{ background: isThermal && panelMode === 'day' && tDay?.sulfuricStopped ? 'var(--hg-danger)' : 'var(--hg-brand)' }} />{panelMode === 'day' ? '选中日' : panelMode === 'week' ? '选中周' : '选中月'}</span>
                   {isThermal && panelMode !== 'month' ? <span><i style={{ background: 'var(--hg-danger)' }} />硫酸停车 · 建滔供气</span> : null}
                 </div>
               </div>
               <MonthBars
-                data={panelMode === 'month' ? annualSeries : panelMode === 'week' ? weeklyChartSeries : series}
+                data={isThermal
+                  ? panelMode === 'month' ? thermalSourceAnnualSeries : panelMode === 'week' ? thermalSourceWeekSeries : thermalSourceSeries
+                  : panelMode === 'month' ? annualSeries : panelMode === 'week' ? weeklyChartSeries : series}
                 unit={workshop.unit}
                 tooltipOf={tooltipOf}
                 showAverage={panelMode !== 'month'}
-                averageValue={panelMode === 'week' ? avg ?? 0 : undefined}
+                averageValue={panelMode === 'week' ? (isThermal ? thermalSourceAvg : avg) ?? 0 : undefined}
                 selected={panelMode === 'day' ? activeDate : panelMode === 'month' ? monthKey : null}
                 highlightRange={panelMode === 'week' ? { start: activeWeek, end: weekEnd } : undefined}
                 barAccentOf={isThermal && panelMode !== 'month' ? (label) => thermalMap.get(label)?.sulfuricStopped ? 'var(--hg-danger)' : null : undefined}
@@ -507,7 +521,7 @@ export function WorkshopBoardPage() {
                 </div>
               </div>
               <div style={{ marginTop: 12 }}>
-                <div className="faint" style={{ fontSize: 13 }}>{isSulfuric ? '折 98% 合计' : isThermal ? '总供汽' : isFenglian ? '干料打包数' : panelMode === 'day' ? detailed.data?.productionLabel ?? '日产量' : panelMode === 'week' ? '本周合计' : '本月合计'}</div>
+                <div className="faint" style={{ fontSize: 13 }}>{isSulfuric ? '折 98% 合计' : isThermal ? '热电自产供汽' : isFenglian ? '干料打包数' : panelMode === 'day' ? detailed.data?.productionLabel ?? '日产量' : panelMode === 'week' ? '本周合计' : '本月合计'}</div>
                 <div className="kv" style={{ fontSize: 28 }}>
                   {fmtRecorded(isSulfuric ? (panelHasData ? panelTotal : null) : panelMode === 'day' ? activeValue : panelMode === 'week' ? weeklyTotal : validSeries.length ? total : null)}
                   <small>t</small>

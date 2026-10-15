@@ -232,15 +232,19 @@ export class OverviewService {
       return values.every((value): value is number => value !== null)
         ? +values.reduce<number>((sum, value) => sum + value!, 0).toFixed(3) : null;
     };
-    const externalTotal = totalOf('external');
-    const internalTotal = totalOf('internal');
-    const totalSupply = externalTotal !== null && internalTotal !== null ? +(externalTotal + internalTotal).toFixed(3) : null;
+    const deliveredExternalTotal = totalOf('external');
+    const deliveredInternalTotal = totalOf('internal');
+    const deliveredTotal = deliveredExternalTotal !== null && deliveredInternalTotal !== null
+      ? +(deliveredExternalTotal + deliveredInternalTotal).toFixed(3) : null;
     const sulfuricStopped = current?.field_sulfuric_stopped === '是';
-    // 硫酸停车时热电没有自供汽源：各去向的表差仍照常统计，来源全部归建滔。
-    const jiantaoSupply = totalSupply === null ? null : sulfuricStopped ? totalSupply : 0;
+    // 分路表差是实际送达量；停车日来源全部归建滔，不计入热电的外供、内供与总供汽。
+    const externalTotal = sulfuricStopped ? 0 : deliveredExternalTotal;
+    const internalTotal = sulfuricStopped ? 0 : deliveredInternalTotal;
+    const totalSupply = sulfuricStopped ? 0 : deliveredTotal;
+    const jiantaoSupply = deliveredTotal === null ? null : sulfuricStopped ? deliveredTotal : 0;
     return {
-      date, sulfuricStopped, outlets, externalTotal, internalTotal, totalSupply, jiantaoSupply,
-      selfSupply: totalSupply === null ? null : sulfuricStopped ? 0 : totalSupply,
+      date, sulfuricStopped, outlets, deliveredExternalTotal, externalTotal, internalTotal, totalSupply, jiantaoSupply,
+      selfSupply: totalSupply,
       generation: meter('field_condenser_gen_active', 12000),
       water: meter('field_water_meter'),
       steamMeter: meter('field_steam_meter'),

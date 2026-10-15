@@ -301,7 +301,7 @@ export class PlanService {
     addProductSales('发烟硫酸', salesForm, ['field_fuming_acid_sales']);
     addProductSales('试剂酸', salesForm, ['field_reagent_acid_sales']);
     productSalesOfDay.set('外供蒸汽', new Map(thermal.days.flatMap((day) =>
-      day.externalTotal === null ? [] : [[day.date, day.externalTotal] as const])));
+      day.deliveredExternalTotal === null ? [] : [[day.date, day.deliveredExternalTotal] as const])));
     addProductSales('氨基磺酸', finishedForm, [fieldByTitle('氨基磺酸销量')].filter((field): field is string => !!field));
     addProductSales('硫酸镁', finishedForm, [fieldByTitle('硫酸镁销量')].filter((field): field is string => !!field));
     addProductSales('水滑石', finishedForm, ['HG-200销量', 'HG-200A销量', 'HG-201销量', 'HG-300销量', 'HG-205销量']

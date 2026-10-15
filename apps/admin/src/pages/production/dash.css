@@ -233,6 +233,7 @@
 .thermal-panel .thermal-stop-label{color:var(--hg-danger);font-weight:600}
 .thermal-panel .thermal-source-row{padding-inline:8px;border-radius:var(--hg-radius-tag)}
 .thermal-panel .thermal-source-row.is-stopped{background:var(--hg-danger-soft);color:var(--hg-danger)}
+@media(max-width:760px){.thermal-chart-heading,.thermal-chart-heading .r{flex-wrap:wrap}}
 .thermal-table .detail-group-head th:last-child,.thermal-table .detail-group-head th:nth-last-child(2){white-space:nowrap}
 .amino-stock-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .fenglian-stock-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}

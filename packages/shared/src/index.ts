@@ -454,13 +454,19 @@ export interface ThermalDaySummary {
   date: string;
   /** 填报次日勾选停车，归属本日；空值表示未标记停车。 */
   sulfuricStopped: boolean;
+  /** 分路表差：外部客户实际收到的量，含建滔来源，供销量统计使用。 */
+  deliveredExternalTotal: number | null;
+  /** 各去向原始表差；停车日仍记录建滔实际送达量。 */
   outlets: Record<string, ThermalMeterValue>;
+  /** 热电自产蒸汽流向外部的量；停车日为 0。 */
   externalTotal: number | null;
+  /** 热电自产蒸汽流向内部的量；停车日为 0。 */
   internalTotal: number | null;
+  /** 热电自产的总供汽量；停车日为 0，不含建滔供气。 */
   totalSupply: number | null;
-  /** 停车日全部供汽归建滔；未停车日为 0。 */
+  /** 停车日所有分路送达量归建滔；未停车日为 0。 */
   jiantaoSupply: number | null;
-  /** 停车日为 0；未停车日为总供汽。 */
+  /** 与热电自产总供汽相同，供来源拆分展示。 */
   selfSupply: number | null;
   generation: ThermalMeterValue;
   water: ThermalMeterValue;

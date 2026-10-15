@@ -405,7 +405,7 @@ describe('production 硫酸生产指标', () => {
     await http(app).get('/api/production/thermal?days=0').set('Authorization', `Bearer ${userToken}`).expect(200);
     const res = await http(app).get('/api/production/thermal?days=0').set('Authorization', `Bearer ${token}`).expect(200);
     const day = res.body.days.find((item: { date: string }) => item.date === '2026-10-01');
-    expect(day).toMatchObject({ externalTotal: 34, internalTotal: 37, totalSupply: 71,
+    expect(day).toMatchObject({ deliveredExternalTotal: 34, externalTotal: 34, internalTotal: 37, totalSupply: 71,
       sulfuricStopped: false, jiantaoSupply: 0, selfSupply: 71,
       generation: { previousReading: 10, currentReading: 10.5, delta: 0.5, value: 6000 },
       water: { value: 25 }, steamMeter: { value: 80 } });
@@ -413,11 +413,12 @@ describe('production 硫酸生产指标', () => {
     expect(day.outlets.jianheng).toMatchObject({ previousReading: 100, currentReading: 110, value: 10 });
     expect(day.outlets.xuguang).toMatchObject({ previousReading: 200, currentReading: 5, delta: 5, value: 5, reset: true });
     expect(res.body.days.find((item: { date: string }) => item.date === '2026-10-03'))
-      .toMatchObject({ sulfuricStopped: true, totalSupply: null, jiantaoSupply: null, selfSupply: null });
+      .toMatchObject({ sulfuricStopped: true, externalTotal: 0, internalTotal: 0,
+        totalSupply: 0, jiantaoSupply: null, selfSupply: 0 });
     const overview = await http(app).get('/api/production/workshops?days=0').set('Authorization', `Bearer ${token}`).expect(200);
     expect(overview.body.workshops.find((item: { code: string }) => item.code === 'thermal').values[overview.body.dates.indexOf('2026-10-01')]).toBe(71);
 
-    // 填报日 10-11 勾选停车，归属 10-10 的表差；总供汽全由建滔供应，去向及总量不重复增加。
+    // 填报日 10-11 勾选停车，归属 10-10 的表差；热电产供为 0，建滔供气单列。
     await put({ field_date: '2026-10-10', field_jianheng_steam: 100, field_xuguang_steam: 100,
       field_xinkesi_steam: 100, field_lihong_steam: 100, field_xiangshuo_steam: 100, field_fenglian_steam: 100,
       field_amino_steam: 100, field_mgso4_steam: 100, field_hydrotalcite_steam: 100, field_deaq_steam: 100 });
@@ -429,9 +430,12 @@ describe('production 硫酸生产指标', () => {
       field_amino_steam: 102, field_mgso4_steam: 103, field_hydrotalcite_steam: 104, field_deaq_steam: 105 });
     const source = await http(app).get('/api/production/thermal?days=0').set('Authorization', `Bearer ${token}`).expect(200);
     const stoppedDay = source.body.days.find((item: { date: string }) => item.date === '2026-10-10');
-    expect(stoppedDay).toMatchObject({ sulfuricStopped: true, externalTotal: 10, internalTotal: 10,
-      totalSupply: 20, jiantaoSupply: 20, selfSupply: 0 });
+    expect(stoppedDay).toMatchObject({ sulfuricStopped: true, deliveredExternalTotal: 10, externalTotal: 0, internalTotal: 0,
+      totalSupply: 0, jiantaoSupply: 20, selfSupply: 0 });
     expect(stoppedDay.outlets.fenglian.value).toBe(5);
+    const sourceOverview = await http(app).get('/api/production/workshops?days=0').set('Authorization', `Bearer ${token}`).expect(200);
+    expect(sourceOverview.body.workshops.find((item: { code: string }) => item.code === 'thermal')
+      .values[sourceOverview.body.dates.indexOf('2026-10-10')]).toBe(0);
     expect(source.body.days.find((item: { date: string }) => item.date === '2026-10-11'))
       .toMatchObject({ sulfuricStopped: false, totalSupply: 10, jiantaoSupply: 0, selfSupply: 10 });
   });
