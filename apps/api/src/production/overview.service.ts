@@ -234,9 +234,13 @@ export class OverviewService {
     };
     const externalTotal = totalOf('external');
     const internalTotal = totalOf('internal');
+    const totalSupply = externalTotal !== null && internalTotal !== null ? +(externalTotal + internalTotal).toFixed(3) : null;
+    const sulfuricStopped = current?.field_sulfuric_stopped === '是';
+    // 硫酸停车时热电没有自供汽源：各去向的表差仍照常统计，来源全部归建滔。
+    const jiantaoSupply = totalSupply === null ? null : sulfuricStopped ? totalSupply : 0;
     return {
-      date, outlets, externalTotal, internalTotal,
-      totalSupply: externalTotal !== null && internalTotal !== null ? +(externalTotal + internalTotal).toFixed(3) : null,
+      date, sulfuricStopped, outlets, externalTotal, internalTotal, totalSupply, jiantaoSupply,
+      selfSupply: totalSupply === null ? null : sulfuricStopped ? 0 : totalSupply,
       generation: meter('field_condenser_gen_active', 12000),
       water: meter('field_water_meter'),
       steamMeter: meter('field_steam_meter'),

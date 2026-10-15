@@ -192,6 +192,7 @@ export function MonthBars({
   showAverage = true,
   averageValue,
   highlightRange,
+  barAccentOf,
   axisLabelOf = (label: string) => label.slice(5),
   tooltipTitleOf = (label: string) => label,
 }: {
@@ -206,6 +207,8 @@ export function MonthBars({
   showAverage?: boolean;
   averageValue?: number | null;
   highlightRange?: { start: string; end: string };
+  /** 给有明确业务含义的日期指定强调色，选中或悬停时保留该颜色。 */
+  barAccentOf?: (label: string) => string | null;
   axisLabelOf?: (label: string) => string;
   tooltipTitleOf?: (label: string) => string;
 }) {
@@ -271,6 +274,7 @@ export function MonthBars({
           const x = padL + i * slot + (slot - barW) / 2;
           const isSel = d.label === selected;
           const isWeek = highlightRange && d.label >= highlightRange.start && d.label <= highlightRange.end;
+          const barAccent = barAccentOf?.(d.label);
           const label = d.value === null ? '' : displayValue(d.value);
           const nearestLabelGap = Math.min(...occupied.filter((index) => index !== i).map((index) => Math.abs(index - i) * slot), Infinity);
           const showLabel = isSel || d.label === hover || (!sourcePrecision ? slot >= 15 : nearestLabelGap >= label.length * 6 + 6);
@@ -285,11 +289,13 @@ export function MonthBars({
                       top: yOf(d.value),
                       width: barW,
                       height: Math.max(1, padT + plotH - yOf(d.value)),
-                      background: isSel || isWeek || d.label === hover ? 'var(--hg-brand)' : 'color-mix(in srgb, var(--hg-brand) 32%, var(--hg-bg))',
+                      background: barAccent
+                        ? isSel || isWeek || d.label === hover ? barAccent : `color-mix(in srgb, ${barAccent} 76%, var(--hg-bg))`
+                        : isSel || isWeek || d.label === hover ? 'var(--hg-brand)' : 'color-mix(in srgb, var(--hg-brand) 32%, var(--hg-bg))',
                     }}
                   />
                   {showLabel ? (
-                    <div className="bv" style={{ left: x + barW / 2, top: yOf(d.value) - 16, color: isSel ? 'var(--ink)' : 'var(--ink2)', fontWeight: isSel ? 600 : 400 }}>
+                    <div className="bv" style={{ left: x + barW / 2, top: yOf(d.value) - 16, color: barAccent ?? (isSel ? 'var(--ink)' : 'var(--ink2)'), fontWeight: isSel || barAccent ? 600 : 400 }}>
                       {label}
                     </div>
                   ) : null}

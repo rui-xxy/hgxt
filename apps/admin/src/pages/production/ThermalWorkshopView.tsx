@@ -20,7 +20,20 @@ const meterDefinitions = [
 export function ThermalPanel({ data, days }: { data: ThermalSummaryResult; days: Array<ThermalDaySummary | undefined> }) {
   const [group, setGroup] = useState<ThermalGroup>('external');
   const outlets = data.outlets.filter((item) => item.group === group);
+  const stoppedDays = days.filter((day) => day?.sulfuricStopped).length;
+  const stoppedDay = days.length === 1 && stoppedDays === 1;
   return <div className="amino-panel thermal-panel">
+    <div className="amino-panel-group">
+      <div className="amino-panel-heading">供汽来源<span className={stoppedDays ? 'thermal-stop-label' : ''}>{stoppedDays ? `硫酸停车 ${stoppedDays} 天` : '硫酸运行'}</span></div>
+      <div className="amino-panel-row" style={accent(PALETTE.brand)}>
+        <span className="amino-panel-name"><i />热电自供</span>
+        <strong>{quantity(sum(days.map((day) => day?.selfSupply)), 't')}</strong>
+      </div>
+      <div className={`amino-panel-row thermal-source-row${stoppedDay ? ' is-stopped' : ''}`} style={accent('var(--hg-danger)')}>
+        <span className="amino-panel-name"><i />建滔供气</span>
+        <strong>{quantity(sum(days.map((day) => day?.jiantaoSupply)), 't')}</strong>
+      </div>
+    </div>
     <Seg options={[{ label: '外供', value: 'external' }, { label: '内供', value: 'internal' }, { label: '电与水', value: 'meters' }]} value={group} onChange={(value) => setGroup(value as ThermalGroup)} />
     <div className="amino-panel-group">
       <div className="amino-panel-heading">{group === 'external' ? '外供蒸汽' : group === 'internal' ? '内部供汽' : '其他计量'}<span>{group === 'meters' ? '计量值' : '供汽量'}</span></div>
@@ -49,7 +62,7 @@ export function ThermalTable({ data, tab, entries, activeDate, onSelect }: {
     const dates = entry.kind === 'summary' ? data.days.filter((day) => day.date.startsWith(entry.month)) : [];
     return { entry, days: entry.kind === 'summary' ? dates : [dayMap.get(entry.date)] };
   });
-  const total = (days: Array<ThermalDaySummary | undefined>, field: 'externalTotal' | 'internalTotal' | 'totalSupply') => sum(days.map((day) => day?.[field]));
+  const total = (days: Array<ThermalDaySummary | undefined>, field: 'externalTotal' | 'internalTotal' | 'totalSupply' | 'jiantaoSupply' | 'selfSupply') => sum(days.map((day) => day?.[field]));
   const meterTotal = (days: Array<ThermalDaySummary | undefined>, field: typeof meterDefinitions[number]['key']) => sum(days.map((day) => day?.[field].value));
   const outletTotal = (days: Array<ThermalDaySummary | undefined>, outlet: ThermalOutletDefinition) => sum(days.map((day) => day?.outlets[outlet.key]?.value));
   return <div className="scrolltbl">
@@ -58,10 +71,14 @@ export function ThermalTable({ data, tab, entries, activeDate, onSelect }: {
         <tr className="grp detail-group-head">
           <th rowSpan={2} className="detail-date-head">日期</th>
           <th rowSpan={2} className="detail-total-cell">总供汽 t</th>
+          <th colSpan={3} className="colored-group-head" style={accent('var(--hg-danger)')}>供汽来源 · t</th>
           <th colSpan={external.length + 1} className="colored-group-head" style={accent(colors.external)}>外供蒸汽 · t</th>
           <th colSpan={internal.length + 1} className="colored-group-head" style={accent(colors.internal)}>内部供汽 · t</th>
         </tr>
         <tr className="detail-subhead">
+          <th className="band-cell" style={accent('var(--hg-danger)')}>硫酸停车</th>
+          <th className="band-cell" style={accent(PALETTE.brand)}>热电自供</th>
+          <th className="band-cell" style={accent('var(--hg-danger)')}>建滔供气</th>
           {external.map((outlet) => <th key={outlet.key} className="band-cell" style={accent(colors.external)}>{outlet.name}</th>)}
           <th className="band-cell" style={accent(colors.external)}>外供合计</th>
           {internal.map((outlet) => <th key={outlet.key} className="band-cell" style={accent(colors.internal)}>{outlet.name}</th>)}
@@ -78,13 +95,16 @@ export function ThermalTable({ data, tab, entries, activeDate, onSelect }: {
         </tr>
       </>}</thead>
       <tbody>
-        {!rows.length && <tr><td colSpan={tab === 'prod' ? 14 : 4}>所选日期内暂无数据</td></tr>}
+        {!rows.length && <tr><td colSpan={tab === 'prod' ? external.length + internal.length + 7 : 4}>所选日期内暂无数据</td></tr>}
         {rows.map(({ entry, days }) => <tr key={entry.kind === 'summary' ? `sum-${entry.month}` : entry.date}
           className={`${entry.kind === 'summary' ? 'sum' : 'clickrow'}${entry.kind === 'day' && entry.date === activeDate ? ' on' : ''}`}
           onClick={entry.kind === 'day' ? () => onSelect(entry.date) : undefined}>
           <td>{entry.kind === 'summary' ? '合计' : entry.date.slice(5)}</td>
           {tab === 'prod' ? <>
             <td className="detail-total-cell">{fmtRecorded(total(days, 'totalSupply'))}</td>
+            <td className="band-cell" style={accent('var(--hg-danger)')}>{entry.kind === 'summary' ? `${days.filter((day) => day?.sulfuricStopped).length} 天` : days[0]?.sulfuricStopped ? '是' : '—'}</td>
+            <td className="band-cell" style={accent(PALETTE.brand)}>{fmtRecorded(total(days, 'selfSupply'))}</td>
+            <td className="band-cell" style={accent('var(--hg-danger)')}>{fmtRecorded(total(days, 'jiantaoSupply'))}</td>
             {external.map((outlet) => <td key={outlet.key} className="band-cell" style={accent(colors.external)}>{fmtRecorded(outletTotal(days, outlet))}</td>)}
             <td className="band-cell" style={accent(colors.external)}>{fmtRecorded(total(days, 'externalTotal'))}</td>
             {internal.map((outlet) => <td key={outlet.key} className="band-cell" style={accent(colors.internal)}>{fmtRecorded(outletTotal(days, outlet))}</td>)}

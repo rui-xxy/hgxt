@@ -27,4 +27,21 @@ describe('车间上报值显示', () => {
     expect(container.textContent).not.toContain('999999');
     vi.unstubAllGlobals();
   });
+
+  it('停车日的柱子在选中和普通状态下都保留来源强调色', () => {
+    vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
+    const { container, rerender } = render(createElement(MonthBars, {
+      data: [{ label: '2026-09-28', value: 591 }, { label: '2026-09-29', value: 529 }],
+      unit: 't', selected: '2026-09-28', onSelect: () => {},
+      barAccentOf: (label: string) => label === '2026-09-29' ? 'var(--hg-danger)' : null,
+    }));
+    expect(container.querySelectorAll<HTMLElement>('.cbar')[1].style.background).toContain('var(--hg-danger)');
+    rerender(createElement(MonthBars, {
+      data: [{ label: '2026-09-28', value: 591 }, { label: '2026-09-29', value: 529 }],
+      unit: 't', selected: '2026-09-29', onSelect: () => {},
+      barAccentOf: (label: string) => label === '2026-09-29' ? 'var(--hg-danger)' : null,
+    }));
+    expect(container.querySelectorAll<HTMLElement>('.cbar')[1].style.background).toBe('var(--hg-danger)');
+    vi.unstubAllGlobals();
+  });
 });

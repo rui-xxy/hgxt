@@ -452,10 +452,16 @@ export interface ThermalOutletDefinition {
 
 export interface ThermalDaySummary {
   date: string;
+  /** 填报次日勾选停车，归属本日；空值表示未标记停车。 */
+  sulfuricStopped: boolean;
   outlets: Record<string, ThermalMeterValue>;
   externalTotal: number | null;
   internalTotal: number | null;
   totalSupply: number | null;
+  /** 停车日全部供汽归建滔；未停车日为 0。 */
+  jiantaoSupply: number | null;
+  /** 停车日为 0；未停车日为总供汽。 */
+  selfSupply: number | null;
   generation: ThermalMeterValue;
   water: ThermalMeterValue;
   steamMeter: ThermalMeterValue;

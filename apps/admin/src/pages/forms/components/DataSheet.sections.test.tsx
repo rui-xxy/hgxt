@@ -169,3 +169,29 @@ describe('普通日报表新增行', () => {
     expect(container.querySelector('tbody td[title="91"]')).not.toBeNull();
   });
 });
+
+describe('热电停车选择', () => {
+  it('表格中可直接标记停车，也可清回空值', () => {
+    Element.prototype.scrollTo = vi.fn();
+    const client = new QueryClient();
+    const thermalSchema: FormField[] = [
+      { id: 'field_date', title: '日期', type: 'date', required: true },
+      { id: 'field_sulfuric_stopped', title: '硫酸是否停车', type: 'select', options: [{ label: '是', value: '是' }], width: 132 },
+    ];
+    render(<QueryClientProvider client={client}><App>
+      <DataSheet formId="thermal-1" formTitle="热电车间报表" parkingEnabled={false} schema={thermalSchema}
+        submissions={[{ ...submission, data: { field_date: '2026-10-15' } }]} total={1}
+        scrollPositionRef={{ current: { left: 0, top: 0 } }} />
+    </App></QueryClientProvider>);
+    const stopButton = screen.getByRole('button', { name: '第 1 行硫酸是否停车：点击标记停车' });
+    expect(stopButton.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(stopButton);
+    expect(stopButton.getAttribute('aria-pressed')).toBe('true');
+    expect(stopButton.textContent).toBe('已停车');
+    expect(screen.getByText(/有未保存的更改/)).toBeTruthy();
+    fireEvent.click(stopButton);
+    expect(stopButton.getAttribute('aria-pressed')).toBe('false');
+    expect(stopButton.textContent).toBe('停车');
+    expect(screen.queryByText(/有未保存的更改/)).toBeNull();
+  });
+});

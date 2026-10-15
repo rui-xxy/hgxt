@@ -9,6 +9,7 @@ import { pagedViewportStyle } from '../../../styles/pagedViewport';
 import { ParkingEditor } from './ParkingEditor';
 import { parseParking, serializeParking } from './parking';
 import { cellValuesEqual, displaySheetCell, parseSheetCell, sheetDataEqual } from './sheetValues';
+import { ThermalStopButton } from './ThermalStopButton';
 
 interface SheetRow { key: string; id?: string; data: FormData; original: FormData; }
 interface Cell { key: string; col: number; }
@@ -171,6 +172,11 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
     replaceRows(current.map((item) => item.key === cell.key ? { ...item, data: { ...item.data, [field.id]: parsed.value } } : item));
     setSaved(false);
     return true;
+  };
+  const changeThermalStop = (cell: Cell, stopped: boolean) => {
+    if (editing && !commit(editing, draft)) return;
+    setEditing(null);
+    commit(cell, stopped ? '是' : '');
   };
   const enter = (key: string, col: number) => {
     const index = rowsRef.current.findIndex((item) => item.key === key);
@@ -396,8 +402,10 @@ export function DataSheet({ formId, formTitle, parkingEnabled, schema, submissio
             {visibleSchema.map((field, col) => {
               const active = editing?.key === row.key && editing.col === col;
               const changed = !!row.id && !cellValuesEqual(field, row.data[field.id], row.original[field.id]);
-              return <td key={field.id} ref={active ? activeCellRef : undefined} title={displaySheetCell(row.data[field.id])} className={`forms-sheet-cell forms-sheet-tone-${groupIndexes[col] % 2} ${col === 0 ? 'forms-sheet-sticky forms-sheet-date' : ''} ${changed ? 'forms-sheet-changed' : ''} ${active ? 'forms-sheet-active' : ''}`} style={col === 0 ? { left: leadingWidth } : undefined} onPointerDown={(event) => { if (!active && !mutation.isPending) { event.preventDefault(); if (field.id === 'field_notes') setNotesEditor({ rowKey: row.key, value: displaySheetCell(row.data[field.id]) }); else switchTo({ key: row.key, col }); } }}>
-                {active ? field.multiple && field.options
+              return <td key={field.id} ref={active ? activeCellRef : undefined} title={field.id === 'field_sulfuric_stopped' ? undefined : displaySheetCell(row.data[field.id])} className={`forms-sheet-cell forms-sheet-tone-${groupIndexes[col] % 2} ${col === 0 ? 'forms-sheet-sticky forms-sheet-date' : ''} ${changed ? 'forms-sheet-changed' : ''} ${active ? 'forms-sheet-active' : ''}`} style={col === 0 ? { left: leadingWidth } : undefined} onPointerDown={(event) => { if (field.id === 'field_sulfuric_stopped') return; if (!active && !mutation.isPending) { event.preventDefault(); if (field.id === 'field_notes') setNotesEditor({ rowKey: row.key, value: displaySheetCell(row.data[field.id]) }); else switchTo({ key: row.key, col }); } }}>
+                {field.id === 'field_sulfuric_stopped'
+                  ? <ThermalStopButton compact label={`第 ${index + 1} 行硫酸是否停车`} stopped={row.data[field.id] === '是'} disabled={mutation.isPending} onChange={(stopped) => changeThermalStop({ key: row.key, col }, stopped)} />
+                  : active ? field.multiple && field.options
                   ? <Select mode="multiple" autoFocus defaultOpen showSearch optionFilterProp="label" aria-label={`第 ${index + 1} 行 ${field.title}`} className="forms-sheet-multiselect" popupMatchSelectWidth={false} maxTagCount={1} placeholder="选择部门" disabled={mutation.isPending} value={parseDepartmentNames(draft)} options={field.options} onChange={(values) => setDraft(values.join(','))} onBlur={() => finishEditing({ key: row.key, col })} />
                   : field.type === 'select'
                   ? <select ref={inputRef as React.RefObject<HTMLSelectElement>} aria-label={`第 ${index + 1} 行 ${field.title}`} disabled={mutation.isPending} value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={() => finishEditing({ key: row.key, col })} onKeyDown={handleCellKeyDown}><option value="">请选择</option>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>

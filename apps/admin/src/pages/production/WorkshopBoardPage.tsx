@@ -237,9 +237,11 @@ export function WorkshopBoardPage() {
     if (isThermal) {
       const days = monthly ? (thermal.data?.days ?? []).filter((day) => day.date.startsWith(label)) : [thermalMap.get(label)];
       if (!days.some(Boolean)) return null;
-      const totalOf = (field: 'totalSupply' | 'externalTotal' | 'internalTotal') => sumOrNull(days.map((day) => day?.[field]));
+      const totalOf = (field: 'totalSupply' | 'externalTotal' | 'internalTotal' | 'jiantaoSupply' | 'selfSupply') => sumOrNull(days.map((day) => day?.[field]));
       return [
         { name: '总供汽', value: quantity(totalOf('totalSupply'), 't'), color: PALETTE.brand },
+        { name: '热电自供', value: quantity(totalOf('selfSupply'), 't'), color: PALETTE.brand },
+        { name: '建滔供气', value: quantity(totalOf('jiantaoSupply'), 't'), color: 'var(--hg-danger)' },
         { name: '外供蒸汽', value: quantity(totalOf('externalTotal'), 't'), color: PALETTE.fuming },
         { name: '内部供汽', value: quantity(totalOf('internalTotal'), 't'), color: PALETTE.reagent },
         { name: '自发电', value: quantity(sumOrNull(days.map((day) => day?.generation.value)), 'kWh'), color: PALETTE.gray },
@@ -470,7 +472,8 @@ export function WorkshopBoardPage() {
                 <b>{panelMode === 'day' ? (isThermal ? '日供汽量' : isFenglian ? '干料打包数' : '日产量') : panelMode === 'week' ? (isThermal ? '周供汽量' : isFenglian ? '周干料打包数' : '周产量') : (isThermal ? '月供汽量' : isFenglian ? '月干料打包数' : '月产量')}</b>
                 <div className="r lg">
                   {panelMode !== 'month' ? <span><i style={{ width: 12, height: 0, borderTop: '1px dashed var(--ink3)', borderRadius: 0, verticalAlign: 3 }} />月均 {fmtRecorded(avg)}</span> : null}
-                  <span><i style={{ background: 'var(--hg-brand)' }} />{panelMode === 'day' ? '选中日' : panelMode === 'week' ? '选中周' : '选中月'}</span>
+                  <span><i style={{ background: isThermal && panelMode === 'day' && tDay?.sulfuricStopped ? 'var(--hg-danger)' : 'var(--hg-brand)' }} />{panelMode === 'day' ? '选中日' : panelMode === 'week' ? '选中周' : '选中月'}</span>
+                  {isThermal && panelMode !== 'month' ? <span><i style={{ background: 'var(--hg-danger)' }} />硫酸停车 · 建滔供气</span> : null}
                 </div>
               </div>
               <MonthBars
@@ -481,6 +484,7 @@ export function WorkshopBoardPage() {
                 averageValue={panelMode === 'week' ? avg ?? 0 : undefined}
                 selected={panelMode === 'day' ? activeDate : panelMode === 'month' ? monthKey : null}
                 highlightRange={panelMode === 'week' ? { start: activeWeek, end: weekEnd } : undefined}
+                barAccentOf={isThermal && panelMode !== 'month' ? (label) => thermalMap.get(label)?.sulfuricStopped ? 'var(--hg-danger)' : null : undefined}
                 onSelect={panelMode === 'day' ? setSelected : panelMode === 'week' ? (key) => selectWeek(weekStart(key)) : (key) => { setMonth(key); setSelected(null); setSelectedWeek(null); setDetailPage(0); }}
                 sourcePrecision
                 axisLabelOf={panelMode === 'month' ? (key) => `${Number(key.slice(5))}月` : undefined}

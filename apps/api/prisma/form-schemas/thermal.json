@@ -8,6 +8,16 @@
     "required": true
   },
   {
+    "id": "field_sulfuric_stopped",
+    "title": "硫酸是否停车",
+    "type": "select",
+    "group": "蒸汽流量计",
+    "width": 132,
+    "options": [
+      { "label": "是", "value": "是" }
+    ]
+  },
+  {
     "id": "field_jianheng_steam",
     "title": "建衡蒸汽流量计",
     "type": "number",
